@@ -126,6 +126,9 @@ const FarmerProductsPage = () => {
     
     const checkMobile = () => {
       setIsMobile(window.innerWidth < 1024);
+      if (window.innerWidth < 1024) {
+        setSidebarCollapsed(false);
+      }
     };
     
     checkMobile();
@@ -177,13 +180,14 @@ const FarmerProductsPage = () => {
         isMobile={isMobile}
         isOpen={isMobileMenuOpen}
         onClose={() => setIsMobileMenuOpen(false)}
+        userType="farmer"
       />
 
       <div className={`flex-1 flex flex-col bg-gray-50 transition-all duration-300 ${
-        isMobile ? 'ml-0' : (sidebarCollapsed ? 'ml-16' : 'ml-64')
+        isMobile ? 'ml-0' : (sidebarCollapsed ? 'ml-20' : 'ml-72')
       }`}>
         {/* Header */}
-        <header className="bg-white border-b border-gray-200 px-6 py-4">
+        <header className="bg-white border-b border-gray-200 px-4 lg:px-6 py-4">
           <div className="flex items-center justify-between">
             <div>
               <div className="flex items-center space-x-4">
@@ -194,19 +198,19 @@ const FarmerProductsPage = () => {
                   <LayoutGrid className="w-6 h-6" />
                 </button>
                 <div>
-                  <h1 className="text-2xl font-bold text-gray-900">My Products</h1>
+                  <h1 className="text-xl lg:text-2xl font-bold text-gray-900">My Products</h1>
                   <p className="text-sm text-gray-600 mt-1">Manage your farm products and inventory</p>
                 </div>
               </div>
             </div>
             
-            <div className="flex items-center space-x-4">
+            <div className="flex items-center space-x-2 lg:space-x-4">
               <div className="hidden md:flex items-center bg-gray-100 rounded-lg px-3 py-2">
                 <Search className="w-4 h-4 text-gray-500 mr-2" />
                 <input 
                   type="text" 
                   placeholder="Search products..."
-                  className="bg-transparent text-sm outline-none w-48"
+                  className="bg-transparent text-sm outline-none w-36 lg:w-48"
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
                 />
@@ -214,57 +218,57 @@ const FarmerProductsPage = () => {
               
               <button 
                 onClick={() => setShowAddModal(true)}
-                className="bg-emerald-600 text-white px-4 py-2 rounded-lg text-sm font-medium flex items-center hover:bg-emerald-700 transition-colors"
+                className="bg-emerald-600 text-white px-3 lg:px-4 py-2 rounded-lg text-sm font-medium flex items-center hover:bg-emerald-700 transition-colors"
               >
                 <Plus className="w-4 h-4 mr-2" />
-                Add Product
+                <span className="hidden sm:inline">Add Product</span>
               </button>
             </div>
           </div>
         </header>
 
         {/* Main Content */}
-        <main className="flex-1 overflow-auto p-6">
+        <main className="flex-1 overflow-auto p-4 lg:p-6">
           <div className="max-w-7xl mx-auto">
             {/* Stats Cards */}
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mb-6">
-              <div className="bg-white p-6 rounded-xl border border-gray-200">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 lg:gap-6 mb-6">
+              <div className="bg-white p-4 lg:p-6 rounded-xl border border-gray-200">
                 <div className="flex items-center justify-between">
                   <div>
                     <p className="text-sm text-gray-600">Total Products</p>
                     <p className="text-2xl font-bold text-gray-900">{products.length}</p>
                   </div>
-                  <Package className="w-8 h-8 text-emerald-500" />
+                  <Package className="w-6 lg:w-8 h-6 lg:h-8 text-emerald-500" />
                 </div>
               </div>
               
-              <div className="bg-white p-6 rounded-xl border border-gray-200">
+              <div className="bg-white p-4 lg:p-6 rounded-xl border border-gray-200">
                 <div className="flex items-center justify-between">
                   <div>
                     <p className="text-sm text-gray-600">Active Products</p>
                     <p className="text-2xl font-bold text-gray-900">{products.filter(p => p.status === 'active').length}</p>
                   </div>
-                  <CheckCircle className="w-8 h-8 text-green-500" />
+                  <CheckCircle className="w-6 lg:w-8 h-6 lg:h-8 text-green-500" />
                 </div>
               </div>
               
-              <div className="bg-white p-6 rounded-xl border border-gray-200">
+              <div className="bg-white p-4 lg:p-6 rounded-xl border border-gray-200">
                 <div className="flex items-center justify-between">
                   <div>
                     <p className="text-sm text-gray-600">Low Stock</p>
                     <p className="text-2xl font-bold text-gray-900">{products.filter(p => p.status === 'low_stock').length}</p>
                   </div>
-                  <AlertTriangle className="w-8 h-8 text-yellow-500" />
+                  <AlertTriangle className="w-6 lg:w-8 h-6 lg:h-8 text-yellow-500" />
                 </div>
               </div>
               
-              <div className="bg-white p-6 rounded-xl border border-gray-200">
+              <div className="bg-white p-4 lg:p-6 rounded-xl border border-gray-200">
                 <div className="flex items-center justify-between">
                   <div>
                     <p className="text-sm text-gray-600">Total Value</p>
-                    <p className="text-2xl font-bold text-gray-900">Rs. {products.reduce((acc, p) => acc + (p.price * p.stock), 0).toLocaleString()}</p>
+                    <p className="text-xl lg:text-2xl font-bold text-gray-900">Rs. {products.reduce((acc, p) => acc + (p.price * p.stock), 0).toLocaleString()}</p>
                   </div>
-                  <DollarSign className="w-8 h-8 text-blue-500" />
+                  <DollarSign className="w-6 lg:w-8 h-6 lg:h-8 text-blue-500" />
                 </div>
               </div>
             </div>
@@ -297,10 +301,10 @@ const FarmerProductsPage = () => {
             </div>
 
             {/* Products Grid */}
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 lg:gap-6">
               {filteredProducts.map((product) => (
                 <div key={product.id} className="bg-white rounded-xl border border-gray-200 overflow-hidden hover:shadow-lg transition-shadow">
-                  <div className="p-6">
+                  <div className="p-4 lg:p-6">
                     <div className="flex items-start justify-between mb-4">
                       <div className="flex items-center space-x-3">
                         <div className="w-12 h-12 bg-gray-100 rounded-lg flex items-center justify-center text-2xl">

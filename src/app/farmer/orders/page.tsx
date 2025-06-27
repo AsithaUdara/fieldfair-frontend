@@ -32,7 +32,6 @@ const FarmerOrdersPage = () => {
   const [mounted, setMounted] = useState(false);
   const [selectedFilter, setSelectedFilter] = useState('all');
   const [searchTerm, setSearchTerm] = useState('');
-  const [selectedOrder, setSelectedOrder] = useState(null);
 
   // Mock orders data
   const [orders, setOrders] = useState([
@@ -147,6 +146,9 @@ const FarmerOrdersPage = () => {
     
     const checkMobile = () => {
       setIsMobile(window.innerWidth < 1024);
+      if (window.innerWidth < 1024) {
+        setSidebarCollapsed(false);
+      }
     };
     
     checkMobile();
@@ -216,13 +218,14 @@ const FarmerOrdersPage = () => {
         isMobile={isMobile}
         isOpen={isMobileMenuOpen}
         onClose={() => setIsMobileMenuOpen(false)}
+        userType="farmer"
       />
 
       <div className={`flex-1 flex flex-col bg-gray-50 transition-all duration-300 ${
-        isMobile ? 'ml-0' : (sidebarCollapsed ? 'ml-16' : 'ml-64')
+        isMobile ? 'ml-0' : (sidebarCollapsed ? 'ml-20' : 'ml-72')
       }`}>
         {/* Header */}
-        <header className="bg-white border-b border-gray-200 px-6 py-4">
+        <header className="bg-white border-b border-gray-200 px-4 lg:px-6 py-4">
           <div className="flex items-center justify-between">
             <div>
               <div className="flex items-center space-x-4">
@@ -233,19 +236,19 @@ const FarmerOrdersPage = () => {
                   <LayoutGrid className="w-6 h-6" />
                 </button>
                 <div>
-                  <h1 className="text-2xl font-bold text-gray-900">Orders Management</h1>
+                  <h1 className="text-xl lg:text-2xl font-bold text-gray-900">Orders Management</h1>
                   <p className="text-sm text-gray-600 mt-1">Track and manage incoming orders from customers</p>
                 </div>
               </div>
             </div>
             
-            <div className="flex items-center space-x-4">
+            <div className="flex items-center space-x-2 lg:space-x-4">
               <div className="hidden md:flex items-center bg-gray-100 rounded-lg px-3 py-2">
                 <Search className="w-4 h-4 text-gray-500 mr-2" />
                 <input 
                   type="text" 
                   placeholder="Search orders or customers..."
-                  className="bg-transparent text-sm outline-none w-64"
+                  className="bg-transparent text-sm outline-none w-48 lg:w-64"
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
                 />
@@ -261,10 +264,10 @@ const FarmerOrdersPage = () => {
           </div>
         </header>
 
-        <main className="flex-1 overflow-auto p-6">
+        <main className="flex-1 overflow-auto p-4 lg:p-6">
           <div className="max-w-7xl mx-auto">
             {/* Stats Cards */}
-            <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-4 mb-6">
+            <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3 lg:gap-4 mb-6">
               {[
                 { key: 'all', label: 'Total Orders', color: 'bg-gray-50 text-gray-900' },
                 { key: 'pending', label: 'Pending', color: 'bg-orange-50 text-orange-900' },
@@ -276,23 +279,23 @@ const FarmerOrdersPage = () => {
                 <button
                   key={stat.key}
                   onClick={() => setSelectedFilter(stat.key)}
-                  className={`p-4 rounded-xl border-2 transition-all ${
+                  className={`p-3 lg:p-4 rounded-xl border-2 transition-all ${
                     selectedFilter === stat.key 
                       ? 'border-emerald-300 bg-emerald-50' 
                       : 'border-gray-200 bg-white hover:bg-gray-50'
                   }`}
                 >
-                  <div className={`text-2xl font-bold ${stat.color}`}>
+                  <div className={`text-xl lg:text-2xl font-bold ${stat.color}`}>
                     {orderCounts[stat.key]}
                   </div>
-                  <div className="text-sm text-gray-600">{stat.label}</div>
+                  <div className="text-xs lg:text-sm text-gray-600">{stat.label}</div>
                 </button>
               ))}
             </div>
 
             {/* Orders List */}
             <div className="bg-white rounded-xl border border-gray-200">
-              <div className="p-6 border-b border-gray-200">
+              <div className="p-4 lg:p-6 border-b border-gray-200">
                 <div className="flex items-center justify-between">
                   <h2 className="text-lg font-semibold text-gray-900">
                     Orders ({filteredOrders.length})
@@ -308,7 +311,7 @@ const FarmerOrdersPage = () => {
 
               <div className="divide-y divide-gray-200">
                 {filteredOrders.map((order) => (
-                  <div key={order.id} className="p-6 hover:bg-gray-50 transition-colors">
+                  <div key={order.id} className="p-4 lg:p-6 hover:bg-gray-50 transition-colors">
                     <div className="flex items-start justify-between">
                       <div className="flex-1">
                         <div className="flex items-center space-x-4 mb-4">
@@ -318,7 +321,7 @@ const FarmerOrdersPage = () => {
                             </span>
                           </div>
                           <div className="flex-1">
-                            <div className="flex items-center space-x-3">
+                            <div className="flex flex-wrap items-center space-x-3">
                               <h3 className="font-semibold text-gray-900">{order.customer.name}</h3>
                               <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium border ${getStatusColor(order.status)}`}>
                                 {order.status.charAt(0).toUpperCase() + order.status.slice(1)}
@@ -327,7 +330,7 @@ const FarmerOrdersPage = () => {
                                 {order.priority.toUpperCase()} PRIORITY
                               </span>
                             </div>
-                            <div className="flex items-center space-x-4 mt-1 text-sm text-gray-500">
+                            <div className="flex flex-wrap items-center space-x-4 mt-1 text-sm text-gray-500">
                               <span className="flex items-center">
                                 <Clock className="w-4 h-4 mr-1" />
                                 {new Date(order.orderDate).toLocaleString()}
@@ -391,19 +394,19 @@ const FarmerOrdersPage = () => {
                       </div>
 
                       {/* Action Buttons */}
-                      <div className="ml-6 flex flex-col space-y-2">
+                      <div className="ml-4 lg:ml-6 flex flex-col space-y-2">
                         {order.status === 'pending' && (
                           <>
                             <button 
                               onClick={() => updateOrderStatus(order.id, 'processing')}
-                              className="bg-emerald-600 text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-emerald-700 transition-colors flex items-center"
+                              className="bg-emerald-600 text-white px-3 lg:px-4 py-2 rounded-lg text-sm font-medium hover:bg-emerald-700 transition-colors flex items-center"
                             >
                               <CheckCircle className="w-4 h-4 mr-2" />
                               Accept
                             </button>
                             <button 
                               onClick={() => updateOrderStatus(order.id, 'cancelled')}
-                              className="bg-red-600 text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-red-700 transition-colors flex items-center"
+                              className="bg-red-600 text-white px-3 lg:px-4 py-2 rounded-lg text-sm font-medium hover:bg-red-700 transition-colors flex items-center"
                             >
                               <XCircle className="w-4 h-4 mr-2" />
                               Decline
@@ -414,7 +417,7 @@ const FarmerOrdersPage = () => {
                         {order.status === 'processing' && (
                           <button 
                             onClick={() => updateOrderStatus(order.id, 'ready')}
-                            className="bg-purple-600 text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-purple-700 transition-colors flex items-center"
+                            className="bg-purple-600 text-white px-3 lg:px-4 py-2 rounded-lg text-sm font-medium hover:bg-purple-700 transition-colors flex items-center"
                           >
                             <Package className="w-4 h-4 mr-2" />
                             Mark Ready
@@ -424,19 +427,19 @@ const FarmerOrdersPage = () => {
                         {order.status === 'ready' && (
                           <button 
                             onClick={() => updateOrderStatus(order.id, 'delivered')}
-                            className="bg-green-600 text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-green-700 transition-colors flex items-center"
+                            className="bg-green-600 text-white px-3 lg:px-4 py-2 rounded-lg text-sm font-medium hover:bg-green-700 transition-colors flex items-center"
                           >
                             <Truck className="w-4 h-4 mr-2" />
                             Mark Delivered
                           </button>
                         )}
 
-                        <button className="border border-gray-300 text-gray-700 px-4 py-2 rounded-lg text-sm font-medium hover:bg-gray-50 transition-colors flex items-center">
+                        <button className="border border-gray-300 text-gray-700 px-3 lg:px-4 py-2 rounded-lg text-sm font-medium hover:bg-gray-50 transition-colors flex items-center">
                           <Phone className="w-4 h-4 mr-2" />
                           Call
                         </button>
                         
-                        <button className="border border-gray-300 text-gray-700 px-4 py-2 rounded-lg text-sm font-medium hover:bg-gray-50 transition-colors flex items-center">
+                        <button className="border border-gray-300 text-gray-700 px-3 lg:px-4 py-2 rounded-lg text-sm font-medium hover:bg-gray-50 transition-colors flex items-center">
                           <Eye className="w-4 h-4 mr-2" />
                           Details
                         </button>

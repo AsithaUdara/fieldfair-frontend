@@ -40,6 +40,9 @@ const FarmerDashboardPage = () => {
     
     const checkMobile = () => {
       setIsMobile(window.innerWidth < 1024);
+      if (window.innerWidth < 1024) {
+        setSidebarCollapsed(false); // Always expanded on mobile when open
+      }
     };
     
     checkMobile();
@@ -69,14 +72,15 @@ const FarmerDashboardPage = () => {
         isMobile={isMobile}
         isOpen={isMobileMenuOpen}
         onClose={() => setIsMobileMenuOpen(false)}
+        userType="farmer"
       />
 
       {/* Main Content */}
       <div className={`flex-1 flex flex-col bg-gray-50 transition-all duration-300 ${
-        isMobile ? 'ml-0' : (sidebarCollapsed ? 'ml-16' : 'ml-64')
+        isMobile ? 'ml-0' : (sidebarCollapsed ? 'ml-20' : 'ml-72')
       }`}>
         {/* Header */}
-        <header className="bg-white border-b border-gray-200 px-6 py-4">
+        <header className="bg-white border-b border-gray-200 px-4 lg:px-6 py-4">
           <div className="flex items-center justify-between">
             <div>
               <div className="flex items-center space-x-4">
@@ -87,7 +91,7 @@ const FarmerDashboardPage = () => {
                   <LayoutGrid className="w-6 h-6" />
                 </button>
                 <div>
-                  <h1 className="text-2xl font-bold text-gray-900">Farm Dashboard</h1>
+                  <h1 className="text-xl lg:text-2xl font-bold text-gray-900">Farm Dashboard</h1>
                   <p className="text-sm text-gray-600 mt-1">Welcome back, Ravi! Monitor your farm operations and sales.</p>
                 </div>
               </div>
@@ -104,26 +108,26 @@ const FarmerDashboardPage = () => {
               </div>
               
               {/* Add Product Button */}
-              <button className="bg-emerald-600 text-white px-4 py-2 rounded-lg text-sm font-medium flex items-center hover:bg-emerald-700 transition-colors">
+              <button className="bg-emerald-600 text-white px-3 lg:px-4 py-2 rounded-lg text-sm font-medium flex items-center hover:bg-emerald-700 transition-colors">
                 <Plus className="w-4 h-4 mr-2" />
-                Add Product
+                <span className="hidden sm:inline">Add Product</span>
               </button>
             </div>
           </div>
         </header>
 
         {/* Dashboard Content */}
-        <main className="flex-1 overflow-auto p-6">
+        <main className="flex-1 overflow-auto p-4 lg:p-6">
           <div className="max-w-7xl mx-auto">
             {/* Quick Stats */}
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mb-6">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 lg:gap-6 mb-6">
               {/* Total Revenue */}
-              <div className="bg-white p-6 rounded-xl border border-gray-200">
+              <div className="bg-white p-4 lg:p-6 rounded-xl border border-gray-200">
                 <div className="flex items-center justify-between mb-4">
                   <h3 className="text-sm font-medium text-gray-600">Total Revenue</h3>
                   <DollarSign className="w-5 h-5 text-green-500" />
                 </div>
-                <div className="text-3xl font-bold text-gray-900 mb-2">Rs. 127,500</div>
+                <div className="text-2xl lg:text-3xl font-bold text-gray-900 mb-2">Rs. 127,500</div>
                 <div className="flex items-center text-sm">
                   <TrendingUp className="w-4 h-4 text-green-500 mr-1" />
                   <span className="text-green-600 font-medium">+12%</span>
@@ -132,12 +136,12 @@ const FarmerDashboardPage = () => {
               </div>
 
               {/* Active Products */}
-              <div className="bg-white p-6 rounded-xl border border-gray-200">
+              <div className="bg-white p-4 lg:p-6 rounded-xl border border-gray-200">
                 <div className="flex items-center justify-between mb-4">
                   <h3 className="text-sm font-medium text-gray-600">Active Products</h3>
                   <Package className="w-5 h-5 text-blue-500" />
                 </div>
-                <div className="text-3xl font-bold text-gray-900 mb-2">24</div>
+                <div className="text-2xl lg:text-3xl font-bold text-gray-900 mb-2">24</div>
                 <div className="flex items-center text-sm">
                   <Plus className="w-4 h-4 text-blue-500 mr-1" />
                   <span className="text-blue-600 font-medium">3 added</span>
@@ -146,12 +150,12 @@ const FarmerDashboardPage = () => {
               </div>
 
               {/* Pending Orders */}
-              <div className="bg-white p-6 rounded-xl border border-gray-200">
+              <div className="bg-white p-4 lg:p-6 rounded-xl border border-gray-200">
                 <div className="flex items-center justify-between mb-4">
                   <h3 className="text-sm font-medium text-gray-600">Pending Orders</h3>
                   <ShoppingCart className="w-5 h-5 text-orange-500" />
                 </div>
-                <div className="text-3xl font-bold text-gray-900 mb-2">8</div>
+                <div className="text-2xl lg:text-3xl font-bold text-gray-900 mb-2">8</div>
                 <div className="flex items-center text-sm">
                   <Clock className="w-4 h-4 text-orange-500 mr-1" />
                   <span className="text-orange-600 font-medium">2 urgent</span>
@@ -160,12 +164,12 @@ const FarmerDashboardPage = () => {
               </div>
 
               {/* Total Customers */}
-              <div className="bg-white p-6 rounded-xl border border-gray-200">
+              <div className="bg-white p-4 lg:p-6 rounded-xl border border-gray-200">
                 <div className="flex items-center justify-between mb-4">
                   <h3 className="text-sm font-medium text-gray-600">Total Customers</h3>
                   <Users className="w-5 h-5 text-purple-500" />
                 </div>
-                <div className="text-3xl font-bold text-gray-900 mb-2">156</div>
+                <div className="text-2xl lg:text-3xl font-bold text-gray-900 mb-2">156</div>
                 <div className="flex items-center text-sm">
                   <TrendingUp className="w-4 h-4 text-purple-500 mr-1" />
                   <span className="text-purple-600 font-medium">+8</span>
@@ -177,7 +181,7 @@ const FarmerDashboardPage = () => {
             {/* Main Content Grid */}
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
               {/* Recent Orders */}
-              <div className="lg:col-span-2 bg-white p-6 rounded-xl border border-gray-200">
+              <div className="lg:col-span-2 bg-white p-4 lg:p-6 rounded-xl border border-gray-200">
                 <div className="flex items-center justify-between mb-6">
                   <h3 className="text-lg font-semibold text-gray-900">Recent Orders</h3>
                   <button className="text-emerald-600 hover:text-emerald-700 text-sm font-medium">
@@ -246,7 +250,7 @@ const FarmerDashboardPage = () => {
               </div>
 
               {/* Product Inventory */}
-              <div className="bg-white p-6 rounded-xl border border-gray-200">
+              <div className="bg-white p-4 lg:p-6 rounded-xl border border-gray-200">
                 <div className="flex items-center justify-between mb-6">
                   <h3 className="text-lg font-semibold text-gray-900">Product Inventory</h3>
                   <MoreHorizontal className="w-5 h-5 text-gray-400" />
@@ -325,7 +329,7 @@ const FarmerDashboardPage = () => {
             </div>
 
             {/* Sales Analytics */}
-            <div className="mt-6 bg-white p-6 rounded-xl border border-gray-200">
+            <div className="mt-6 bg-white p-4 lg:p-6 rounded-xl border border-gray-200">
               <div className="flex items-center justify-between mb-6">
                 <div>
                   <h3 className="text-lg font-semibold text-gray-900">Sales Analytics</h3>
@@ -342,7 +346,7 @@ const FarmerDashboardPage = () => {
               </div>
 
               {/* Simple Bar Chart */}
-              <div className="flex items-end space-x-4 h-48">
+              <div className="flex items-end space-x-2 lg:space-x-4 h-48">
                 {[
                   { day: 'Mon', sales: 85 },
                   { day: 'Tue', sales: 65 },
@@ -354,7 +358,7 @@ const FarmerDashboardPage = () => {
                 ].map((item, index) => (
                   <div key={index} className="flex flex-col items-center flex-1">
                     <div 
-                      className="bg-emerald-500 w-8 rounded-t hover:bg-emerald-600 transition-colors cursor-pointer"
+                      className="bg-emerald-500 w-6 lg:w-8 rounded-t hover:bg-emerald-600 transition-colors cursor-pointer"
                       style={{ height: `${(item.sales / 100) * 100}%` }}
                       title={`${item.day}: Rs. ${item.sales * 100}`}
                     />
@@ -366,28 +370,28 @@ const FarmerDashboardPage = () => {
               {/* Quick Farm Stats */}
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mt-6 pt-6 border-t border-gray-100">
                 <div className="text-center">
-                  <div className="text-2xl font-bold text-gray-900">2.5 acres</div>
+                  <div className="text-xl lg:text-2xl font-bold text-gray-900">2.5 acres</div>
                   <div className="text-sm text-gray-500">Farm Size</div>
                 </div>
                 <div className="text-center">
-                  <div className="text-2xl font-bold text-gray-900">98%</div>
+                  <div className="text-xl lg:text-2xl font-bold text-gray-900">98%</div>
                   <div className="text-sm text-gray-500">Organic Rating</div>
                 </div>
                 <div className="text-center">
-                  <div className="text-2xl font-bold text-gray-900">4.8★</div>
+                  <div className="text-xl lg:text-2xl font-bold text-gray-900">4.8★</div>
                   <div className="text-sm text-gray-500">Customer Rating</div>
                 </div>
               </div>
             </div>
 
             {/* Farm Information Banner */}
-            <div className="mt-6 bg-gradient-to-r from-emerald-500 to-green-600 text-white p-6 rounded-xl">
+            <div className="mt-6 bg-gradient-to-r from-emerald-500 to-green-600 text-white p-4 lg:p-6 rounded-xl">
               <div className="flex items-center justify-between">
                 <div className="flex-1">
-                  <h3 className="text-xl font-bold mb-2">🌱 Ravi's Organic Farm</h3>
+                  <h3 className="text-lg lg:text-xl font-bold mb-2">🌱 Ravi's Organic Farm</h3>
                   <p className="mb-2 opacity-90">Kurunegala, North Western Province</p>
                   <p className="text-sm opacity-80">Growing fresh, organic vegetables since 2018. Specialized in tomatoes, carrots, and leafy greens.</p>
-                  <div className="flex items-center mt-3 space-x-4 text-sm">
+                  <div className="flex flex-wrap items-center mt-3 space-x-4 text-sm">
                     <div className="flex items-center">
                       <MapPin className="w-4 h-4 mr-1" />
                       15km from Kurunegala town
@@ -400,7 +404,7 @@ const FarmerDashboardPage = () => {
                 </div>
                 <div className="hidden lg:block">
                   <div className="text-right">
-                    <div className="text-3xl font-bold">156</div>
+                    <div className="text-2xl lg:text-3xl font-bold">156</div>
                     <div className="text-sm opacity-80">Happy Customers</div>
                   </div>
                 </div>

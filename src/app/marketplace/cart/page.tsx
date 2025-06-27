@@ -1,125 +1,540 @@
 "use client";
 
-import React, { useState, useEffect } from 'react';
-import FieldFairSidebar from '@/components/ui/layout/sidebar';
+import React, { useState, useEffect, useRef } from 'react';
+import { useRouter } from 'next/navigation';
+import Link from 'next/link';
+import { usePathname } from 'next/navigation';
 import { 
   LayoutGrid, 
-  Trash2,
+  BarChart3, 
+  Package, 
+  ShoppingCart,
+  Users,
+  TrendingUp,
+  MapPin,
+  Leaf,
+  Settings,
+  Shield,
+  ChevronDown,
+  ChevronLeft,
+  ChevronRight,
+  Sprout,
+  Search,
+  Heart,
+  History,
+  QrCode,
+  Star,
+  User,
+  Bell,
+  Eye,
+  Route,
+  Calendar,
+  Phone,
+  MessageCircle,
+  Award,
+  Truck,
+  Globe,
+  Zap,
+  Target,
+  Database,
+  FileText,
+  Camera,
+  Navigation,
+  Scan,
+  Menu,
+  X,
   Plus,
   Minus,
-  MapPin,
-  Star,
-  Truck,
-  Clock,
-  CreditCard,
+  Trash2,
   ArrowRight,
-  ShoppingBag,
-  Leaf,
-  Shield,
+  CreditCard,
+  Clock,
   CheckCircle,
-  Package,
-  Home,
-  Edit
+  AlertCircle
 } from 'lucide-react';
 
-const ShoppingCartPage = () => {
+// Modern Sidebar Component (same as marketplace)
+interface MenuItem {
+  name: string;
+  icon: React.ComponentType<any>;
+  path: string;
+  badge?: string;
+  hasSubmenu?: boolean;
+  active?: boolean;
+  submenu?: MenuItem[];
+}
+
+interface FieldFairSidebarProps {
+  isCollapsed?: boolean;
+  setIsCollapsed?: (collapsed: boolean) => void;
+  isMobile?: boolean;
+  isOpen?: boolean;
+  onClose?: () => void;
+  userType?: 'farmer' | 'customer';
+}
+
+const FieldFairSidebar: React.FC<FieldFairSidebarProps> = ({
+  isCollapsed = false,
+  setIsCollapsed,
+  isMobile = false,
+  isOpen = false,
+  onClose,
+  userType = 'customer'
+}) => {
+  const pathname = usePathname();
+  const scrollRef = useRef<HTMLDivElement>(null);
+  const [activeMenu, setActiveMenu] = useState('My Cart');
+  const [mounted, setMounted] = useState(false);
+  const [expandedMenus, setExpandedMenus] = useState<string[]>([]);
+  
+  // Customer menu items
+  const customerMenuItems: MenuItem[] = [
+    { name: 'Marketplace', icon: Search, path: '/marketplace' },
+    { name: 'My Cart', icon: ShoppingCart, path: '/marketplace/cart', badge: '2', active: true },
+    { 
+      name: 'My Orders', 
+      icon: Package, 
+      path: '/customer/orders',
+      hasSubmenu: true,
+      submenu: [
+        { name: 'Current Orders', icon: Package, path: '/customer/orders' },
+        { name: 'Order History', icon: History, path: '/customer/history' }
+      ]
+    },
+    { name: 'Favorites', icon: Heart, path: '/customer/favorites' },
+    { 
+      name: 'Discover', 
+      icon: MapPin, 
+      path: '/customer/farms',
+      hasSubmenu: true,
+      submenu: [
+        { name: 'Find Farms', icon: MapPin, path: '/customer/farms' },
+        { name: 'QR Scanner', icon: QrCode, path: '/customer/qr-scanner' },
+        { name: 'Track Products', icon: Route, path: '/maps/supply-chain' }
+      ]
+    },
+    {
+      name: 'AI Assistant',
+      icon: Zap,
+      path: '/ai/recommendations',
+      hasSubmenu: true,
+      submenu: [
+        { name: 'Recommendations', icon: Target, path: '/ai/recommendations' },
+        { name: 'Price Forecasting', icon: TrendingUp, path: '/ai/forecasting' },
+        { name: 'Chat Assistant', icon: MessageCircle, path: '/ai/chatbot' }
+      ]
+    }
+  ];
+  
+  const generalItems: MenuItem[] = [
+    { 
+      name: 'Profile', 
+      icon: User, 
+      path: '/customer/profile',
+      hasSubmenu: true,
+      submenu: [
+        { name: 'My Profile', icon: User, path: '/customer/profile' },
+        { name: 'Settings', icon: Settings, path: '/customer/settings' },
+        { name: 'Notifications', icon: Bell, path: '/customer/notifications' }
+      ]
+    }
+  ];
+
+  const menuItems = customerMenuItems;
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+
+  useEffect(() => {
+    if (mounted) {
+      const allItems = [...menuItems, ...generalItems];
+      let foundItem = null;
+
+      foundItem = allItems.find(item => pathname === item.path);
+      
+      if (!foundItem) {
+        for (const item of allItems) {
+          if (item.submenu) {
+            const submenuItem = item.submenu.find(subItem => pathname === subItem.path || pathname.startsWith(subItem.path));
+            if (submenuItem) {
+              foundItem = item;
+              setExpandedMenus(prev => 
+                prev.includes(item.name) ? prev : [...prev, item.name]
+              );
+              break;
+            }
+          }
+        }
+      }
+
+      if (!foundItem) {
+        foundItem = allItems.find(item => pathname.startsWith(item.path));
+      }
+
+      if (foundItem) {
+        setActiveMenu(foundItem.name);
+      }
+    }
+  }, [pathname, mounted, menuItems, generalItems]);
+
+  const handleMenuClick = (item: MenuItem) => {
+    if (item.hasSubmenu && !isCollapsed) {
+      setExpandedMenus(prev => 
+        prev.includes(item.name) 
+          ? prev.filter(name => name !== item.name)
+          : [...prev, item.name]
+      );
+    } else {
+      setActiveMenu(item.name);
+      if (isMobile && onClose) {
+        onClose();
+      }
+    }
+  };
+
+  const handleSubmenuClick = (parentItem: MenuItem, subItem: MenuItem) => {
+    setActiveMenu(parentItem.name);
+    if (isMobile && onClose) {
+      onClose();
+    }
+  };
+
+  if (!mounted) {
+    return null;
+  }
+
+  const getUserInfo = () => {
+    return {
+      name: 'Nimal Perera',
+      subtitle: 'Premium Customer • Colombo',
+      avatar: 'NP',
+      status: 'Active Member',
+      statusColor: 'bg-blue-500'
+    };
+  };
+
+  const userInfo = getUserInfo();
+
+  const cn = (...classes: string[]) => classes.filter(Boolean).join(' ');
+
+  const renderMenuItem = (item: MenuItem, isSubmenu = false) => {
+    const isActive = activeMenu === item.name || 
+                    (item.submenu && item.submenu.some(subItem => pathname === subItem.path || pathname.startsWith(subItem.path)));
+    const isExpanded = expandedMenus.includes(item.name);
+    const hasActiveSubmenu = item.submenu && item.submenu.some(subItem => pathname === subItem.path || pathname.startsWith(subItem.path));
+
+    return (
+      <div key={item.name}>
+        <div className={isCollapsed && !isSubmenu ? "flex justify-center" : ""}>
+          <Link 
+            href={item.hasSubmenu ? '#' : item.path}
+            onClick={(e) => {
+              if (item.hasSubmenu) {
+                e.preventDefault();
+                handleMenuClick(item);
+              } else {
+                handleMenuClick(item);
+              }
+            }}
+            className={cn(
+              "flex items-center py-3.5 rounded-xl transition-all duration-300 group relative overflow-hidden",
+              isActive || hasActiveSubmenu
+                ? 'bg-gradient-to-r from-emerald-500 to-emerald-600 text-white shadow-lg shadow-emerald-500/25' 
+                : 'text-slate-300 hover:bg-white/5 hover:text-white backdrop-blur-sm',
+              isCollapsed && !isSubmenu ? "w-12 h-12 justify-center mx-auto" : "px-4 w-full mx-2",
+              isSubmenu ? "ml-6 text-sm" : ""
+            )}
+          >
+            {(isActive || hasActiveSubmenu) && !isCollapsed && !isSubmenu && (
+              <div className="absolute inset-0 bg-gradient-to-r from-emerald-400/20 to-emerald-600/20 rounded-xl animate-pulse"></div>
+            )}
+            
+            {(isActive || hasActiveSubmenu) && !isCollapsed && !isSubmenu && (
+              <span className="absolute left-0 top-1/2 -translate-y-1/2 w-1 h-8 bg-white rounded-r-full shadow-lg"></span>
+            )}
+            
+            <item.icon className={cn(
+              "w-5 h-5 relative z-10 transition-transform duration-300",
+              isActive || hasActiveSubmenu ? "text-white scale-110" : "text-slate-400 group-hover:text-white group-hover:scale-105",
+              isSubmenu ? "w-4 h-4" : ""
+            )} />
+            
+            {!isCollapsed && (
+              <>
+                <span className="ml-4 flex-1 text-left font-medium relative z-10 transition-all duration-300">
+                  {item.name}
+                </span>
+                {item.badge && (
+                  <span className="bg-gradient-to-r from-orange-400 to-orange-500 text-white text-[10px] px-2.5 py-1 rounded-full font-bold shadow-lg relative z-10 animate-pulse">
+                    {item.badge}
+                  </span>
+                )}
+                {item.hasSubmenu && (
+                  <ChevronDown className={cn(
+                    "w-4 h-4 relative z-10 transition-all duration-300",
+                    isExpanded ? "rotate-180 text-white" : "text-slate-400 group-hover:text-white",
+                    isActive || hasActiveSubmenu ? "text-white" : ""
+                  )} />
+                )}
+              </>
+            )}
+
+            {isCollapsed && !isSubmenu && (
+              <div className="absolute left-full ml-3 px-3 py-2 bg-slate-800 text-white text-sm rounded-lg opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-300 z-50 whitespace-nowrap shadow-xl border border-slate-700">
+                <div className="font-medium">{item.name}</div>
+                {item.badge && (
+                  <span className="inline-block mt-1 bg-orange-500 text-xs px-2 py-0.5 rounded-full">
+                    {item.badge}
+                  </span>
+                )}
+                <div className="absolute right-full top-1/2 -translate-y-1/2 border-4 border-transparent border-r-slate-800"></div>
+              </div>
+            )}
+          </Link>
+        </div>
+
+        {item.hasSubmenu && !isCollapsed && isExpanded && item.submenu && (
+          <div className="ml-6 mt-2 space-y-1 animate-in slide-in-from-left-2 duration-300">
+            {item.submenu.map((subItem) => (
+              <Link
+                key={subItem.name}
+                href={subItem.path}
+                onClick={() => handleSubmenuClick(item, subItem)}
+                className={cn(
+                  "flex items-center py-3 px-4 rounded-lg transition-all duration-300 text-sm group relative overflow-hidden",
+                  pathname === subItem.path || pathname.startsWith(subItem.path)
+                    ? 'bg-gradient-to-r from-emerald-400/30 to-emerald-500/30 text-white backdrop-blur-sm'
+                    : 'text-slate-400 hover:bg-white/5 hover:text-white hover:pl-6'
+                )}
+              >
+                <subItem.icon className="w-4 h-4 mr-3 transition-transform duration-300 group-hover:scale-110" />
+                <span className="transition-all duration-300">{subItem.name}</span>
+                
+                {(pathname === subItem.path || pathname.startsWith(subItem.path)) && (
+                  <div className="absolute right-2 w-2 h-2 bg-white rounded-full animate-pulse"></div>
+                )}
+              </Link>
+            ))}
+          </div>
+        )}
+      </div>
+    );
+  };
+
+  return (
+    <>
+      {isMobile && isOpen && (
+        <div 
+          className="fixed inset-0 bg-black/60 backdrop-blur-sm z-40 transition-opacity duration-300 ease-in-out" 
+          onClick={onClose}
+        />
+      )}
+      
+      <aside 
+        className={cn(
+          "fixed h-screen left-0 top-0 z-50 transition-all duration-500 flex flex-col shadow-2xl border-r border-slate-800/50",
+          "bg-gradient-to-b from-slate-900 via-slate-800 to-slate-900 text-white backdrop-blur-xl",
+          isCollapsed ? "w-20" : "w-72",
+          isMobile ? (isOpen ? "translate-x-0" : "-translate-x-full") : "translate-x-0"
+        )}
+      >
+        <div className="absolute inset-0 z-0">
+          <div className="absolute inset-0 bg-gradient-to-br from-emerald-900/20 via-transparent to-blue-900/20"></div>
+          <div className="absolute inset-0 bg-[radial-gradient(circle_at_30%_80%,rgba(16,185,129,0.1),transparent_50%)]"></div>
+          <div className="absolute inset-0 bg-[radial-gradient(circle_at_70%_20%,rgba(59,130,246,0.1),transparent_50%)]"></div>
+          
+          <div className="absolute bottom-10 right-6 opacity-5">
+            <Leaf className="w-24 h-24 text-emerald-400 animate-pulse" />
+          </div>
+          <div className="absolute top-1/3 right-4 opacity-5">
+            <Sprout className="w-16 h-16 text-emerald-300 animate-bounce" style={{animationDuration: '3s'}} />
+          </div>
+        </div>
+
+        {isMobile && (
+          <button
+            onClick={onClose}
+            className="absolute top-4 right-4 w-10 h-10 flex items-center justify-center rounded-xl z-50 bg-slate-800/80 text-slate-300 lg:hidden hover:bg-slate-700 transition-all duration-300 backdrop-blur-sm border border-slate-700/50"
+          >
+            <X className="w-5 h-5" />
+          </button>
+        )}
+        
+        <div className={cn(
+          "border-b border-slate-700/50 relative z-10 backdrop-blur-sm",
+          isCollapsed ? "p-4" : "px-6 py-6"
+        )}>
+          <div className={cn(
+            "flex items-center",
+            isCollapsed ? "justify-center" : ""
+          )}>
+            <div className="w-10 h-10 bg-gradient-to-br from-emerald-400 to-emerald-600 rounded-xl flex items-center justify-center shadow-lg shadow-emerald-500/25 ring-2 ring-emerald-400/20">
+              <Sprout className="w-6 h-6 text-white" />
+            </div>
+            {!isCollapsed && (
+              <div className="ml-4">
+                <span className="text-2xl font-bold bg-gradient-to-r from-white to-emerald-200 bg-clip-text text-transparent">
+                  FieldFair
+                </span>
+                <div className="text-xs text-emerald-300/80 font-medium">Customer Portal</div>
+              </div>
+            )}
+          </div>
+          
+          {!isMobile && setIsCollapsed && (
+            <button 
+              onClick={() => setIsCollapsed(!isCollapsed)}
+              className={cn(
+                "absolute w-8 h-8 hidden lg:flex items-center justify-center rounded-full transition-all duration-300",
+                "bg-slate-800/80 text-slate-300 hover:bg-slate-700 hover:text-white shadow-lg backdrop-blur-sm border border-slate-600/50",
+                isCollapsed ? "right-0 -mr-4 top-[26px]" : "right-0 -mr-4 top-[32px]"
+              )}
+              aria-label="Toggle sidebar"
+            >
+              {isCollapsed ? (
+                <ChevronRight className="w-4 h-4" />
+              ) : (
+                <ChevronLeft className="w-4 h-4" />
+              )}
+            </button>
+          )}
+        </div>
+        
+        <div className="flex-1 relative overflow-hidden">
+          <div 
+            ref={scrollRef}
+            className="h-full py-6 overflow-y-auto transition-all duration-500 ease-in-out scrollbar-thin scrollbar-track-slate-800 scrollbar-thumb-slate-600 hover:scrollbar-thumb-slate-500"
+          >
+            <div className={cn("mb-8", isCollapsed ? "px-2" : "px-4")}>
+              {!isCollapsed && (
+                <div className="text-[10px] text-emerald-300/70 mb-4 uppercase tracking-[0.15em] font-bold px-2">
+                  🛒 MARKETPLACE
+                </div>
+              )}
+              <nav className="space-y-2">
+                {menuItems.map((item) => renderMenuItem(item))}
+              </nav>
+            </div>
+            
+            <div className={cn("mt-8", isCollapsed ? "px-2" : "px-4")}>
+              {!isCollapsed && (
+                <div className="text-[10px] text-emerald-300/70 mb-4 uppercase tracking-[0.15em] font-bold px-2">
+                  👤 ACCOUNT
+                </div>
+              )}
+              <nav className="space-y-2">
+                {generalItems.map((item) => renderMenuItem(item))}
+              </nav>
+            </div>
+          </div>
+        </div>
+        
+        {!isCollapsed && (
+          <div className="p-4 border-t border-slate-700/50 relative z-10 backdrop-blur-sm">
+            <div className="flex items-center bg-slate-800/30 rounded-xl p-3 backdrop-blur-sm border border-slate-700/30">
+              <div className="w-12 h-12 bg-gradient-to-br from-slate-600 to-slate-700 rounded-xl flex items-center justify-center relative ring-2 ring-slate-600/50">
+                <span className="text-sm font-bold text-white">{userInfo.avatar}</span>
+                <div className={cn(
+                  "absolute -bottom-1 -right-1 w-4 h-4 rounded-full border-2 border-slate-800",
+                  userInfo.statusColor
+                )}></div>
+              </div>
+              <div className="ml-3 flex-1">
+                <div className="text-sm font-semibold text-white">{userInfo.name}</div>
+                <div className="text-xs text-slate-300">{userInfo.subtitle}</div>
+                <div className="text-[10px] text-emerald-400 mt-1 font-medium">{userInfo.status}</div>
+              </div>
+              <button className="p-2 rounded-lg hover:bg-slate-700/50 transition-colors duration-300">
+                <Settings className="w-4 h-4 text-slate-400 hover:text-white transition-colors duration-300" />
+              </button>
+            </div>
+          </div>
+        )}
+      </aside>
+    </>
+  );
+};
+
+// Main Cart Component
+const CartPage = () => {
+  const router = useRouter();
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
-  const [isMobile, setIsMobile] = useState(false);
   const [mounted, setMounted] = useState(false);
-  const [deliveryMethod, setDeliveryMethod] = useState('delivery');
-  const [selectedAddress, setSelectedAddress] = useState(0);
+  const [selectedDelivery, setSelectedDelivery] = useState('standard');
+  const [promoCode, setPromoCode] = useState('');
+  const [promoApplied, setPromoApplied] = useState(false);
 
+  // Mock cart items
   const [cartItems, setCartItems] = useState([
     {
       id: 1,
       name: 'Organic Tomatoes',
+      farmer: 'Ravi Mahathaya',
+      location: 'Kurunegala',
       price: 300,
-      quantity: 3,
+      originalPrice: 350,
       unit: 'kg',
+      quantity: 3,
       image: '🍅',
-      farmer: {
-        name: 'Ravi Mahathaya',
-        location: 'Kurunegala',
-        rating: 4.8,
-        distance: 2.5
-      },
-      organic: true,
-      available: true,
-      deliveryTime: 'Today 4-6 PM'
+      isOrganic: true,
+      inStock: true,
+      maxStock: 45,
+      harvestDate: '2024-06-25',
+      rating: 4.8,
+      farmerId: 1
     },
     {
       id: 2,
       name: 'Fresh Carrots',
+      farmer: 'Saman Silva',
+      location: 'Matale',
       price: 250,
-      quantity: 2,
+      originalPrice: 280,
       unit: 'kg',
+      quantity: 2,
       image: '🥕',
-      farmer: {
-        name: 'Saman Silva',
-        location: 'Matale',
-        rating: 4.6,
-        distance: 8.2
-      },
-      organic: false,
-      available: true,
-      deliveryTime: 'Tomorrow 10-12 AM'
+      isOrganic: true,
+      inStock: true,
+      maxStock: 20,
+      harvestDate: '2024-06-24',
+      rating: 4.6,
+      farmerId: 2
     },
     {
       id: 3,
       name: 'Green Beans',
+      farmer: 'Nimal Gunasekara',
+      location: 'Nuwara Eliya',
       price: 400,
-      quantity: 1,
+      originalPrice: 420,
       unit: 'kg',
+      quantity: 1,
       image: '🫘',
-      farmer: {
-        name: 'Nimal Jayawardena',
-        location: 'Badulla',
-        rating: 4.9,
-        distance: 12.1
-      },
-      organic: true,
-      available: true,
-      deliveryTime: 'Today 6-8 PM'
+      isOrganic: true,
+      inStock: false,
+      maxStock: 0,
+      harvestDate: '2024-06-25',
+      rating: 4.9,
+      farmerId: 3
     }
   ]);
 
-  const savedAddresses = [
-    {
-      id: 0,
-      type: 'Home',
-      address: 'No. 123, Galle Road, Colombo 03',
-      recipient: 'Priya Fernando',
-      phone: '077-123-4567',
-      isDefault: true
-    },
-    {
-      id: 1,
-      type: 'Office',
-      address: 'Level 5, World Trade Center, Colombo 01',
-      recipient: 'Priya Fernando',
-      phone: '077-123-4567',
-      isDefault: false
-    }
+  const deliveryOptions = [
+    { id: 'standard', name: 'Standard Delivery', time: '2-3 days', cost: 150, description: 'Regular delivery service' },
+    { id: 'express', name: 'Express Delivery', time: '1 day', cost: 300, description: 'Next day delivery' },
+    { id: 'pickup', name: 'Farm Pickup', time: 'Same day', cost: 0, description: 'Pick up from individual farms' }
   ];
 
   useEffect(() => {
     setMounted(true);
-    
-    const checkMobile = () => {
-      setIsMobile(window.innerWidth < 1024);
-    };
-    
-    checkMobile();
-    window.addEventListener('resize', checkMobile);
-    
-    return () => window.removeEventListener('resize', checkMobile);
   }, []);
 
   if (!mounted) {
     return (
       <div className="flex h-screen bg-gray-50">
-        <div className="w-64 bg-emerald-900"></div>
+        <div className="w-72 bg-gradient-to-b from-slate-900 via-slate-800 to-slate-900"></div>
         <div className="flex-1 flex items-center justify-center">
           <div className="text-gray-500">Loading...</div>
         </div>
@@ -127,15 +542,15 @@ const ShoppingCartPage = () => {
     );
   }
 
-  const updateQuantity = (id: number, newQuantity: number) => {
-    if (newQuantity <= 0) {
-      removeItem(id);
-      return;
-    }
+  const updateQuantity = (id: number, delta: number) => {
     setCartItems(items => 
-      items.map(item => 
-        item.id === id ? { ...item, quantity: newQuantity } : item
-      )
+      items.map(item => {
+        if (item.id === id) {
+          const newQuantity = Math.max(1, Math.min(item.maxStock, item.quantity + delta));
+          return { ...item, quantity: newQuantity };
+        }
+        return item;
+      })
     );
   };
 
@@ -143,331 +558,388 @@ const ShoppingCartPage = () => {
     setCartItems(items => items.filter(item => item.id !== id));
   };
 
-  const subtotal = cartItems.reduce((sum, item) => sum + (item.price * item.quantity), 0);
-  const deliveryFee = deliveryMethod === 'delivery' ? 150 : 0;
-  const serviceFee = Math.round(subtotal * 0.02); // 2% service fee
-  const total = subtotal + deliveryFee + serviceFee;
+  const moveToWishlist = (id: number) => {
+    console.log('Moving to wishlist:', id);
+    removeItem(id);
+  };
 
-  const groupedByFarmer = cartItems.reduce((groups, item) => {
-    const farmerKey = item.farmer.name;
-    if (!groups[farmerKey]) {
-      groups[farmerKey] = [];
+  const applyPromoCode = () => {
+    if (promoCode.toLowerCase() === 'fresh10') {
+      setPromoApplied(true);
     }
-    groups[farmerKey].push(item);
-    return groups;
-  }, {} as Record<string, typeof cartItems>);
+  };
+
+  // Calculate totals
+  const subtotal = cartItems.reduce((sum, item) => sum + (item.price * item.quantity), 0);
+  const discount = promoApplied ? subtotal * 0.1 : 0;
+  const deliveryCost = selectedDelivery === 'pickup' ? 0 : deliveryOptions.find(opt => opt.id === selectedDelivery)?.cost || 0;
+  const total = subtotal - discount + deliveryCost;
+
+  // Group items by farmer for pickup option
+  const groupedByFarmer = cartItems.reduce((acc, item) => {
+    if (!acc[item.farmerId]) {
+      acc[item.farmerId] = [];
+    }
+    acc[item.farmerId].push(item);
+    return acc;
+  }, {} as Record<number, typeof cartItems>);
+
+  const handleCheckout = () => {
+    console.log('Proceeding to checkout with:', {
+      items: cartItems,
+      delivery: selectedDelivery,
+      total,
+      promoApplied
+    });
+  };
+
+  if (cartItems.length === 0) {
+    return (
+      <div className="flex h-screen bg-gray-50">
+        <FieldFairSidebar
+          isCollapsed={sidebarCollapsed}
+          setIsCollapsed={setSidebarCollapsed}
+          isMobile={false}
+          isOpen={isMobileMenuOpen}
+          onClose={() => setIsMobileMenuOpen(false)}
+          userType="customer"
+        />
+
+        <FieldFairSidebar
+          isCollapsed={false}
+          isMobile={true}
+          isOpen={isMobileMenuOpen}
+          onClose={() => setIsMobileMenuOpen(false)}
+          userType="customer"
+        />
+
+        <div className={`flex-1 flex flex-col transition-all duration-500 ${sidebarCollapsed ? 'lg:ml-20' : 'lg:ml-72'}`}>
+          <header className="bg-white border-b border-gray-200 px-4 lg:px-6 py-4">
+            <div className="flex items-center space-x-4">
+              <button 
+                onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
+                className="lg:hidden p-2 rounded-lg text-gray-600 hover:bg-gray-100"
+              >
+                <Menu className="w-6 h-6" />
+              </button>
+              <div>
+                <h1 className="text-2xl font-bold text-gray-900">🛒 Shopping Cart</h1>
+                <p className="text-sm text-gray-600">Your selected products</p>
+              </div>
+            </div>
+          </header>
+
+          <main className="flex-1 flex items-center justify-center p-6">
+            <div className="text-center">
+              <ShoppingCart className="w-24 h-24 text-gray-300 mx-auto mb-6" />
+              <h2 className="text-2xl font-bold text-gray-900 mb-2">Your cart is empty</h2>
+              <p className="text-gray-600 mb-6">Start shopping to add items to your cart</p>
+              <button
+                onClick={() => router.push('/marketplace')}
+                className="bg-emerald-600 text-white px-6 py-3 rounded-xl font-semibold hover:bg-emerald-700 transition-colors shadow-lg hover:shadow-xl transform hover:scale-105"
+              >
+                Continue Shopping
+              </button>
+            </div>
+          </main>
+        </div>
+      </div>
+    );
+  }
 
   return (
-    <div className="flex h-screen bg-white overflow-hidden">
+    <div className="flex h-screen bg-gray-50">
+      {/* Desktop Sidebar */}
       <FieldFairSidebar
         isCollapsed={sidebarCollapsed}
         setIsCollapsed={setSidebarCollapsed}
-        isMobile={isMobile}
+        isMobile={false}
         isOpen={isMobileMenuOpen}
         onClose={() => setIsMobileMenuOpen(false)}
         userType="customer"
       />
 
-      <div className={`flex-1 flex flex-col bg-gray-50 transition-all duration-300 ${
-        isMobile ? 'ml-0' : (sidebarCollapsed ? 'ml-16' : 'ml-64')
-      }`}>
+      {/* Mobile Sidebar */}
+      <FieldFairSidebar
+        isCollapsed={false}
+        isMobile={true}
+        isOpen={isMobileMenuOpen}
+        onClose={() => setIsMobileMenuOpen(false)}
+        userType="customer"
+      />
+
+      {/* Main Content - Responsive to sidebar */}
+      <div className={`flex-1 flex flex-col transition-all duration-500 ${sidebarCollapsed ? 'lg:ml-20' : 'lg:ml-72'}`}>
         {/* Header */}
-        <header className="bg-white border-b border-gray-200 px-6 py-4">
+        <header className="bg-white border-b border-gray-200 px-4 lg:px-6 py-4">
           <div className="flex items-center justify-between">
-            <div>
-              <div className="flex items-center space-x-4">
-                <button 
-                  onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
-                  className="lg:hidden p-2 rounded-lg text-gray-600 hover:bg-gray-100 mr-2"
-                >
-                  <LayoutGrid className="w-6 h-6" />
-                </button>
-                <div>
-                  <h1 className="text-2xl font-bold text-gray-900">Shopping Cart</h1>
-                  <p className="text-sm text-gray-600 mt-1">{cartItems.length} items in your cart</p>
-                </div>
+            <div className="flex items-center space-x-4">
+              <button 
+                onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
+                className="lg:hidden p-2 rounded-lg text-gray-600 hover:bg-gray-100"
+              >
+                <Menu className="w-6 h-6" />
+              </button>
+              <div>
+                <h1 className="text-2xl lg:text-3xl font-bold text-gray-900">🛒 Shopping Cart</h1>
+                <p className="text-sm text-gray-600">{cartItems.length} items in your cart</p>
               </div>
             </div>
             
-            <div className="text-right">
-              <div className="text-2xl font-bold text-emerald-600">Rs. {total.toLocaleString()}</div>
-              <div className="text-sm text-gray-500">Total amount</div>
-            </div>
+            <button
+              onClick={() => router.push('/marketplace')}
+              className="border border-emerald-600 text-emerald-600 px-4 py-2 rounded-xl hover:bg-emerald-50 transition-colors font-medium"
+            >
+              Continue Shopping
+            </button>
           </div>
         </header>
 
-        <main className="flex-1 overflow-auto">
-          <div className="max-w-7xl mx-auto p-6">
-            {cartItems.length === 0 ? (
-              // Empty Cart
-              <div className="text-center py-16">
-                <ShoppingBag className="w-24 h-24 text-gray-300 mx-auto mb-6" />
-                <h2 className="text-2xl font-bold text-gray-900 mb-4">Your cart is empty</h2>
-                <p className="text-gray-600 mb-8">Browse our fresh products and add items to your cart</p>
-                <button className="bg-emerald-600 text-white px-8 py-3 rounded-lg font-semibold hover:bg-emerald-700 transition-colors">
-                  Start Shopping
-                </button>
-              </div>
-            ) : (
-              <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-                {/* Cart Items */}
-                <div className="lg:col-span-2 space-y-6">
-                  {/* Delivery Method Selection */}
-                  <div className="bg-white rounded-xl border border-gray-200 p-6">
-                    <h3 className="text-lg font-semibold text-gray-900 mb-4">Delivery Method</h3>
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                      <label className={`relative p-4 border-2 rounded-lg cursor-pointer transition-colors ${
-                        deliveryMethod === 'delivery' 
-                          ? 'border-emerald-500 bg-emerald-50' 
-                          : 'border-gray-200 hover:border-gray-300'
-                      }`}>
-                        <input
-                          type="radio"
-                          name="delivery"
-                          value="delivery"
-                          checked={deliveryMethod === 'delivery'}
-                          onChange={(e) => setDeliveryMethod(e.target.value)}
-                          className="sr-only"
-                        />
-                        <div className="flex items-center space-x-3">
-                          <Truck className="w-6 h-6 text-emerald-600" />
-                          <div>
-                            <div className="font-medium text-gray-900">Home Delivery</div>
-                            <div className="text-sm text-gray-500">Rs. 150 delivery fee</div>
+        <main className="flex-1 overflow-auto p-4 lg:p-6">
+          <div className="max-w-7xl mx-auto">
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 lg:gap-8">
+              {/* Cart Items */}
+              <div className="lg:col-span-2 space-y-4">
+                {cartItems.map((item) => (
+                  <div key={item.id} className="bg-white p-4 lg:p-6 rounded-2xl border border-gray-200 hover:shadow-lg transition-shadow">
+                    <div className="flex items-start space-x-4">
+                      {/* Product Image */}
+                      <div className="w-16 lg:w-20 h-16 lg:h-20 bg-gradient-to-br from-gray-50 to-gray-100 rounded-xl flex items-center justify-center relative">
+                        <span className="text-2xl lg:text-3xl">{item.image}</span>
+                        {item.isOrganic && (
+                          <div className="absolute -top-1 -right-1">
+                            <Leaf className="w-4 h-4 text-green-500" />
                           </div>
-                        </div>
-                      </label>
+                        )}
+                      </div>
 
-                      <label className={`relative p-4 border-2 rounded-lg cursor-pointer transition-colors ${
-                        deliveryMethod === 'pickup' 
-                          ? 'border-emerald-500 bg-emerald-50' 
-                          : 'border-gray-200 hover:border-gray-300'
-                      }`}>
-                        <input
-                          type="radio"
-                          name="delivery"
-                          value="pickup"
-                          checked={deliveryMethod === 'pickup'}
-                          onChange={(e) => setDeliveryMethod(e.target.value)}
-                          className="sr-only"
-                        />
-                        <div className="flex items-center space-x-3">
-                          <Package className="w-6 h-6 text-blue-600" />
+                      {/* Product Details */}
+                      <div className="flex-1">
+                        <div className="flex items-start justify-between mb-2">
                           <div>
-                            <div className="font-medium text-gray-900">Farm Pickup</div>
-                            <div className="text-sm text-gray-500">Free pickup</div>
+                            <h3 className="font-semibold text-gray-900 text-base lg:text-lg">{item.name}</h3>
+                            <div className="flex items-center space-x-2 text-sm text-gray-600">
+                              <MapPin className="w-3 h-3" />
+                              <span>{item.farmer} • {item.location}</span>
+                            </div>
+                            <div className="flex items-center space-x-2 mt-1">
+                              <div className="flex items-center space-x-1">
+                                <Star className="w-3 h-3 text-yellow-400 fill-current" />
+                                <span className="text-sm text-gray-600">{item.rating}</span>
+                              </div>
+                              <span className="text-gray-300">•</span>
+                              <span className="text-sm text-gray-600">
+                                Harvested {new Date(item.harvestDate).toLocaleDateString()}
+                              </span>
+                            </div>
+                          </div>
+                          
+                          {/* Price */}
+                          <div className="text-right">
+                            <div className="text-lg font-bold text-emerald-600">Rs. {item.price}</div>
+                            {item.originalPrice > item.price && (
+                              <div className="text-sm text-gray-500 line-through">Rs. {item.originalPrice}</div>
+                            )}
+                            <div className="text-xs text-gray-500">per {item.unit}</div>
                           </div>
                         </div>
-                      </label>
+
+                        {/* Stock Status */}
+                        {!item.inStock && (
+                          <div className="flex items-center space-x-2 mb-3">
+                            <AlertCircle className="w-4 h-4 text-red-500" />
+                            <span className="text-sm text-red-600 font-medium">Currently out of stock</span>
+                          </div>
+                        )}
+
+                        {/* Quantity and Actions */}
+                        <div className="flex items-center justify-between">
+                          <div className="flex items-center space-x-3">
+                            <button
+                              onClick={() => updateQuantity(item.id, -1)}
+                              disabled={item.quantity <= 1}
+                              className="p-1 border border-gray-300 rounded-lg hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                            >
+                              <Minus className="w-4 h-4" />
+                            </button>
+                            <span className="px-3 py-1 border border-gray-300 rounded-lg min-w-[50px] text-center font-medium">
+                              {item.quantity}
+                            </span>
+                            <button
+                              onClick={() => updateQuantity(item.id, 1)}
+                              disabled={item.quantity >= item.maxStock || !item.inStock}
+                              className="p-1 border border-gray-300 rounded-lg hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                            >
+                              <Plus className="w-4 h-4" />
+                            </button>
+                            <span className="text-sm text-gray-500">{item.unit}</span>
+                          </div>
+
+                          <div className="flex items-center space-x-2">
+                            <span className="font-bold text-gray-900">
+                              Rs. {(item.price * item.quantity).toLocaleString()}
+                            </span>
+                          </div>
+                        </div>
+
+                        {/* Action Buttons */}
+                        <div className="flex items-center space-x-4 mt-4 pt-4 border-t border-gray-100">
+                          <button
+                            onClick={() => moveToWishlist(item.id)}
+                            className="flex items-center space-x-1 text-sm text-gray-600 hover:text-emerald-600 transition-colors"
+                          >
+                            <Heart className="w-4 h-4" />
+                            <span>Move to Wishlist</span>
+                          </button>
+                          
+                          <button
+                            onClick={() => router.push(`/marketplace/${item.id}`)}
+                            className="flex items-center space-x-1 text-sm text-gray-600 hover:text-emerald-600 transition-colors"
+                          >
+                            <Eye className="w-4 h-4" />
+                            <span>View Details</span>
+                          </button>
+                          
+                          <button
+                            onClick={() => removeItem(item.id)}
+                            className="flex items-center space-x-1 text-sm text-red-600 hover:text-red-700 transition-colors"
+                          >
+                            <Trash2 className="w-4 h-4" />
+                            <span>Remove</span>
+                          </button>
+                        </div>
+                      </div>
                     </div>
                   </div>
+                ))}
+              </div>
 
-                  {/* Delivery Address (if delivery method) */}
-                  {deliveryMethod === 'delivery' && (
-                    <div className="bg-white rounded-xl border border-gray-200 p-6">
-                      <div className="flex items-center justify-between mb-4">
-                        <h3 className="text-lg font-semibold text-gray-900">Delivery Address</h3>
-                        <button className="text-emerald-600 hover:text-emerald-700 text-sm font-medium flex items-center">
-                          <Plus className="w-4 h-4 mr-1" />
-                          Add New
-                        </button>
-                      </div>
-                      <div className="space-y-3">
-                        {savedAddresses.map((address) => (
-                          <label key={address.id} className={`relative p-4 border-2 rounded-lg cursor-pointer transition-colors ${
-                            selectedAddress === address.id 
-                              ? 'border-emerald-500 bg-emerald-50' 
-                              : 'border-gray-200 hover:border-gray-300'
-                          }`}>
-                            <input
-                              type="radio"
-                              name="address"
-                              value={address.id}
-                              checked={selectedAddress === address.id}
-                              onChange={() => setSelectedAddress(address.id)}
-                              className="sr-only"
-                            />
-                            <div className="flex items-start justify-between">
-                              <div className="flex items-start space-x-3">
-                                <Home className="w-5 h-5 text-gray-500 mt-0.5" />
-                                <div>
-                                  <div className="flex items-center space-x-2">
-                                    <span className="font-medium text-gray-900">{address.type}</span>
-                                    {address.isDefault && (
-                                      <span className="bg-emerald-100 text-emerald-800 text-xs px-2 py-0.5 rounded-full">
-                                        Default
-                                      </span>
-                                    )}
-                                  </div>
-                                  <div className="text-gray-600 text-sm mt-1">{address.address}</div>
-                                  <div className="text-gray-500 text-sm">{address.recipient} • {address.phone}</div>
-                                </div>
-                              </div>
-                              <button className="text-gray-400 hover:text-gray-600">
-                                <Edit className="w-4 h-4" />
-                              </button>
+              {/* Order Summary */}
+              <div className="space-y-6">
+                {/* Promo Code */}
+                <div className="bg-white p-6 rounded-2xl border border-gray-200">
+                  <h3 className="font-semibold text-gray-900 mb-4">Promo Code</h3>
+                  <div className="flex space-x-2">
+                    <input
+                      type="text"
+                      placeholder="Enter promo code"
+                      value={promoCode}
+                      onChange={(e) => setPromoCode(e.target.value)}
+                      className="flex-1 border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
+                    />
+                    <button
+                      onClick={applyPromoCode}
+                      disabled={!promoCode || promoApplied}
+                      className="bg-emerald-600 text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-emerald-700 disabled:bg-gray-300 disabled:cursor-not-allowed transition-colors"
+                    >
+                      Apply
+                    </button>
+                  </div>
+                  {promoApplied && (
+                    <div className="flex items-center space-x-2 mt-2 text-sm text-green-600">
+                      <CheckCircle className="w-4 h-4" />
+                      <span>Promo code applied! 10% discount</span>
+                    </div>
+                  )}
+                </div>
+
+                {/* Delivery Options */}
+                <div className="bg-white p-6 rounded-2xl border border-gray-200">
+                  <h3 className="font-semibold text-gray-900 mb-4">Delivery Options</h3>
+                  <div className="space-y-3">
+                    {deliveryOptions.map((option) => (
+                      <label key={option.id} className="flex items-center space-x-3 cursor-pointer">
+                        <input
+                          type="radio"
+                          name="delivery"
+                          value={option.id}
+                          checked={selectedDelivery === option.id}
+                          onChange={(e) => setSelectedDelivery(e.target.value)}
+                          className="text-emerald-600 focus:ring-emerald-500"
+                        />
+                        <div className="flex-1">
+                          <div className="flex items-center justify-between">
+                            <div>
+                              <div className="font-medium text-gray-900">{option.name}</div>
+                              <div className="text-sm text-gray-600">{option.description}</div>
                             </div>
-                          </label>
-                        ))}
+                            <div className="text-right">
+                              <div className="font-medium text-gray-900">
+                                {option.cost === 0 ? 'Free' : `Rs. ${option.cost}`}
+                              </div>
+                              <div className="text-sm text-gray-600">{option.time}</div>
+                            </div>
+                          </div>
+                        </div>
+                      </label>
+                    ))}
+                  </div>
+
+                  {selectedDelivery === 'pickup' && Object.keys(groupedByFarmer).length > 1 && (
+                    <div className="mt-4 p-3 bg-yellow-50 border border-yellow-200 rounded-lg">
+                      <div className="flex items-start space-x-2">
+                        <AlertCircle className="w-4 h-4 text-yellow-600 mt-0.5" />
+                        <div className="text-sm text-yellow-800">
+                          <div className="font-medium">Multiple pickup locations</div>
+                          <div>You'll need to visit {Object.keys(groupedByFarmer).length} different farms to collect all items.</div>
+                        </div>
                       </div>
                     </div>
                   )}
-
-                  {/* Cart Items by Farmer */}
-                  {Object.entries(groupedByFarmer).map(([farmerName, items]) => (
-                    <div key={farmerName} className="bg-white rounded-xl border border-gray-200 overflow-hidden">
-                      {/* Farmer Header */}
-                      <div className="bg-gray-50 px-6 py-4 border-b border-gray-200">
-                        <div className="flex items-center justify-between">
-                          <div className="flex items-center space-x-3">
-                            <div className="w-10 h-10 bg-emerald-100 rounded-full flex items-center justify-center">
-                              <span className="text-sm font-semibold text-emerald-700">
-                                {farmerName.split(' ').map(n => n[0]).join('')}
-                              </span>
-                            </div>
-                            <div>
-                              <h3 className="font-semibold text-gray-900">{farmerName}</h3>
-                              <div className="flex items-center space-x-4 text-sm text-gray-500">
-                                <span className="flex items-center">
-                                  <MapPin className="w-4 h-4 mr-1" />
-                                  {items[0].farmer.location}
-                                </span>
-                                <span className="flex items-center">
-                                  <Star className="w-4 h-4 mr-1 text-yellow-400 fill-current" />
-                                  {items[0].farmer.rating}
-                                </span>
-                              </div>
-                            </div>
-                          </div>
-                          <div className="text-right">
-                            <div className="text-sm text-gray-500">Delivery</div>
-                            <div className="font-medium text-gray-900">{items[0].deliveryTime}</div>
-                          </div>
-                        </div>
-                      </div>
-
-                      {/* Items */}
-                      <div className="divide-y divide-gray-200">
-                        {items.map((item) => (
-                          <div key={item.id} className="p-6">
-                            <div className="flex items-center space-x-4">
-                              {/* Product Image */}
-                              <div className="w-16 h-16 bg-gray-100 rounded-lg flex items-center justify-center">
-                                <span className="text-2xl">{item.image}</span>
-                              </div>
-
-                              {/* Product Info */}
-                              <div className="flex-1">
-                                <h4 className="font-semibold text-gray-900">{item.name}</h4>
-                                <div className="flex items-center space-x-3 mt-1">
-                                  <span className="text-emerald-600 font-medium">Rs. {item.price}/{item.unit}</span>
-                                  {item.organic && (
-                                    <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs bg-green-100 text-green-800">
-                                      <Leaf className="w-3 h-3 mr-1" />
-                                      Organic
-                                    </span>
-                                  )}
-                                </div>
-                              </div>
-
-                              {/* Quantity Controls */}
-                              <div className="flex items-center space-x-3">
-                                <div className="flex items-center border border-gray-300 rounded-lg">
-                                  <button 
-                                    onClick={() => updateQuantity(item.id, item.quantity - 1)}
-                                    className="p-2 hover:bg-gray-100 transition-colors"
-                                  >
-                                    <Minus className="w-4 h-4" />
-                                  </button>
-                                  <span className="px-4 py-2 font-medium">{item.quantity}</span>
-                                  <button 
-                                    onClick={() => updateQuantity(item.id, item.quantity + 1)}
-                                    className="p-2 hover:bg-gray-100 transition-colors"
-                                  >
-                                    <Plus className="w-4 h-4" />
-                                  </button>
-                                </div>
-
-                                {/* Item Total */}
-                                <div className="text-right min-w-[80px]">
-                                  <div className="font-bold text-gray-900">Rs. {(item.price * item.quantity).toLocaleString()}</div>
-                                </div>
-
-                                {/* Remove Button */}
-                                <button 
-                                  onClick={() => removeItem(item.id)}
-                                  className="p-2 text-red-500 hover:bg-red-50 rounded-lg transition-colors"
-                                >
-                                  <Trash2 className="w-4 h-4" />
-                                </button>
-                              </div>
-                            </div>
-                          </div>
-                        ))}
-                      </div>
-                    </div>
-                  ))}
                 </div>
 
                 {/* Order Summary */}
-                <div className="lg:col-span-1">
-                  <div className="bg-white rounded-xl border border-gray-200 p-6 sticky top-6">
-                    <h3 className="text-lg font-semibold text-gray-900 mb-6">Order Summary</h3>
+                <div className="bg-white p-6 rounded-2xl border border-gray-200">
+                  <h3 className="font-semibold text-gray-900 mb-4">Order Summary</h3>
+                  <div className="space-y-3">
+                    <div className="flex justify-between">
+                      <span className="text-gray-600">Subtotal</span>
+                      <span className="font-medium">Rs. {subtotal.toLocaleString()}</span>
+                    </div>
                     
-                    <div className="space-y-3 mb-6">
-                      <div className="flex justify-between">
-                        <span className="text-gray-600">Subtotal</span>
-                        <span className="font-medium">Rs. {subtotal.toLocaleString()}</span>
+                    {discount > 0 && (
+                      <div className="flex justify-between text-green-600">
+                        <span>Discount (FRESH10)</span>
+                        <span>-Rs. {discount.toLocaleString()}</span>
                       </div>
-                      <div className="flex justify-between">
-                        <span className="text-gray-600">Service Fee</span>
-                        <span className="font-medium">Rs. {serviceFee.toLocaleString()}</span>
-                      </div>
-                      <div className="flex justify-between">
-                        <span className="text-gray-600">Delivery Fee</span>
-                        <span className="font-medium">
-                          {deliveryFee > 0 ? `Rs. ${deliveryFee.toLocaleString()}` : 'Free'}
-                        </span>
-                      </div>
-                      <div className="border-t border-gray-200 pt-3">
-                        <div className="flex justify-between">
-                          <span className="text-lg font-semibold text-gray-900">Total</span>
-                          <span className="text-lg font-bold text-emerald-600">Rs. {total.toLocaleString()}</span>
-                        </div>
+                    )}
+                    
+                    <div className="flex justify-between">
+                      <span className="text-gray-600">Delivery</span>
+                      <span className="font-medium">
+                        {deliveryCost === 0 ? 'Free' : `Rs. ${deliveryCost.toLocaleString()}`}
+                      </span>
+                    </div>
+                    
+                    <div className="border-t border-gray-200 pt-3">
+                      <div className="flex justify-between text-lg font-bold">
+                        <span>Total</span>
+                        <span className="text-emerald-600">Rs. {total.toLocaleString()}</span>
                       </div>
                     </div>
-
-                    {/* Estimated Delivery */}
-                    <div className="bg-emerald-50 border border-emerald-200 rounded-lg p-4 mb-6">
-                      <div className="flex items-center space-x-2 mb-2">
-                        <Clock className="w-4 h-4 text-emerald-600" />
-                        <span className="text-sm font-medium text-emerald-900">Estimated Delivery</span>
-                      </div>
-                      <p className="text-sm text-emerald-800">
-                        {deliveryMethod === 'delivery' ? 'Today 4-8 PM' : 'Ready for pickup tomorrow'}
-                      </p>
-                    </div>
-
-                    {/* Security Badge */}
-                    <div className="flex items-center space-x-2 mb-6 text-sm text-gray-600">
-                      <Shield className="w-4 h-4 text-green-500" />
-                      <span>Secure checkout powered by FieldFair</span>
-                    </div>
-
-                    {/* Checkout Button */}
-                    <button className="w-full bg-emerald-600 text-white py-3 rounded-lg font-semibold hover:bg-emerald-700 transition-colors flex items-center justify-center space-x-2 group">
-                      <CreditCard className="w-5 h-5" />
-                      <span>Proceed to Checkout</span>
-                      <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
-                    </button>
-
-                    <p className="text-xs text-gray-500 text-center mt-4">
-                      By proceeding, you agree to our Terms of Service and Privacy Policy
-                    </p>
                   </div>
+
+                  <button
+                    onClick={handleCheckout}
+                    disabled={cartItems.some(item => !item.inStock)}
+                    className="w-full bg-emerald-600 text-white py-3 rounded-xl font-semibold hover:bg-emerald-700 disabled:bg-gray-300 disabled:cursor-not-allowed transition-all mt-6 flex items-center justify-center space-x-2 shadow-lg hover:shadow-xl transform hover:scale-105"
+                  >
+                    <CreditCard className="w-5 h-5" />
+                    <span>Proceed to Checkout</span>
+                    <ArrowRight className="w-4 h-4" />
+                  </button>
+
+                  {cartItems.some(item => !item.inStock) && (
+                    <div className="mt-3 p-3 bg-red-50 border border-red-200 rounded-lg">
+                      <div className="flex items-center space-x-2 text-sm text-red-700">
+                        <AlertCircle className="w-4 h-4" />
+                        <span>Remove out of stock items to proceed</span>
+                      </div>
+                    </div>
+                  )}
                 </div>
               </div>
-            )}
+            </div>
           </div>
         </main>
       </div>
@@ -475,4 +947,4 @@ const ShoppingCartPage = () => {
   );
 };
 
-export default ShoppingCartPage;
+export default CartPage;

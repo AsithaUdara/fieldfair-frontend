@@ -35,6 +35,9 @@ const FarmerAnalyticsPage = () => {
     
     const checkMobile = () => {
       setIsMobile(window.innerWidth < 1024);
+      if (window.innerWidth < 1024) {
+        setSidebarCollapsed(false);
+      }
     };
     
     checkMobile();
@@ -79,13 +82,14 @@ const FarmerAnalyticsPage = () => {
         isMobile={isMobile}
         isOpen={isMobileMenuOpen}
         onClose={() => setIsMobileMenuOpen(false)}
+        userType="farmer"
       />
 
       <div className={`flex-1 flex flex-col bg-gray-50 transition-all duration-300 ${
-        isMobile ? 'ml-0' : (sidebarCollapsed ? 'ml-16' : 'ml-64')
+        isMobile ? 'ml-0' : (sidebarCollapsed ? 'ml-20' : 'ml-72')
       }`}>
         {/* Header */}
-        <header className="bg-white border-b border-gray-200 px-6 py-4">
+        <header className="bg-white border-b border-gray-200 px-4 lg:px-6 py-4">
           <div className="flex items-center justify-between">
             <div>
               <div className="flex items-center space-x-4">
@@ -96,15 +100,15 @@ const FarmerAnalyticsPage = () => {
                   <LayoutGrid className="w-6 h-6" />
                 </button>
                 <div>
-                  <h1 className="text-2xl font-bold text-gray-900">Farm Analytics</h1>
+                  <h1 className="text-xl lg:text-2xl font-bold text-gray-900">Farm Analytics</h1>
                   <p className="text-sm text-gray-600 mt-1">Track your farm's performance and growth</p>
                 </div>
               </div>
             </div>
             
-            <div className="flex items-center space-x-4">
+            <div className="flex items-center space-x-2 lg:space-x-4">
               <select 
-                className="border border-gray-300 rounded-lg px-3 py-2 text-sm"
+                className="border border-gray-300 rounded-lg px-2 lg:px-3 py-2 text-sm bg-white"
                 value={selectedPeriod}
                 onChange={(e) => setSelectedPeriod(e.target.value)}
               >
@@ -114,19 +118,19 @@ const FarmerAnalyticsPage = () => {
                 <option value="year">This Year</option>
               </select>
               
-              <button className="bg-emerald-600 text-white px-4 py-2 rounded-lg text-sm font-medium flex items-center hover:bg-emerald-700 transition-colors">
+              <button className="bg-emerald-600 text-white px-3 lg:px-4 py-2 rounded-lg text-sm font-medium flex items-center hover:bg-emerald-700 transition-colors">
                 <Download className="w-4 h-4 mr-2" />
-                Export Report
+                <span className="hidden sm:inline">Export Report</span>
               </button>
             </div>
           </div>
         </header>
 
-        <main className="flex-1 overflow-auto p-6">
+        <main className="flex-1 overflow-auto p-4 lg:p-6">
           <div className="max-w-7xl mx-auto">
             {/* Key Metrics */}
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mb-6">
-              <div className="bg-white p-6 rounded-xl border border-gray-200">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 lg:gap-6 mb-6">
+              <div className="bg-white p-4 lg:p-6 rounded-xl border border-gray-200">
                 <div className="flex items-center justify-between">
                   <div>
                     <p className="text-sm text-gray-600">Total Revenue</p>
@@ -134,14 +138,14 @@ const FarmerAnalyticsPage = () => {
                     <div className="flex items-center mt-2">
                       <ArrowUpRight className="w-4 h-4 text-green-500 mr-1" />
                       <span className="text-green-600 text-sm font-medium">+18.2%</span>
-                      <span className="text-gray-500 text-sm ml-1">vs last period</span>
+                      <span className="text-gray-500 text-sm ml-1 hidden sm:inline">vs last period</span>
                     </div>
                   </div>
                   <DollarSign className="w-8 h-8 text-green-500" />
                 </div>
               </div>
 
-              <div className="bg-white p-6 rounded-xl border border-gray-200">
+              <div className="bg-white p-4 lg:p-6 rounded-xl border border-gray-200">
                 <div className="flex items-center justify-between">
                   <div>
                     <p className="text-sm text-gray-600">Total Orders</p>
@@ -149,14 +153,14 @@ const FarmerAnalyticsPage = () => {
                     <div className="flex items-center mt-2">
                       <ArrowUpRight className="w-4 h-4 text-green-500 mr-1" />
                       <span className="text-green-600 text-sm font-medium">+24.1%</span>
-                      <span className="text-gray-500 text-sm ml-1">vs last period</span>
+                      <span className="text-gray-500 text-sm ml-1 hidden sm:inline">vs last period</span>
                     </div>
                   </div>
                   <ShoppingCart className="w-8 h-8 text-blue-500" />
                 </div>
               </div>
 
-              <div className="bg-white p-6 rounded-xl border border-gray-200">
+              <div className="bg-white p-4 lg:p-6 rounded-xl border border-gray-200">
                 <div className="flex items-center justify-between">
                   <div>
                     <p className="text-sm text-gray-600">Average Order Value</p>
@@ -164,14 +168,14 @@ const FarmerAnalyticsPage = () => {
                     <div className="flex items-center mt-2">
                       <ArrowDownRight className="w-4 h-4 text-red-500 mr-1" />
                       <span className="text-red-600 text-sm font-medium">-5.3%</span>
-                      <span className="text-gray-500 text-sm ml-1">vs last period</span>
+                      <span className="text-gray-500 text-sm ml-1 hidden sm:inline">vs last period</span>
                     </div>
                   </div>
                   <Target className="w-8 h-8 text-purple-500" />
                 </div>
               </div>
 
-              <div className="bg-white p-6 rounded-xl border border-gray-200">
+              <div className="bg-white p-4 lg:p-6 rounded-xl border border-gray-200">
                 <div className="flex items-center justify-between">
                   <div>
                     <p className="text-sm text-gray-600">Customer Satisfaction</p>
@@ -179,7 +183,7 @@ const FarmerAnalyticsPage = () => {
                     <div className="flex items-center mt-2">
                       <ArrowUpRight className="w-4 h-4 text-green-500 mr-1" />
                       <span className="text-green-600 text-sm font-medium">+0.2</span>
-                      <span className="text-gray-500 text-sm ml-1">vs last period</span>
+                      <span className="text-gray-500 text-sm ml-1 hidden sm:inline">vs last period</span>
                     </div>
                   </div>
                   <Star className="w-8 h-8 text-yellow-500" />
@@ -189,13 +193,13 @@ const FarmerAnalyticsPage = () => {
 
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
               {/* Revenue Chart */}
-              <div className="bg-white p-6 rounded-xl border border-gray-200">
+              <div className="bg-white p-4 lg:p-6 rounded-xl border border-gray-200">
                 <div className="flex items-center justify-between mb-6">
                   <h3 className="text-lg font-semibold text-gray-900">Revenue Trend</h3>
                   <BarChart3 className="w-5 h-5 text-gray-400" />
                 </div>
                 
-                <div className="flex items-end space-x-3 h-64">
+                <div className="flex items-end space-x-2 lg:space-x-3 h-48 lg:h-64">
                   {monthlyData.map((item, index) => (
                     <div key={index} className="flex flex-col items-center flex-1">
                       <div 
@@ -210,7 +214,7 @@ const FarmerAnalyticsPage = () => {
               </div>
 
               {/* Top Products */}
-              <div className="bg-white p-6 rounded-xl border border-gray-200">
+              <div className="bg-white p-4 lg:p-6 rounded-xl border border-gray-200">
                 <div className="flex items-center justify-between mb-6">
                   <h3 className="text-lg font-semibold text-gray-900">Top Selling Products</h3>
                   <Package className="w-5 h-5 text-gray-400" />
@@ -247,7 +251,7 @@ const FarmerAnalyticsPage = () => {
             {/* Detailed Analytics */}
             <div className="mt-6 grid grid-cols-1 lg:grid-cols-3 gap-6">
               {/* Customer Analytics */}
-              <div className="bg-white p-6 rounded-xl border border-gray-200">
+              <div className="bg-white p-4 lg:p-6 rounded-xl border border-gray-200">
                 <div className="flex items-center justify-between mb-6">
                   <h3 className="text-lg font-semibold text-gray-900">Customer Insights</h3>
                   <Users className="w-5 h-5 text-gray-400" />
@@ -284,7 +288,7 @@ const FarmerAnalyticsPage = () => {
                       <div key={index} className="flex items-center justify-between">
                         <span className="text-sm text-gray-600">{item.location}</span>
                         <div className="flex items-center space-x-2">
-                          <div className="w-16 bg-gray-200 rounded-full h-2">
+                          <div className="w-12 lg:w-16 bg-gray-200 rounded-full h-2">
                             <div 
                               className="bg-emerald-500 h-2 rounded-full" 
                               style={{ width: `${item.percentage}%` }}
@@ -299,7 +303,7 @@ const FarmerAnalyticsPage = () => {
               </div>
 
               {/* Seasonal Trends */}
-              <div className="bg-white p-6 rounded-xl border border-gray-200">
+              <div className="bg-white p-4 lg:p-6 rounded-xl border border-gray-200">
                 <div className="flex items-center justify-between mb-6">
                   <h3 className="text-lg font-semibold text-gray-900">Seasonal Trends</h3>
                   <Calendar className="w-5 h-5 text-gray-400" />
@@ -332,7 +336,7 @@ const FarmerAnalyticsPage = () => {
               </div>
 
               {/* Farm Performance */}
-              <div className="bg-white p-6 rounded-xl border border-gray-200">
+              <div className="bg-white p-4 lg:p-6 rounded-xl border border-gray-200">
                 <div className="flex items-center justify-between mb-6">
                   <h3 className="text-lg font-semibold text-gray-900">Farm Performance</h3>
                   <Leaf className="w-5 h-5 text-gray-400" />
