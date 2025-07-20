@@ -22,5 +22,33 @@
 body {
   background: var(--background);
   color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+}
+
+/* Global Green Scrollbar Styling */
+* {
+  scrollbar-width: thin;
+  scrollbar-color: #10b981 #1e293b;
+}
+
+*::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+*::-webkit-scrollbar-track {
+  background: #1e293b;
+  border-radius: 4px;
+}
+
+*::-webkit-scrollbar-thumb {
+  background: #10b981;
+  border-radius: 4px;
+}
+
+*::-webkit-scrollbar-thumb:hover {
+  background: #059669;
+}
+
+*::-webkit-scrollbar-corner {
+  background: #1e293b;
 }

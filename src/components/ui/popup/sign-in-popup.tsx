@@ -23,7 +23,25 @@ const SignInPopup: React.FC = () => {
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     console.log('Sign in:', formData);
-    closePopup();
+    
+    // Navigate based on the sign-in context
+    if (signInContext === 'farmer') {
+      console.log('Farmer sign in - navigating to farmer dashboard');
+      closePopup();
+      navigateToPage('/farmer/dashboard');
+    } else if (signInContext === 'customer') {
+      console.log('Customer sign in - navigating to customer area');
+      closePopup();
+      // Choose one of these based on your preference:
+      navigateToPage('/marketplace'); // Main shopping area
+      // navigateToPage('/customer/profile'); // Customer profile
+      // navigateToPage('/customer/dashboard'); // If you create a customer dashboard
+      // navigateToPage('/dashboard'); // General dashboard
+    } else {
+      console.log('General sign in - navigating to general dashboard');
+      closePopup();
+      navigateToPage('/dashboard');
+    }
   };
 
   const handleGoogleSignIn = () => {
