@@ -1,623 +1,368 @@
 "use client";
 
-import React, { useState, useEffect, useRef } from 'react';
-import { useRouter } from 'next/navigation';
-import Link from 'next/link';
-import { usePathname } from 'next/navigation';
+import React, { useState, useEffect } from 'react';
+import FieldFairSidebar from '@/components/ui/layout/sidebar';
 import { 
   LayoutGrid, 
+  Package,
   Search,
   Filter,
-  Package,
   Clock,
   CheckCircle,
   XCircle,
   Truck,
   MapPin,
-  Star,
   Phone,
+  Star,
+  Eye,
+  RefreshCw,
+  Calendar,
+  ShoppingCart,
+  User,
   MessageCircle,
   Download,
-  RefreshCw,
-  AlertCircle,
-  Eye,
-  Calendar,
-  DollarSign,
-  Leaf,
-  User,
-  BarChart3, 
-  ShoppingCart,
-  Users,
-  TrendingUp,
-  Shield,
-  Heart,
-  Settings,
-  ChevronLeft,
-  ChevronRight,
-  Sprout,
-  History,
-  QrCode,
-  Bell,
-  Route,
-  Database,
-  FileText,
-  Camera,
-  Navigation,
-  Scan,
-  Menu,
-  X,
+  AlertTriangle,
   ChevronDown,
+  ChevronRight,
+  Plus,
+  Heart,
+  Share2,
+  Grid3X3,
+  List,
+  SlidersHorizontal,
+  TrendingUp,
+  ThumbsUp,
+  Timer,
+  Shield,
+  Leaf,
+  Award,
+  Receipt,
+  CreditCard,
+  Navigation,
+  Route,
   Zap,
-  Target
+  Target,
+  Info,
+  ExternalLink,
+  Copy,
+  Bell,
+  FileText,
+  ArrowRight,
+  Sparkles,
+  CheckSquare,
+  X,
+  Menu
 } from 'lucide-react';
 
-// Modern Sidebar Component
-interface MenuItem {
-  name: string;
-  icon: React.ComponentType<any>;
-  path: string;
-  badge?: string;
-  hasSubmenu?: boolean;
-  active?: boolean;
-  submenu?: MenuItem[];
-}
-
-interface FieldFairSidebarProps {
-  isCollapsed?: boolean;
-  setIsCollapsed?: (collapsed: boolean) => void;
-  isMobile?: boolean;
-  isOpen?: boolean;
-  onClose?: () => void;
-  userType?: 'farmer' | 'customer';
-}
-
-const FieldFairSidebar: React.FC<FieldFairSidebarProps> = ({
-  isCollapsed = false,
-  setIsCollapsed,
-  isMobile = false,
-  isOpen = false,
-  onClose,
-  userType = 'customer'
-}) => {
-  const pathname = usePathname();
-  const scrollRef = useRef<HTMLDivElement>(null);
-  const [activeMenu, setActiveMenu] = useState('My Orders');
-  const [mounted, setMounted] = useState(false);
-  const [expandedMenus, setExpandedMenus] = useState<string[]>(['My Orders']);
-  
-  // Customer menu items
-  const customerMenuItems: MenuItem[] = [
-    { name: 'Marketplace', icon: Search, path: '/marketplace', active: false },
-    { name: 'My Cart', icon: ShoppingCart, path: '/marketplace/cart', badge: '2' },
-    { 
-      name: 'My Orders', 
-      icon: Package, 
-      path: '/customer/orders',
-      active: true,
-      hasSubmenu: true,
-      submenu: [
-        { name: 'Current Orders', icon: Package, path: '/customer/orders' },
-        { name: 'Order History', icon: History, path: '/customer/history' }
-      ]
-    },
-    { name: 'Favorites', icon: Heart, path: '/customer/favorites' },
-    { 
-      name: 'Discover', 
-      icon: MapPin, 
-      path: '/customer/farms',
-      hasSubmenu: true,
-      submenu: [
-        { name: 'Find Farms', icon: MapPin, path: '/customer/farms' },
-        { name: 'QR Scanner', icon: QrCode, path: '/customer/qr-scanner' },
-        { name: 'Track Products', icon: Route, path: '/maps/supply-chain' }
-      ]
-    },
-    {
-      name: 'AI Assistant',
-      icon: Zap,
-      path: '/ai/recommendations',
-      hasSubmenu: true,
-      submenu: [
-        { name: 'Recommendations', icon: Target, path: '/ai/recommendations' },
-        { name: 'Price Forecasting', icon: TrendingUp, path: '/ai/forecasting' },
-        { name: 'Chat Assistant', icon: MessageCircle, path: '/ai/chatbot' }
-      ]
-    }
-  ];
-  
-  const generalItems: MenuItem[] = [
-    { 
-      name: 'Profile', 
-      icon: User, 
-      path: '/customer/profile',
-      hasSubmenu: true,
-      submenu: [
-        { name: 'My Profile', icon: User, path: '/customer/profile' },
-        { name: 'Settings', icon: Settings, path: '/customer/settings' },
-        { name: 'Notifications', icon: Bell, path: '/customer/notifications' }
-      ]
-    }
-  ];
-
-  const menuItems = customerMenuItems;
-
-  useEffect(() => {
-    setMounted(true);
-  }, []);
-
-  useEffect(() => {
-    if (mounted) {
-      const allItems = [...menuItems, ...generalItems];
-      let foundItem = null;
-
-      foundItem = allItems.find(item => pathname === item.path);
-      
-      if (!foundItem) {
-        for (const item of allItems) {
-          if (item.submenu) {
-            const submenuItem = item.submenu.find(subItem => pathname === subItem.path || pathname.startsWith(subItem.path));
-            if (submenuItem) {
-              foundItem = item;
-              setExpandedMenus(prev => 
-                prev.includes(item.name) ? prev : [...prev, item.name]
-              );
-              break;
-            }
-          }
-        }
-      }
-
-      if (!foundItem) {
-        foundItem = allItems.find(item => pathname.startsWith(item.path));
-      }
-
-      if (foundItem) {
-        setActiveMenu(foundItem.name);
-      }
-    }
-  }, [pathname, mounted, menuItems, generalItems]);
-
-  const handleMenuClick = (item: MenuItem) => {
-    if (item.hasSubmenu && !isCollapsed) {
-      setExpandedMenus(prev => 
-        prev.includes(item.name) 
-          ? prev.filter(name => name !== item.name)
-          : [...prev, item.name]
-      );
-    } else {
-      setActiveMenu(item.name);
-      if (isMobile && onClose) {
-        onClose();
-      }
-    }
-  };
-
-  const handleSubmenuClick = (parentItem: MenuItem, subItem: MenuItem) => {
-    setActiveMenu(parentItem.name);
-    if (isMobile && onClose) {
-      onClose();
-    }
-  };
-
-  if (!mounted) {
-    return null;
-  }
-
-  const userInfo = {
-    name: 'Nimal Perera',
-    subtitle: 'Premium Customer • Colombo',
-    avatar: 'NP',
-    status: 'Active Member',
-    statusColor: 'bg-blue-500'
-  };
-
-  const cn = (...classes: string[]) => classes.filter(Boolean).join(' ');
-
-  const renderMenuItem = (item: MenuItem, isSubmenu = false) => {
-    const isActive = activeMenu === item.name || 
-                    (item.submenu && item.submenu.some(subItem => pathname === subItem.path || pathname.startsWith(subItem.path)));
-    const isExpanded = expandedMenus.includes(item.name);
-    const hasActiveSubmenu = item.submenu && item.submenu.some(subItem => pathname === subItem.path || pathname.startsWith(subItem.path));
-
-    return (
-      <div key={item.name}>
-        <div className={isCollapsed && !isSubmenu ? "flex justify-center" : ""}>
-          <Link 
-            href={item.hasSubmenu ? '#' : item.path}
-            onClick={(e) => {
-              if (item.hasSubmenu) {
-                e.preventDefault();
-                handleMenuClick(item);
-              } else {
-                handleMenuClick(item);
-              }
-            }}
-            className={cn(
-              "flex items-center py-3.5 rounded-xl transition-all duration-300 group relative overflow-hidden",
-              isActive || hasActiveSubmenu
-                ? 'bg-gradient-to-r from-emerald-500 to-emerald-600 text-white shadow-lg shadow-emerald-500/25' 
-                : 'text-slate-300 hover:bg-white/5 hover:text-white backdrop-blur-sm',
-              isCollapsed && !isSubmenu ? "w-12 h-12 justify-center mx-auto" : "px-4 w-full mx-2",
-              isSubmenu ? "ml-6 text-sm" : ""
-            )}
-          >
-            {(isActive || hasActiveSubmenu) && !isCollapsed && !isSubmenu && (
-              <div className="absolute inset-0 bg-gradient-to-r from-emerald-400/20 to-emerald-600/20 rounded-xl animate-pulse"></div>
-            )}
-            
-            {(isActive || hasActiveSubmenu) && !isCollapsed && !isSubmenu && (
-              <span className="absolute left-0 top-1/2 -translate-y-1/2 w-1 h-8 bg-white rounded-r-full shadow-lg"></span>
-            )}
-            
-            <item.icon className={cn(
-              "w-5 h-5 relative z-10 transition-transform duration-300",
-              isActive || hasActiveSubmenu ? "text-white scale-110" : "text-slate-400 group-hover:text-white group-hover:scale-105",
-              isSubmenu ? "w-4 h-4" : ""
-            )} />
-            
-            {!isCollapsed && (
-              <>
-                <span className="ml-4 flex-1 text-left font-medium relative z-10 transition-all duration-300">
-                  {item.name}
-                </span>
-                {item.badge && (
-                  <span className="bg-gradient-to-r from-orange-400 to-orange-500 text-white text-[10px] px-2.5 py-1 rounded-full font-bold shadow-lg relative z-10 animate-pulse">
-                    {item.badge}
-                  </span>
-                )}
-                {item.hasSubmenu && (
-                  <ChevronDown className={cn(
-                    "w-4 h-4 relative z-10 transition-all duration-300",
-                    isExpanded ? "rotate-180 text-white" : "text-slate-400 group-hover:text-white",
-                    isActive || hasActiveSubmenu ? "text-white" : ""
-                  )} />
-                )}
-              </>
-            )}
-
-            {isCollapsed && !isSubmenu && (
-              <div className="absolute left-full ml-3 px-3 py-2 bg-slate-800 text-white text-sm rounded-lg opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-300 z-50 whitespace-nowrap shadow-xl border border-slate-700">
-                <div className="font-medium">{item.name}</div>
-                {item.badge && (
-                  <span className="inline-block mt-1 bg-orange-500 text-xs px-2 py-0.5 rounded-full">
-                    {item.badge}
-                  </span>
-                )}
-                <div className="absolute right-full top-1/2 -translate-y-1/2 border-4 border-transparent border-r-slate-800"></div>
-              </div>
-            )}
-          </Link>
-        </div>
-
-        {item.hasSubmenu && !isCollapsed && isExpanded && item.submenu && (
-          <div className="ml-6 mt-2 space-y-1 animate-in slide-in-from-left-2 duration-300">
-            {item.submenu.map((subItem) => (
-              <Link
-                key={subItem.name}
-                href={subItem.path}
-                onClick={() => handleSubmenuClick(item, subItem)}
-                className={cn(
-                  "flex items-center py-3 px-4 rounded-lg transition-all duration-300 text-sm group relative overflow-hidden",
-                  pathname === subItem.path || pathname.startsWith(subItem.path)
-                    ? 'bg-gradient-to-r from-emerald-400/30 to-emerald-500/30 text-white backdrop-blur-sm'
-                    : 'text-slate-400 hover:bg-white/5 hover:text-white hover:pl-6'
-                )}
-              >
-                <subItem.icon className="w-4 h-4 mr-3 transition-transform duration-300 group-hover:scale-110" />
-                <span className="transition-all duration-300">{subItem.name}</span>
-                
-                {(pathname === subItem.path || pathname.startsWith(subItem.path)) && (
-                  <div className="absolute right-2 w-2 h-2 bg-white rounded-full animate-pulse"></div>
-                )}
-              </Link>
-            ))}
-          </div>
-        )}
-      </div>
-    );
-  };
-
-  return (
-    <>
-      {isMobile && isOpen && (
-        <div 
-          className="fixed inset-0 bg-black/60 backdrop-blur-sm z-40 transition-opacity duration-300 ease-in-out" 
-          onClick={onClose}
-        />
-      )}
-      
-      <aside 
-        className={cn(
-          "fixed h-screen left-0 top-0 z-50 transition-all duration-500 flex flex-col shadow-2xl border-r border-slate-800/50",
-          "bg-gradient-to-b from-slate-900 via-slate-800 to-slate-900 text-white backdrop-blur-xl",
-          isCollapsed ? "w-20" : "w-72",
-          isMobile ? (isOpen ? "translate-x-0" : "-translate-x-full") : "translate-x-0"
-        )}
-      >
-        <div className="absolute inset-0 z-0">
-          <div className="absolute inset-0 bg-gradient-to-br from-emerald-900/20 via-transparent to-blue-900/20"></div>
-          <div className="absolute inset-0 bg-[radial-gradient(circle_at_30%_80%,rgba(16,185,129,0.1),transparent_50%)]"></div>
-          <div className="absolute inset-0 bg-[radial-gradient(circle_at_70%_20%,rgba(59,130,246,0.1),transparent_50%)]"></div>
-          
-          <div className="absolute bottom-10 right-6 opacity-5">
-            <Leaf className="w-24 h-24 text-emerald-400 animate-pulse" />
-          </div>
-          <div className="absolute top-1/3 right-4 opacity-5">
-            <Sprout className="w-16 h-16 text-emerald-300 animate-bounce" style={{animationDuration: '3s'}} />
-          </div>
-        </div>
-
-        {isMobile && (
-          <button
-            onClick={onClose}
-            className="absolute top-4 right-4 w-10 h-10 flex items-center justify-center rounded-xl z-50 bg-slate-800/80 text-slate-300 lg:hidden hover:bg-slate-700 transition-all duration-300 backdrop-blur-sm border border-slate-700/50"
-          >
-            <X className="w-5 h-5" />
-          </button>
-        )}
-        
-        <div className={cn(
-          "border-b border-slate-700/50 relative z-10 backdrop-blur-sm",
-          isCollapsed ? "p-4" : "px-6 py-6"
-        )}>
-          <div className={cn(
-            "flex items-center",
-            isCollapsed ? "justify-center" : ""
-          )}>
-            <div className="w-10 h-10 bg-gradient-to-br from-emerald-400 to-emerald-600 rounded-xl flex items-center justify-center shadow-lg shadow-emerald-500/25 ring-2 ring-emerald-400/20">
-              <Sprout className="w-6 h-6 text-white" />
-            </div>
-            {!isCollapsed && (
-              <div className="ml-4">
-                <span className="text-2xl font-bold bg-gradient-to-r from-white to-emerald-200 bg-clip-text text-transparent">
-                  FieldFair
-                </span>
-                <div className="text-xs text-emerald-300/80 font-medium">Customer Portal</div>
-              </div>
-            )}
-          </div>
-          
-          {!isMobile && setIsCollapsed && (
-            <button 
-              onClick={() => setIsCollapsed(!isCollapsed)}
-              className={cn(
-                "absolute w-8 h-8 hidden lg:flex items-center justify-center rounded-full transition-all duration-300",
-                "bg-slate-800/80 text-slate-300 hover:bg-slate-700 hover:text-white shadow-lg backdrop-blur-sm border border-slate-600/50",
-                isCollapsed ? "right-0 -mr-4 top-[26px]" : "right-0 -mr-4 top-[32px]"
-              )}
-              aria-label="Toggle sidebar"
-            >
-              {isCollapsed ? (
-                <ChevronRight className="w-4 h-4" />
-              ) : (
-                <ChevronLeft className="w-4 h-4" />
-              )}
-            </button>
-          )}
-        </div>
-        
-        <div className="flex-1 relative overflow-hidden">
-          <div 
-            ref={scrollRef}
-            className="h-full py-6 overflow-y-auto transition-all duration-500 ease-in-out scrollbar-thin scrollbar-track-slate-800 scrollbar-thumb-slate-600 hover:scrollbar-thumb-slate-500"
-          >
-            <div className={cn("mb-8", isCollapsed ? "px-2" : "px-4")}>
-              {!isCollapsed && (
-                <div className="text-[10px] text-emerald-300/70 mb-4 uppercase tracking-[0.15em] font-bold px-2">
-                  🛒 MARKETPLACE
-                </div>
-              )}
-              <nav className="space-y-2">
-                {menuItems.map((item) => renderMenuItem(item))}
-              </nav>
-            </div>
-            
-            <div className={cn("mt-8", isCollapsed ? "px-2" : "px-4")}>
-              {!isCollapsed && (
-                <div className="text-[10px] text-emerald-300/70 mb-4 uppercase tracking-[0.15em] font-bold px-2">
-                  👤 ACCOUNT
-                </div>
-              )}
-              <nav className="space-y-2">
-                {generalItems.map((item) => renderMenuItem(item))}
-              </nav>
-            </div>
-          </div>
-        </div>
-        
-        {!isCollapsed && (
-          <div className="p-4 border-t border-slate-700/50 relative z-10 backdrop-blur-sm">
-            <div className="flex items-center bg-slate-800/30 rounded-xl p-3 backdrop-blur-sm border border-slate-700/30">
-              <div className="w-12 h-12 bg-gradient-to-br from-slate-600 to-slate-700 rounded-xl flex items-center justify-center relative ring-2 ring-slate-600/50">
-                <span className="text-sm font-bold text-white">{userInfo.avatar}</span>
-                <div className={cn(
-                  "absolute -bottom-1 -right-1 w-4 h-4 rounded-full border-2 border-slate-800",
-                  userInfo.statusColor
-                )}></div>
-              </div>
-              <div className="ml-3 flex-1">
-                <div className="text-sm font-semibold text-white">{userInfo.name}</div>
-                <div className="text-xs text-slate-300">{userInfo.subtitle}</div>
-                <div className="text-[10px] text-emerald-400 mt-1 font-medium">{userInfo.status}</div>
-              </div>
-              <button className="p-2 rounded-lg hover:bg-slate-700/50 transition-colors duration-300">
-                <Settings className="w-4 h-4 text-slate-400 hover:text-white transition-colors duration-300" />
-              </button>
-            </div>
-          </div>
-        )}
-      </aside>
-    </>
-  );
-};
-
 const CustomerOrdersPage = () => {
-  const router = useRouter();
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
-  const [isMobile, setIsMobile] = useState(false);
   const [mounted, setMounted] = useState(false);
-  const [selectedFilter, setSelectedFilter] = useState('all');
+  const [activeFilter, setActiveFilter] = useState('all');
   const [searchTerm, setSearchTerm] = useState('');
+  const [expandedOrder, setExpandedOrder] = useState(null);
+  const [viewMode, setViewMode] = useState('list');
+  const [showFilters, setShowFilters] = useState(false);
+  const [sortBy, setSortBy] = useState('recent');
+  const [selectedOrder, setSelectedOrder] = useState(null);
+  const [showOrderDetails, setShowOrderDetails] = useState(false);
 
-  // Mock orders data
+  // Enhanced responsive detection - same as marketplace
+  const [screenSize, setScreenSize] = useState({
+    isMobile: false,
+    isTablet: false,
+    isDesktop: false
+  });
+
+  // Enhanced responsive detection
+  useEffect(() => {
+    setMounted(true);
+    
+    const checkScreenSize = () => {
+      const width = window.innerWidth;
+      const newScreenSize = {
+        isMobile: width < 768,
+        isTablet: width >= 768 && width < 1024,
+        isDesktop: width >= 1024
+      };
+      
+      // Only update if there's a change
+      if (JSON.stringify(newScreenSize) !== JSON.stringify(screenSize)) {
+        setScreenSize(newScreenSize);
+      }
+
+      // Auto-close mobile menu when switching to desktop/tablet
+      if (!newScreenSize.isMobile && isMobileMenuOpen) {
+        setIsMobileMenuOpen(false);
+      }
+    };
+    
+    checkScreenSize();
+    window.addEventListener('resize', checkScreenSize, { passive: true });
+    
+    return () => window.removeEventListener('resize', checkScreenSize);
+  }, [screenSize, isMobileMenuOpen]);
+
+  // Enhanced orders data
   const [orders, setOrders] = useState([
     {
       id: 'ORD-2024-001',
-      orderDate: '2024-06-25T10:30:00',
-      status: 'delivered',
-      total: 2200,
-      deliveryMethod: 'delivery',
-      deliveryAddress: 'No. 45, Galle Road, Colombo 07',
-      deliveryDate: '2024-06-26T14:30:00',
+      orderNumber: '#FF001',
+      date: '2024-06-25',
+      farmer: {
+        name: 'Ravi Mahathaya',
+        avatar: 'RM',
+        farm: "Ravi's Organic Farm",
+        location: 'Kurunegala',
+        phone: '+94 77 123 4567',
+        rating: 4.8,
+        verified: true,
+        sustainabilityScore: 95
+      },
       items: [
-        {
-          id: 1,
-          name: 'Organic Tomatoes',
-          farmer: 'Ravi Mahathaya',
-          quantity: 3,
-          unit: 'kg',
-          price: 300,
+        { 
+          name: 'Premium Organic Tomatoes', 
+          quantity: 3, 
+          unit: 'kg', 
+          price: 300, 
           image: '🍅',
-          isOrganic: true
+          isOrganic: true,
+          tags: ['Organic', 'Fresh', 'Local']
         },
-        {
-          id: 2,
-          name: 'Fresh Carrots',
-          farmer: 'Saman Silva',
-          quantity: 2,
-          unit: 'kg',
-          price: 250,
+        { 
+          name: 'Sweet Rainbow Carrots', 
+          quantity: 2, 
+          unit: 'kg', 
+          price: 250, 
           image: '🥕',
-          isOrganic: true
+          isOrganic: true,
+          tags: ['Organic', 'Sweet']
         }
       ],
-      farmer: {
-        name: 'Multiple Farmers',
-        phone: '',
-        location: 'Various'
+      subtotal: 1400,
+      deliveryFee: 150,
+      discount: 0,
+      total: 1550,
+      status: 'delivered',
+      priority: 'standard',
+      deliveryMethod: 'home_delivery',
+      deliveryAddress: {
+        street: 'No. 45, Galle Road',
+        city: 'Colombo 03',
+        district: 'Colombo',
+        postalCode: '00300'
       },
-      rating: 5,
-      review: 'Excellent quality vegetables! Fresh and tasty.',
-      trackingNumber: 'FF2024001'
+      estimatedDelivery: '2024-06-26',
+      actualDelivery: '2024-06-26T14:15:00',
+      trackingSteps: [
+        { 
+          status: 'confirmed', 
+          label: 'Order Confirmed', 
+          time: '2024-06-25T14:30:00', 
+          completed: true,
+          description: 'Your order has been confirmed and sent to the farmer'
+        },
+        { 
+          status: 'preparing', 
+          label: 'Preparing Order', 
+          time: '2024-06-25T16:00:00', 
+          completed: true,
+          description: 'Farmer is preparing your fresh produce'
+        },
+        { 
+          status: 'ready', 
+          label: 'Ready for Pickup', 
+          time: '2024-06-26T08:00:00', 
+          completed: true,
+          description: 'Order is ready and packed for delivery'
+        },
+        { 
+          status: 'shipped', 
+          label: 'Out for Delivery', 
+          time: '2024-06-26T10:30:00', 
+          completed: true,
+          description: 'Order is on the way to your address'
+        },
+        { 
+          status: 'delivered', 
+          label: 'Delivered', 
+          time: '2024-06-26T14:15:00', 
+          completed: true,
+          description: 'Order delivered successfully'
+        }
+      ],
+      paymentMethod: 'card',
+      paymentStatus: 'paid',
+      transactionId: 'TXN123456789',
+      canReview: true,
+      canReorder: true,
+      hasReviewed: false,
+      deliveryRating: null,
+      orderRating: 5,
+      notes: 'Please deliver to the back entrance',
+      estimatedTime: '45 minutes'
     },
     {
       id: 'ORD-2024-002',
-      orderDate: '2024-06-23T15:45:00',
-      status: 'pending',
-      total: 1600,
-      deliveryMethod: 'pickup',
-      deliveryAddress: 'Farm pickup - Matale',
-      deliveryDate: null,
+      orderNumber: '#FF002',
+      date: '2024-06-26',
+      farmer: {
+        name: 'Saman Silva',
+        avatar: 'SS',
+        farm: "Saman's Fresh Vegetables",
+        location: 'Matale',
+        phone: '+94 76 987 6543',
+        rating: 4.6,
+        verified: true,
+        sustainabilityScore: 88
+      },
       items: [
-        {
-          id: 3,
-          name: 'Green Beans',
-          farmer: 'Nimal Gunasekara',
-          quantity: 4,
-          unit: 'kg',
-          price: 400,
+        { 
+          name: 'Premium Green Beans', 
+          quantity: 1, 
+          unit: 'kg', 
+          price: 400, 
           image: '🫘',
-          isOrganic: true
+          isOrganic: true,
+          tags: ['Organic', 'Premium']
+        },
+        { 
+          name: 'Crispy Green Cabbage', 
+          quantity: 2, 
+          unit: 'kg', 
+          price: 180, 
+          image: '🥬',
+          isOrganic: false,
+          tags: ['Fresh', 'Local']
         }
       ],
-      farmer: {
-        name: 'Nimal Gunasekara',
-        phone: '078-444-5566',
-        location: 'Nuwara Eliya'
+      subtotal: 760,
+      deliveryFee: 0,
+      discount: 50,
+      total: 710,
+      status: 'processing',
+      priority: 'urgent',
+      deliveryMethod: 'pickup',
+      pickupLocation: {
+        name: 'Matale Central Market',
+        address: 'Main Street, Matale',
+        phone: '+94 76 987 6543',
+        hours: '6:00 AM - 6:00 PM'
       },
-      rating: null,
-      review: null,
-      trackingNumber: 'FF2024002'
+      estimatedReady: '2024-06-27T09:00:00',
+      trackingSteps: [
+        { 
+          status: 'confirmed', 
+          label: 'Order Confirmed', 
+          time: '2024-06-26T15:45:00', 
+          completed: true,
+          description: 'Order confirmed and farmer notified'
+        },
+        { 
+          status: 'preparing', 
+          label: 'Preparing Order', 
+          time: '2024-06-26T16:30:00', 
+          completed: true,
+          description: 'Farmer is selecting the best produce for you'
+        },
+        { 
+          status: 'ready', 
+          label: 'Ready for Pickup', 
+          time: '', 
+          completed: false,
+          description: 'Order will be ready for pickup tomorrow morning'
+        },
+      ],
+      paymentMethod: 'cash',
+      paymentStatus: 'pending',
+      transactionId: null,
+      canReview: false,
+      canReorder: true,
+      hasReviewed: false,
+      appliedCoupon: 'FIRSTBUY',
+      estimatedTime: '2 hours'
     },
     {
       id: 'ORD-2024-003',
-      orderDate: '2024-06-20T09:15:00',
-      status: 'processing',
-      total: 950,
-      deliveryMethod: 'delivery',
-      deliveryAddress: 'No. 123, Kandy Road, Kurunegala',
-      deliveryDate: null,
+      orderNumber: '#FF003',
+      date: '2024-06-27',
+      farmer: {
+        name: 'Kamala Jayawardena',
+        avatar: 'KJ',
+        farm: "Kamala's Organic Garden",
+        location: 'Kandy',
+        phone: '+94 71 555 0123',
+        rating: 4.7,
+        verified: true,
+        sustainabilityScore: 82
+      },
       items: [
-        {
-          id: 4,
-          name: 'Red Onions',
-          farmer: 'Priyantha Fernando',
-          quantity: 2,
-          unit: 'kg',
-          price: 220,
-          image: '🧄',
-          isOrganic: false
+        { 
+          name: 'Red Onions', 
+          quantity: 2, 
+          unit: 'kg', 
+          price: 220, 
+          image: '🧅',
+          isOrganic: false,
+          tags: ['Fresh', 'Local']
         },
-        {
-          id: 5,
-          name: 'Green Cabbage',
-          farmer: 'Kamala Jayawardena',
-          quantity: 3,
-          unit: 'kg',
-          price: 180,
-          image: '🥬',
-          isOrganic: false
+        { 
+          name: 'Green Chili', 
+          quantity: 0.5, 
+          unit: 'kg', 
+          price: 600, 
+          image: '🌶️',
+          isOrganic: true,
+          tags: ['Organic', 'Spicy']
         }
       ],
-      farmer: {
-        name: 'Multiple Farmers',
-        phone: '',
-        location: 'Various'
-      },
-      rating: null,
-      review: null,
-      trackingNumber: 'FF2024003'
-    },
-    {
-      id: 'ORD-2024-004',
-      orderDate: '2024-06-18T11:20:00',
+      subtotal: 740,
+      deliveryFee: 150,
+      discount: 0,
+      total: 890,
       status: 'cancelled',
-      total: 1050,
-      deliveryMethod: 'delivery',
-      deliveryAddress: 'No. 67, Main Street, Gampaha',
-      deliveryDate: null,
-      items: [
-        {
-          id: 6,
-          name: 'Sweet Corn',
-          farmer: 'Ruwan Perera',
-          quantity: 7,
-          unit: 'kg',
-          price: 150,
-          image: '🌽',
-          isOrganic: false
+      priority: 'standard',
+      deliveryMethod: 'home_delivery',
+      deliveryAddress: {
+        street: 'No. 12, Kandy Road',
+        city: 'Peradeniya',
+        district: 'Kandy',
+        postalCode: '20400'
+      },
+      cancelReason: 'Out of stock - Red Onions not available',
+      cancelDate: '2024-06-27T11:30:00',
+      refundStatus: 'processed',
+      refundAmount: 890,
+      trackingSteps: [
+        { 
+          status: 'confirmed', 
+          label: 'Order Confirmed', 
+          time: '2024-06-27T09:15:00', 
+          completed: true,
+          description: 'Order placed successfully'
+        },
+        { 
+          status: 'cancelled', 
+          label: 'Order Cancelled', 
+          time: '2024-06-27T11:30:00', 
+          completed: true,
+          description: 'Order cancelled due to stock unavailability'
         }
       ],
-      farmer: {
-        name: 'Ruwan Perera',
-        phone: '075-111-2233',
-        location: 'Badulla'
-      },
-      rating: null,
-      review: null,
-      trackingNumber: 'FF2024004',
-      cancellationReason: 'Product unavailable'
+      paymentMethod: 'card',
+      paymentStatus: 'refunded',
+      transactionId: 'TXN987654321',
+      canReview: false,
+      canReorder: true,
+      refundTransactionId: 'REF123456789'
     }
   ]);
 
-  useEffect(() => {
-    setMounted(true);
-    
-    const checkMobile = () => {
-      setIsMobile(window.innerWidth < 1024);
-    };
-    
-    checkMobile();
-    window.addEventListener('resize', checkMobile);
-    
-    return () => window.removeEventListener('resize', checkMobile);
-  }, []);
-
+  // Loading state to prevent hydration errors
   if (!mounted) {
     return (
       <div className="flex h-screen bg-gray-50">
-        <div className="w-72 bg-slate-900"></div>
+        <div className="w-64 bg-emerald-900 animate-pulse"></div>
         <div className="flex-1 flex items-center justify-center">
           <div className="text-gray-500">Loading...</div>
         </div>
@@ -625,365 +370,725 @@ const CustomerOrdersPage = () => {
     );
   }
 
-  const getStatusColor = (status: string) => {
+  // Enhanced margin calculation - same as marketplace
+  const getMainContentMargin = () => {
+    if (screenSize.isMobile) {
+      return 'ml-0'; // No margin on mobile (sidebar overlays)
+    } else if (screenSize.isTablet) {
+      return 'ml-20'; // Always collapsed margin on tablet
+    } else {
+      return sidebarCollapsed ? 'ml-20' : 'ml-72'; // User controlled on desktop
+    }
+  };
+
+  const getStatusColor = (status) => {
     switch (status) {
-      case 'pending': return 'bg-orange-100 text-orange-800 border-orange-200';
-      case 'processing': return 'bg-blue-100 text-blue-800 border-blue-200';
-      case 'ready': return 'bg-purple-100 text-purple-800 border-purple-200';
       case 'delivered': return 'bg-green-100 text-green-800 border-green-200';
+      case 'processing': return 'bg-blue-100 text-blue-800 border-blue-200';
+      case 'shipped': return 'bg-purple-100 text-purple-800 border-purple-200';
       case 'cancelled': return 'bg-red-100 text-red-800 border-red-200';
+      case 'pending': return 'bg-yellow-100 text-yellow-800 border-yellow-200';
       default: return 'bg-gray-100 text-gray-800 border-gray-200';
     }
   };
 
-  const getStatusIcon = (status: string) => {
+  const getStatusIcon = (status) => {
     switch (status) {
-      case 'pending': return <Clock className="w-4 h-4" />;
-      case 'processing': return <RefreshCw className="w-4 h-4" />;
-      case 'ready': return <Package className="w-4 h-4" />;
-      case 'delivered': return <CheckCircle className="w-4 h-4" />;
-      case 'cancelled': return <XCircle className="w-4 h-4" />;
-      default: return <AlertCircle className="w-4 h-4" />;
+      case 'delivered': return CheckCircle;
+      case 'processing': return Clock;
+      case 'shipped': return Truck;
+      case 'cancelled': return XCircle;
+      case 'pending': return AlertTriangle;
+      default: return Package;
     }
   };
+
+  const getPriorityColor = (priority) => {
+    switch (priority) {
+      case 'urgent': return 'bg-red-100 text-red-800 border-red-200';
+      case 'high': return 'bg-orange-100 text-orange-800 border-orange-200';
+      case 'standard': return 'bg-gray-100 text-gray-800 border-gray-200';
+      default: return 'bg-gray-100 text-gray-800 border-gray-200';
+    }
+  };
+
+  const filterOptions = [
+    { id: 'all', label: 'All Orders', count: orders.length, icon: Package },
+    { id: 'delivered', label: 'Delivered', count: orders.filter(o => o.status === 'delivered').length, icon: CheckCircle },
+    { id: 'processing', label: 'Processing', count: orders.filter(o => o.status === 'processing').length, icon: Clock },
+    { id: 'cancelled', label: 'Cancelled', count: orders.filter(o => o.status === 'cancelled').length, icon: XCircle }
+  ];
+
+  const sortOptions = [
+    { id: 'recent', name: 'Most Recent', icon: Clock },
+    { id: 'oldest', name: 'Oldest First', icon: Calendar },
+    { id: 'amount-high', name: 'Amount: High to Low', icon: TrendingUp },
+    { id: 'amount-low', name: 'Amount: Low to High', icon: TrendingUp },
+    { id: 'status', name: 'By Status', icon: Filter }
+  ];
 
   const filteredOrders = orders.filter(order => {
+    const matchesFilter = activeFilter === 'all' || order.status === activeFilter;
     const matchesSearch = order.id.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         order.items.some(item => item.name.toLowerCase().includes(searchTerm.toLowerCase())) ||
-                         order.farmer.name.toLowerCase().includes(searchTerm.toLowerCase());
-    const matchesFilter = selectedFilter === 'all' || order.status === selectedFilter;
-    return matchesSearch && matchesFilter;
+                         order.orderNumber.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                         order.farmer.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                         order.items.some(item => item.name.toLowerCase().includes(searchTerm.toLowerCase()));
+    return matchesFilter && matchesSearch;
+  }).sort((a, b) => {
+    switch (sortBy) {
+      case 'recent': return new Date(b.date) - new Date(a.date);
+      case 'oldest': return new Date(a.date) - new Date(b.date);
+      case 'amount-high': return b.total - a.total;
+      case 'amount-low': return a.total - b.total;
+      default: return 0;
+    }
   });
 
-  const orderCounts = {
-    all: orders.length,
-    pending: orders.filter(o => o.status === 'pending').length,
-    processing: orders.filter(o => o.status === 'processing').length,
-    delivered: orders.filter(o => o.status === 'delivered').length,
-    cancelled: orders.filter(o => o.status === 'cancelled').length
+  const toggleOrderExpanded = (orderId) => {
+    setExpandedOrder(expandedOrder === orderId ? null : orderId);
   };
 
-  const handleReorder = (orderId: string) => {
-    console.log('Reordering:', orderId);
+  const openOrderDetails = (order) => {
+    setSelectedOrder(order);
+    setShowOrderDetails(true);
   };
 
-  const handleContactFarmer = (phone: string) => {
-    if (phone) {
-      console.log('Calling farmer:', phone);
-    }
+  const handleReorder = (order) => {
+    console.log('Reorder:', order.id);
   };
 
-  const handleRateOrder = (orderId: string) => {
-    console.log('Rating order:', orderId);
+  const handleContactFarmer = (farmer) => {
+    console.log('Contact farmer:', farmer.name);
+  };
+
+  const handleTrackOrder = (order) => {
+    console.log('Track order:', order.id);
+  };
+
+  const formatTime = (timeString) => {
+    if (!timeString) return '';
+    return new Date(timeString).toLocaleString();
   };
 
   return (
-    <div className="min-h-screen bg-gray-50 flex">
-      {/* Desktop Sidebar */}
+    <div className="flex h-screen bg-white overflow-hidden">
+      {/* SINGLE Sidebar Component - Enhanced Responsive */}
       <FieldFairSidebar
         isCollapsed={sidebarCollapsed}
         setIsCollapsed={setSidebarCollapsed}
-        isMobile={false}
+        isMobile={screenSize.isMobile}
         isOpen={isMobileMenuOpen}
         onClose={() => setIsMobileMenuOpen(false)}
         userType="customer"
       />
 
-      {/* Mobile Sidebar */}
-      <FieldFairSidebar
-        isCollapsed={false}
-        isMobile={true}
-        isOpen={isMobileMenuOpen}
-        onClose={() => setIsMobileMenuOpen(false)}
-        userType="customer"
-      />
-
-      {/* Main Content - Responsive to sidebar */}
-      <div className={`flex-1 transition-all duration-500 ${sidebarCollapsed ? 'lg:ml-20' : 'lg:ml-72'}`}>
-        {/* Header */}
-        <header className="bg-white border-b border-gray-200 sticky top-0 z-10">
+      <div className={`flex-1 flex flex-col bg-gray-50 transition-all duration-300 ${getMainContentMargin()}`}>
+        {/* Enhanced Header */}
+        <header className="bg-white border-b border-gray-200 sticky top-0 z-20 shadow-sm">
           <div className="max-w-7xl mx-auto px-4 lg:px-6 py-4">
-            <div className="flex items-center justify-between">
-              <div>
-                <div className="flex items-center space-x-4">
+            <div className="flex items-center justify-between mb-4">
+              <div className="flex items-center">
+                {/* Mobile menu button - only show on mobile */}
+                {screenSize.isMobile && (
                   <button 
-                    onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
-                    className="lg:hidden p-2 rounded-lg text-gray-600 hover:bg-gray-100 mr-2"
+                    onClick={() => setIsMobileMenuOpen(true)}
+                    className="p-2 rounded-lg text-gray-600 hover:bg-gray-100 mr-4 transition-colors"
+                    aria-label="Open menu"
                   >
                     <Menu className="w-6 h-6" />
                   </button>
-                  <div>
-                    <h1 className="text-2xl lg:text-3xl font-bold text-gray-900">📦 My Orders</h1>
-                    <p className="text-sm text-gray-600 mt-1 hidden sm:block">Track and manage your orders</p>
-                  </div>
+                )}
+                <div>
+                  <h1 className="text-2xl lg:text-3xl font-bold text-gray-900 mb-1">
+                    {screenSize.isMobile ? '🛍️ Orders' : '🛍️ My Orders'}
+                  </h1>
+                  <p className="text-gray-600 hidden sm:block">
+                    {screenSize.isMobile 
+                      ? 'Track your orders' 
+                      : 'Track and manage your orders from local farmers'
+                    }
+                  </p>
                 </div>
               </div>
               
               <div className="flex items-center space-x-4">
-                <div className="hidden md:flex items-center bg-gray-100 rounded-xl px-4 py-3 min-w-[300px]">
+                {/* Enhanced Search */}
+                <div className={`flex items-center bg-gray-100 rounded-xl px-4 py-3 ${
+                  screenSize.isMobile ? 'w-48' : 'w-full max-w-md'
+                }`}>
                   <Search className="w-5 h-5 text-gray-500 mr-3" />
                   <input 
                     type="text" 
-                    placeholder="Search orders..."
+                    placeholder={screenSize.isMobile ? "Search..." : "Search orders..."}
                     className="bg-transparent text-sm outline-none flex-1"
                     value={searchTerm}
                     onChange={(e) => setSearchTerm(e.target.value)}
                   />
+                  {searchTerm && (
+                    <button
+                      onClick={() => setSearchTerm('')}
+                      className="ml-2 p-1 hover:bg-gray-200 rounded-full"
+                    >
+                      <X className="w-4 h-4 text-gray-500" />
+                    </button>
+                  )}
                 </div>
                 
-                <button
-                  onClick={() => router.push('/marketplace')}
-                  className="bg-emerald-600 text-white px-4 py-2 rounded-xl text-sm font-medium hover:bg-emerald-700 transition-colors"
-                >
-                  Shop More
-                </button>
+                <div className="flex items-center space-x-2">
+                  <button
+                    onClick={() => setShowFilters(!showFilters)}
+                    className={`p-3 rounded-xl transition-colors ${showFilters ? 'bg-emerald-100 text-emerald-700' : 'bg-gray-100 text-gray-700 hover:bg-gray-200'}`}
+                  >
+                    <SlidersHorizontal className="w-5 h-5" />
+                  </button>
+                  
+                  {!screenSize.isMobile && (
+                    <div className="flex items-center space-x-1 bg-gray-100 rounded-lg p-1">
+                      <button
+                        onClick={() => setViewMode('list')}
+                        className={`p-2 rounded-md transition-colors ${
+                          viewMode === 'list' ? 'bg-white text-gray-900 shadow-sm' : 'text-gray-600'
+                        }`}
+                      >
+                        <List className="w-4 h-4" />
+                      </button>
+                      <button
+                        onClick={() => setViewMode('grid')}
+                        className={`p-2 rounded-md transition-colors ${
+                          viewMode === 'grid' ? 'bg-white text-gray-900 shadow-sm' : 'text-gray-600'
+                        }`}
+                      >
+                        <Grid3X3 className="w-4 h-4" />
+                      </button>
+                    </div>
+                  )}
+                </div>
               </div>
+            </div>
+
+            {/* Filter Tabs - Responsive */}
+            <div className="flex flex-wrap items-center gap-2 lg:gap-3 overflow-x-auto">
+              {filterOptions.map((filter) => (
+                <button
+                  key={filter.id}
+                  onClick={() => setActiveFilter(filter.id)}
+                  className={`flex items-center space-x-2 px-3 lg:px-4 py-2 rounded-xl text-xs lg:text-sm font-medium transition-colors whitespace-nowrap ${
+                    activeFilter === filter.id
+                      ? 'bg-emerald-100 text-emerald-700 border border-emerald-200'
+                      : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                  }`}
+                >
+                  <filter.icon className="w-3 lg:w-4 h-3 lg:h-4" />
+                  <span>{screenSize.isMobile ? filter.label.split(' ')[0] : filter.label}</span>
+                  <span className={`px-2 py-0.5 rounded-full text-xs font-bold ${
+                    activeFilter === filter.id 
+                      ? 'bg-emerald-200 text-emerald-800'
+                      : 'bg-gray-200 text-gray-600'
+                  }`}>
+                    {filter.count}
+                  </span>
+                </button>
+              ))}
             </div>
           </div>
         </header>
 
-        <main className="max-w-7xl mx-auto p-4 lg:p-6">
-          {/* Stats Cards */}
-          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-4 mb-6">
-            {[
-              { key: 'all', label: 'Total Orders', color: 'bg-gray-50 text-gray-900' },
-              { key: 'pending', label: 'Pending', color: 'bg-orange-50 text-orange-900' },
-              { key: 'processing', label: 'Processing', color: 'bg-blue-50 text-blue-900' },
-              { key: 'delivered', label: 'Delivered', color: 'bg-green-50 text-green-900' },
-              { key: 'cancelled', label: 'Cancelled', color: 'bg-red-50 text-red-900' }
-            ].map((stat) => (
-              <button
-                key={stat.key}
-                onClick={() => setSelectedFilter(stat.key)}
-                className={`p-4 rounded-xl border-2 transition-all ${
-                  selectedFilter === stat.key 
-                    ? 'border-emerald-300 bg-emerald-50' 
-                    : 'border-gray-200 bg-white hover:bg-gray-50'
-                }`}
-              >
-                <div className={`text-2xl font-bold ${stat.color}`}>
-                  {orderCounts[stat.key as keyof typeof orderCounts]}
+        {/* Advanced Filters Panel */}
+        {showFilters && (
+          <div className="bg-white border-b border-gray-200 p-4 lg:p-6">
+            <div className="max-w-7xl mx-auto">
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                <div>
+                  <h4 className="font-semibold text-gray-900 mb-3">Sort Orders</h4>
+                  <select 
+                    className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm bg-white"
+                    value={sortBy}
+                    onChange={(e) => setSortBy(e.target.value)}
+                  >
+                    {sortOptions.map((option) => (
+                      <option key={option.id} value={option.id}>{option.name}</option>
+                    ))}
+                  </select>
                 </div>
-                <div className="text-sm text-gray-600">{stat.label}</div>
-              </button>
-            ))}
-          </div>
-
-          {/* Orders List */}
-          <div className="space-y-4">
-            {filteredOrders.map((order) => (
-              <div key={order.id} className="bg-white rounded-xl border border-gray-200 overflow-hidden hover:shadow-lg transition-shadow">
-                {/* Order Header */}
-                <div className="p-6 border-b border-gray-100">
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center space-x-4">
-                      <div>
-                        <h3 className="font-semibold text-gray-900 text-lg">{order.id}</h3>
-                        <div className="flex items-center space-x-4 mt-1 text-sm text-gray-600">
-                          <div className="flex items-center space-x-1">
-                            <Calendar className="w-4 h-4" />
-                            <span>Ordered {new Date(order.orderDate).toLocaleDateString()}</span>
-                          </div>
-                          <div className="flex items-center space-x-1">
-                            <DollarSign className="w-4 h-4" />
-                            <span>Rs. {order.total.toLocaleString()}</span>
-                          </div>
-                          <div className="flex items-center space-x-1">
-                            <Truck className="w-4 h-4" />
-                            <span className="capitalize">{order.deliveryMethod}</span>
-                          </div>
-                        </div>
-                      </div>
-                    </div>
-                    
-                    <div className="flex items-center space-x-3">
-                      <span className={`inline-flex items-center px-3 py-1 rounded-full text-sm font-medium border ${getStatusColor(order.status)}`}>
-                        {getStatusIcon(order.status)}
-                        <span className="ml-1 capitalize">{order.status}</span>
-                      </span>
-                      
-                      <button className="p-2 text-gray-400 hover:text-gray-600 transition-colors">
-                        <Download className="w-4 h-4" />
-                      </button>
-                    </div>
-                  </div>
+                <div>
+                  <h4 className="font-semibold text-gray-900 mb-3">Date Range</h4>
+                  <input 
+                    type="date"
+                    className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm"
+                  />
                 </div>
-
-                {/* Order Content */}
-                <div className="p-6">
-                  <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-                    {/* Items */}
-                    <div className="lg:col-span-2">
-                      <h4 className="font-medium text-gray-900 mb-3">Order Items ({order.items.length})</h4>
-                      <div className="space-y-3">
-                        {order.items.map((item) => (
-                          <div key={item.id} className="flex items-center space-x-4 p-3 bg-gray-50 rounded-lg">
-                            <div className="w-12 h-12 bg-white rounded-lg flex items-center justify-center relative">
-                              <span className="text-2xl">{item.image}</span>
-                              {item.isOrganic && (
-                                <Leaf className="w-3 h-3 text-green-500 absolute -top-1 -right-1" />
-                              )}
-                            </div>
-                            <div className="flex-1">
-                              <div className="font-medium text-gray-900">{item.name}</div>
-                              <div className="text-sm text-gray-600">{item.farmer}</div>
-                            </div>
-                            <div className="text-right">
-                              <div className="font-medium text-gray-900">{item.quantity} {item.unit}</div>
-                              <div className="text-sm text-gray-600">Rs. {(item.quantity * item.price).toLocaleString()}</div>
-                            </div>
-                          </div>
-                        ))}
-                      </div>
-                    </div>
-
-                    {/* Order Details */}
-                    <div className="space-y-4">
-                      <div>
-                        <h4 className="font-medium text-gray-900 mb-3">Delivery Information</h4>
-                        <div className="space-y-2 text-sm">
-                          <div className="flex items-start space-x-2">
-                            <MapPin className="w-4 h-4 text-gray-500 mt-0.5" />
-                            <div>
-                              <div className="font-medium text-gray-900">
-                                {order.deliveryMethod === 'delivery' ? 'Delivery Address' : 'Pickup Location'}
-                              </div>
-                              <div className="text-gray-600">{order.deliveryAddress}</div>
-                            </div>
-                          </div>
-                          {order.deliveryDate && (
-                            <div className="flex items-center space-x-2">
-                              <CheckCircle className="w-4 h-4 text-green-500" />
-                              <span className="text-gray-600">
-                                Delivered on {new Date(order.deliveryDate).toLocaleDateString()}
-                              </span>
-                            </div>
-                          )}
-                          {order.trackingNumber && (
-                            <div className="flex items-center space-x-2">
-                              <Package className="w-4 h-4 text-gray-500" />
-                              <span className="text-gray-600">Tracking: {order.trackingNumber}</span>
-                            </div>
-                          )}
-                        </div>
-                      </div>
-
-                      {/* Farmer Contact */}
-                      {order.farmer.phone && (
-                        <div>
-                          <h4 className="font-medium text-gray-900 mb-3">Farmer Contact</h4>
-                          <div className="bg-emerald-50 border border-emerald-200 p-3 rounded-lg">
-                            <div className="flex items-center space-x-2 mb-2">
-                              <User className="w-4 h-4 text-emerald-600" />
-                              <span className="font-medium text-emerald-900">{order.farmer.name}</span>
-                            </div>
-                            <div className="flex items-center space-x-2">
-                              <MapPin className="w-4 h-4 text-emerald-600" />
-                              <span className="text-emerald-800 text-sm">{order.farmer.location}</span>
-                            </div>
-                          </div>
-                        </div>
-                      )}
-
-                      {/* Order Rating */}
-                      {order.status === 'delivered' && (
-                        <div>
-                          <h4 className="font-medium text-gray-900 mb-3">Your Review</h4>
-                          {order.rating ? (
-                            <div className="bg-yellow-50 border border-yellow-200 p-3 rounded-lg">
-                              <div className="flex items-center space-x-1 mb-2">
-                                {[1,2,3,4,5].map(i => (
-                                  <Star
-                                    key={i}
-                                    className={`w-4 h-4 ${
-                                      i <= order.rating! 
-                                        ? 'text-yellow-400 fill-current' 
-                                        : 'text-gray-300'
-                                    }`}
-                                  />
-                                ))}
-                              </div>
-                              {order.review && (
-                                <p className="text-sm text-gray-700 italic">"{order.review}"</p>
-                              )}
-                            </div>
-                          ) : (
-                            <button
-                              onClick={() => handleRateOrder(order.id)}
-                              className="w-full border-2 border-dashed border-gray-300 text-gray-600 py-3 rounded-lg hover:border-emerald-300 hover:text-emerald-600 transition-colors"
-                            >
-                              Rate this order
-                            </button>
-                          )}
-                        </div>
-                      )}
-
-                      {/* Cancellation Reason */}
-                      {order.status === 'cancelled' && order.cancellationReason && (
-                        <div className="bg-red-50 border border-red-200 p-3 rounded-lg">
-                          <div className="flex items-center space-x-2 mb-1">
-                            <XCircle className="w-4 h-4 text-red-500" />
-                            <span className="font-medium text-red-900">Order Cancelled</span>
-                          </div>
-                          <p className="text-sm text-red-700">{order.cancellationReason}</p>
-                        </div>
-                      )}
-                    </div>
-                  </div>
-
-                  {/* Action Buttons */}
-                  <div className="flex flex-col sm:flex-row items-center justify-between pt-4 mt-6 border-t border-gray-100 gap-4">
-                    <div className="flex items-center space-x-3 w-full sm:w-auto">
-                      <button
-                        onClick={() => handleReorder(order.id)}
-                        className="border border-emerald-600 text-emerald-600 px-4 py-2 rounded-lg text-sm font-medium hover:bg-emerald-50 transition-colors flex-1 sm:flex-none"
-                      >
-                        Reorder
-                      </button>
-                      
-                      {order.farmer.phone && (
-                        <button
-                          onClick={() => handleContactFarmer(order.farmer.phone)}
-                          className="border border-gray-300 text-gray-700 px-4 py-2 rounded-lg text-sm font-medium hover:bg-gray-50 transition-colors flex items-center space-x-1 flex-1 sm:flex-none"
-                        >
-                          <Phone className="w-4 h-4" />
-                          <span>Contact Farmer</span>
-                        </button>
-                      )}
-                    </div>
-                    
-                    <div className="flex items-center space-x-2">
-                      <button className="text-gray-600 hover:text-gray-800 p-2 transition-colors">
-                        <Eye className="w-4 h-4" />
-                      </button>
-                      <button className="text-gray-600 hover:text-gray-800 p-2 transition-colors">
-                        <MessageCircle className="w-4 h-4" />
-                      </button>
-                    </div>
-                  </div>
+                <div>
+                  <h4 className="font-semibold text-gray-900 mb-3">Amount Range</h4>
+                  <select className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm bg-white">
+                    <option>All amounts</option>
+                    <option>Under Rs. 500</option>
+                    <option>Rs. 500 - Rs. 1000</option>
+                    <option>Over Rs. 1000</option>
+                  </select>
                 </div>
               </div>
-            ))}
-          </div>
-
-          {filteredOrders.length === 0 && (
-            <div className="text-center py-12">
-              <Package className="w-16 h-16 text-gray-300 mx-auto mb-4" />
-              <p className="text-gray-500 text-lg">No orders found.</p>
-              <p className="text-gray-400 text-sm mt-2">
-                {selectedFilter === 'all' 
-                  ? "You haven't placed any orders yet." 
-                  : `No ${selectedFilter} orders found.`}
-              </p>
-              <button
-                onClick={() => router.push('/marketplace')}
-                className="mt-4 bg-emerald-600 text-white px-6 py-2 rounded-lg font-medium hover:bg-emerald-700 transition-colors"
-              >
-                Start Shopping
-              </button>
             </div>
-          )}
+          </div>
+        )}
+
+        {/* Main Content */}
+        <main className="flex-1 overflow-auto p-4 lg:p-6">
+          <div className="max-w-7xl mx-auto">
+            {/* Orders Display - Enhanced Responsive */}
+            {(viewMode === 'list' || screenSize.isMobile) ? (
+              <div className="space-y-4 lg:space-y-6">
+                {filteredOrders.map((order) => {
+                  const StatusIcon = getStatusIcon(order.status);
+                  const isExpanded = expandedOrder === order.id;
+                  
+                  return (
+                    <div key={order.id} className="bg-white rounded-2xl border border-gray-200 overflow-hidden hover:shadow-xl transition-all duration-300 group">
+                      {/* Order Header */}
+                      <div className="p-4 lg:p-6">
+                        <div className="flex items-center justify-between mb-4 lg:mb-6">
+                          <div className="flex items-center space-x-3 lg:space-x-4">
+                            <div className={`w-12 lg:w-14 h-12 lg:h-14 bg-gradient-to-br from-emerald-100 to-emerald-200 rounded-xl flex items-center justify-center shadow-sm`}>
+                              <StatusIcon className="w-6 lg:w-7 h-6 lg:h-7 text-emerald-600" />
+                            </div>
+                            <div>
+                              <div className="flex items-center space-x-2 lg:space-x-3 mb-2">
+                                <h3 className="font-bold text-lg lg:text-xl text-gray-900">{order.orderNumber}</h3>
+                                <span className={`inline-flex items-center px-2 lg:px-3 py-1 rounded-full text-xs lg:text-sm font-semibold border ${getStatusColor(order.status)}`}>
+                                  {order.status.charAt(0).toUpperCase() + order.status.slice(1)}
+                                </span>
+                                {order.priority === 'urgent' && (
+                                  <span className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-semibold border ${getPriorityColor(order.priority)}`}>
+                                    🔥 {screenSize.isMobile ? '' : 'Urgent'}
+                                  </span>
+                                )}
+                              </div>
+                              <div className="flex items-center space-x-2 lg:space-x-4 text-xs lg:text-sm text-gray-600">
+                                <span>{screenSize.isMobile ? new Date(order.date).toLocaleDateString('en-US', { month: 'short', day: 'numeric' }) : `Ordered on ${new Date(order.date).toLocaleDateString()}`}</span>
+                                <span>•</span>
+                                <span className="flex items-center space-x-1">
+                                  <Timer className="w-3 lg:w-4 h-3 lg:h-4" />
+                                  <span>{order.estimatedTime}</span>
+                                </span>
+                              </div>
+                            </div>
+                          </div>
+                          
+                          <div className="flex items-center space-x-2 lg:space-x-3">
+                            <div className="text-right">
+                              <div className="text-lg lg:text-2xl font-bold text-gray-900">Rs. {order.total.toLocaleString()}</div>
+                              <div className="text-xs lg:text-sm text-gray-600">{order.items.length} items</div>
+                            </div>
+                            {!screenSize.isMobile && (
+                              <button
+                                onClick={() => toggleOrderExpanded(order.id)}
+                                className="p-3 text-gray-400 hover:text-emerald-600 hover:bg-emerald-50 rounded-xl transition-all duration-200"
+                              >
+                                {isExpanded ? <ChevronDown className="w-6 h-6" /> : <ChevronRight className="w-6 h-6" />}
+                              </button>
+                            )}
+                          </div>
+                        </div>
+
+                        {/* Quick Order Info - Responsive Grid */}
+                        <div className={`grid gap-4 lg:gap-6 mb-4 lg:mb-6 ${
+                          screenSize.isMobile ? 'grid-cols-1' : 
+                          screenSize.isTablet ? 'grid-cols-2' : 
+                          'grid-cols-3'
+                        }`}>
+                          {/* Farmer Info */}
+                          <div className="flex items-center space-x-3 lg:space-x-4 p-3 lg:p-4 bg-gradient-to-r from-gray-50 to-gray-100 rounded-xl">
+                            <div className="w-10 lg:w-12 h-10 lg:h-12 bg-emerald-100 rounded-full flex items-center justify-center relative">
+                              <span className="text-xs lg:text-sm font-bold text-emerald-700">{order.farmer.avatar}</span>
+                              {order.farmer.verified && (
+                                <div className="absolute -top-1 -right-1 w-3 lg:w-4 h-3 lg:h-4 bg-blue-500 rounded-full flex items-center justify-center">
+                                  <Shield className="w-2 lg:w-2.5 h-2 lg:h-2.5 text-white" />
+                                </div>
+                              )}
+                            </div>
+                            <div className="flex-1 min-w-0">
+                              <div className="font-semibold text-gray-900 truncate text-sm lg:text-base">{order.farmer.name}</div>
+                              <div className="text-xs lg:text-sm text-gray-600 truncate">{order.farmer.farm}</div>
+                              <div className="flex items-center space-x-1 text-xs lg:text-sm text-gray-500">
+                                <Star className="w-3 h-3 text-yellow-400 fill-current" />
+                                <span>{order.farmer.rating}</span>
+                              </div>
+                            </div>
+                          </div>
+                          
+                          {/* Payment Info */}
+                          <div className="flex items-center space-x-3 lg:space-x-4 p-3 lg:p-4 bg-gradient-to-r from-blue-50 to-blue-100 rounded-xl">
+                            <CreditCard className="w-6 lg:w-8 h-6 lg:h-8 text-blue-600" />
+                            <div>
+                              <div className="font-semibold text-gray-900 capitalize text-sm lg:text-base">{order.paymentMethod}</div>
+                              <div className="text-xs lg:text-sm text-gray-600 capitalize">{order.paymentStatus}</div>
+                              {order.transactionId && !screenSize.isMobile && (
+                                <div className="text-xs text-gray-500">ID: {order.transactionId}</div>
+                              )}
+                            </div>
+                          </div>
+                          
+                          {/* Delivery Info */}
+                          <div className={`flex items-center space-x-3 lg:space-x-4 p-3 lg:p-4 bg-gradient-to-r from-purple-50 to-purple-100 rounded-xl ${
+                            screenSize.isMobile ? 'col-span-1' : 
+                            screenSize.isTablet ? 'col-span-2' : 
+                            'col-span-1'
+                          }`}>
+                            {order.deliveryMethod === 'home_delivery' ? (
+                              <Truck className="w-6 lg:w-8 h-6 lg:h-8 text-purple-600" />
+                            ) : (
+                              <MapPin className="w-6 lg:w-8 h-6 lg:h-8 text-purple-600" />
+                            )}
+                            <div>
+                              <div className="font-semibold text-gray-900 text-sm lg:text-base">
+                                {order.deliveryMethod === 'home_delivery' ? (screenSize.isMobile ? 'Delivery' : 'Home Delivery') : (screenSize.isMobile ? 'Pickup' : 'Farm Pickup')}
+                              </div>
+                              <div className="text-xs lg:text-sm text-gray-600">
+                                {order.actualDelivery 
+                                  ? `Delivered: ${new Date(order.actualDelivery).toLocaleDateString()}`
+                                  : order.estimatedDelivery
+                                    ? `Expected: ${new Date(order.estimatedDelivery).toLocaleDateString()}`
+                                    : 'Pickup ready'
+                                }
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+
+                        {/* Action Buttons - Responsive */}
+                        <div className="flex flex-wrap items-center gap-2 lg:gap-3">
+                          <button 
+                            onClick={() => openOrderDetails(order)}
+                            className="flex items-center space-x-2 px-3 lg:px-4 py-2 bg-emerald-50 border border-emerald-200 rounded-xl text-emerald-700 hover:bg-emerald-100 transition-colors text-xs lg:text-sm font-medium"
+                          >
+                            <Eye className="w-3 lg:w-4 h-3 lg:h-4" />
+                            <span>{screenSize.isMobile ? 'Details' : 'View Details'}</span>
+                          </button>
+
+                          {order.status !== 'cancelled' && (
+                            <button 
+                              onClick={() => handleTrackOrder(order)}
+                              className="flex items-center space-x-2 px-3 lg:px-4 py-2 bg-blue-50 border border-blue-200 rounded-xl text-blue-700 hover:bg-blue-100 transition-colors text-xs lg:text-sm font-medium"
+                            >
+                              <Navigation className="w-3 lg:w-4 h-3 lg:h-4" />
+                              <span>Track</span>
+                            </button>
+                          )}
+                          
+                          {order.status === 'delivered' && order.canReview && !order.hasReviewed && (
+                            <button className="flex items-center space-x-2 px-3 lg:px-4 py-2 bg-yellow-50 border border-yellow-200 rounded-xl text-yellow-700 hover:bg-yellow-100 transition-colors text-xs lg:text-sm font-medium">
+                              <Star className="w-3 lg:w-4 h-3 lg:h-4" />
+                              <span>Review</span>
+                            </button>
+                          )}
+                          
+                          {order.canReorder && (
+                            <button 
+                              onClick={() => handleReorder(order)}
+                              className="flex items-center space-x-2 px-3 lg:px-4 py-2 bg-gray-50 border border-gray-200 rounded-xl text-gray-700 hover:bg-gray-100 transition-colors text-xs lg:text-sm font-medium"
+                            >
+                              <RefreshCw className="w-3 lg:w-4 h-3 lg:h-4" />
+                              <span>Reorder</span>
+                            </button>
+                          )}
+                          
+                          <button 
+                            onClick={() => handleContactFarmer(order.farmer)}
+                            className="flex items-center space-x-2 px-3 lg:px-4 py-2 bg-gray-50 border border-gray-200 rounded-xl text-gray-700 hover:bg-gray-100 transition-colors text-xs lg:text-sm font-medium"
+                          >
+                            <MessageCircle className="w-3 lg:w-4 h-3 lg:h-4" />
+                            <span>Contact</span>
+                          </button>
+                        </div>
+                      </div>
+
+                      {/* Expanded Order Details - Hidden on mobile */}
+                      {isExpanded && !screenSize.isMobile && (
+                        <div className="border-t border-gray-200 bg-gradient-to-br from-gray-50 to-gray-100">
+                          <div className="p-6">
+                            <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+                              {/* Order Items */}
+                              <div>
+                                <h4 className="font-bold text-lg text-gray-900 mb-4 flex items-center">
+                                  <Package className="w-5 h-5 mr-2 text-emerald-600" />
+                                  Order Items
+                                </h4>
+                                <div className="space-y-4">
+                                  {order.items.map((item, index) => (
+                                    <div key={index} className="flex items-center justify-between p-4 bg-white rounded-xl shadow-sm border border-gray-100">
+                                      <div className="flex items-center space-x-4">
+                                        <div className="w-14 h-14 bg-gray-100 rounded-xl flex items-center justify-center text-2xl">
+                                          {item.image}
+                                        </div>
+                                        <div>
+                                          <div className="font-semibold text-gray-900">{item.name}</div>
+                                          <div className="text-sm text-gray-600">{item.quantity} {item.unit} × Rs. {item.price}</div>
+                                          <div className="flex flex-wrap gap-1 mt-1">
+                                            {item.tags.map((tag, tagIndex) => (
+                                              <span key={tagIndex} className={`text-xs px-2 py-0.5 rounded-full font-medium ${
+                                                tag === 'Organic' ? 'bg-green-100 text-green-700' : 'bg-gray-100 text-gray-600'
+                                              }`}>
+                                                {tag}
+                                              </span>
+                                            ))}
+                                          </div>
+                                        </div>
+                                      </div>
+                                      <div className="text-right">
+                                        <div className="font-bold text-lg text-gray-900">
+                                          Rs. {(item.quantity * item.price).toLocaleString()}
+                                        </div>
+                                      </div>
+                                    </div>
+                                  ))}
+                                </div>
+
+                                {/* Order Summary */}
+                                <div className="mt-6 p-4 bg-white rounded-xl border border-gray-200">
+                                  <div className="space-y-3">
+                                    <div className="flex justify-between text-sm">
+                                      <span className="text-gray-600">Subtotal</span>
+                                      <span className="font-medium">Rs. {order.subtotal.toLocaleString()}</span>
+                                    </div>
+                                    {order.deliveryFee > 0 && (
+                                      <div className="flex justify-between text-sm">
+                                        <span className="text-gray-600">Delivery Fee</span>
+                                        <span className="font-medium">Rs. {order.deliveryFee.toLocaleString()}</span>
+                                      </div>
+                                    )}
+                                    {order.discount > 0 && (
+                                      <div className="flex justify-between text-sm">
+                                        <span className="text-green-600">Discount</span>
+                                        <span className="font-medium text-green-600">-Rs. {order.discount.toLocaleString()}</span>
+                                      </div>
+                                    )}
+                                    <div className="border-t border-gray-200 pt-3">
+                                      <div className="flex justify-between">
+                                        <span className="font-bold text-lg">Total</span>
+                                        <span className="font-bold text-xl text-emerald-600">Rs. {order.total.toLocaleString()}</span>
+                                      </div>
+                                    </div>
+                                  </div>
+                                </div>
+                              </div>
+
+                              {/* Order Tracking */}
+                              <div>
+                                <h4 className="font-bold text-lg text-gray-900 mb-4 flex items-center">
+                                  <Route className="w-5 h-5 mr-2 text-emerald-600" />
+                                  Order Tracking
+                                </h4>
+                                <div className="space-y-4">
+                                  {order.trackingSteps.map((step, index) => (
+                                    <div key={index} className="flex items-start space-x-4">
+                                      <div className={`w-8 h-8 rounded-full flex items-center justify-center border-2 ${
+                                        step.completed 
+                                          ? 'bg-emerald-500 border-emerald-500' 
+                                          : 'bg-gray-200 border-gray-300'
+                                      }`}>
+                                        {step.completed ? (
+                                          <CheckCircle className="w-5 h-5 text-white" />
+                                        ) : (
+                                          <div className="w-3 h-3 bg-gray-400 rounded-full"></div>
+                                        )}
+                                      </div>
+                                      <div className="flex-1 pb-4">
+                                        <div className={`font-semibold ${step.completed ? 'text-gray-900' : 'text-gray-500'}`}>
+                                          {step.label}
+                                        </div>
+                                        <div className="text-sm text-gray-600 mt-1">
+                                          {step.description}
+                                        </div>
+                                        {step.time && (
+                                          <div className="text-xs text-gray-500 mt-1">
+                                            {formatTime(step.time)}
+                                          </div>
+                                        )}
+                                      </div>
+                                    </div>
+                                  ))}
+                                </div>
+
+                                {/* Delivery/Pickup Information */}
+                                <div className="mt-6 p-4 bg-white rounded-xl border border-gray-200">
+                                  <h5 className="font-semibold text-gray-900 mb-3 flex items-center">
+                                    <MapPin className="w-4 h-4 mr-2" />
+                                    {order.deliveryMethod === 'home_delivery' ? 'Delivery Address' : 'Pickup Location'}
+                                  </h5>
+                                  {order.deliveryMethod === 'home_delivery' ? (
+                                    <div className="text-sm text-gray-600">
+                                      <div>{order.deliveryAddress.street}</div>
+                                      <div>{order.deliveryAddress.city}, {order.deliveryAddress.district} {order.deliveryAddress.postalCode}</div>
+                                    </div>
+                                  ) : (
+                                    <div className="text-sm text-gray-600">
+                                      <div className="font-medium">{order.pickupLocation.name}</div>
+                                      <div>{order.pickupLocation.address}</div>
+                                      <div className="flex items-center space-x-4 mt-2">
+                                        <span>📞 {order.pickupLocation.phone}</span>
+                                        <span>🕒 {order.pickupLocation.hours}</span>
+                                      </div>
+                                    </div>
+                                  )}
+                                </div>
+
+                                {/* Cancellation Info */}
+                                {order.status === 'cancelled' && (
+                                  <div className="mt-6 p-4 bg-red-50 border border-red-200 rounded-xl">
+                                    <h5 className="font-semibold text-red-900 mb-2 flex items-center">
+                                      <XCircle className="w-4 h-4 mr-2" />
+                                      Order Cancelled
+                                    </h5>
+                                    <p className="text-sm text-red-700 mb-2">
+                                      <strong>Reason:</strong> {order.cancelReason}
+                                    </p>
+                                    <p className="text-sm text-red-600 mb-3">
+                                      <strong>Cancelled on:</strong> {formatTime(order.cancelDate)}
+                                    </p>
+                                    {order.refundStatus === 'processed' && (
+                                      <div className="flex items-center space-x-2 text-sm text-green-600 bg-green-50 p-2 rounded-lg">
+                                        <CheckCircle className="w-4 h-4" />
+                                        <span>Refund of Rs. {order.refundAmount.toLocaleString()} processed</span>
+                                      </div>
+                                    )}
+                                  </div>
+                                )}
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                  );
+                })}
+              </div>
+            ) : (
+              /* Grid View - Desktop only */
+              <div className={`grid gap-6 ${
+                screenSize.isTablet ? 'grid-cols-2' : 'grid-cols-3'
+              }`}>
+                {filteredOrders.map((order) => {
+                  const StatusIcon = getStatusIcon(order.status);
+                  
+                  return (
+                    <div key={order.id} className="bg-white rounded-2xl border border-gray-200 overflow-hidden hover:shadow-xl transition-all duration-300 group">
+                      <div className="p-6">
+                        <div className="flex items-center justify-between mb-4">
+                          <div className="flex items-center space-x-3">
+                            <div className="w-12 h-12 bg-emerald-100 rounded-xl flex items-center justify-center">
+                              <StatusIcon className="w-6 h-6 text-emerald-600" />
+                            </div>
+                            <div>
+                              <h3 className="font-bold text-lg text-gray-900">{order.orderNumber}</h3>
+                              <p className="text-sm text-gray-600">{new Date(order.date).toLocaleDateString()}</p>
+                            </div>
+                          </div>
+                          <span className={`inline-flex items-center px-2.5 py-1 rounded-full text-xs font-semibold border ${getStatusColor(order.status)}`}>
+                            {order.status.charAt(0).toUpperCase() + order.status.slice(1)}
+                          </span>
+                        </div>
+
+                        <div className="mb-4">
+                          <div className="text-2xl font-bold text-gray-900 mb-1">Rs. {order.total.toLocaleString()}</div>
+                          <div className="text-sm text-gray-600">{order.items.length} items from {order.farmer.name}</div>
+                        </div>
+
+                        <div className="space-y-3">
+                          <button 
+                            onClick={() => openOrderDetails(order)}
+                            className="w-full bg-emerald-600 text-white py-2.5 rounded-xl font-medium hover:bg-emerald-700 transition-colors"
+                          >
+                            View Details
+                          </button>
+                          
+                          <div className="flex space-x-2">
+                            {order.canReorder && (
+                              <button 
+                                onClick={() => handleReorder(order)}
+                                className="flex-1 border border-gray-300 text-gray-700 py-2 rounded-xl text-sm font-medium hover:bg-gray-50 transition-colors"
+                              >
+                                Reorder
+                              </button>
+                            )}
+                            <button 
+                              onClick={() => handleContactFarmer(order.farmer)}
+                              className="flex-1 border border-gray-300 text-gray-700 py-2 rounded-xl text-sm font-medium hover:bg-gray-50 transition-colors"
+                            >
+                              Contact
+                            </button>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            )}
+
+            {/* Empty State */}
+            {filteredOrders.length === 0 && (
+              <div className="text-center py-16">
+                <Package className="w-20 h-20 text-gray-300 mx-auto mb-6" />
+                <h3 className="text-xl font-semibold text-gray-900 mb-2">No orders found</h3>
+                <p className="text-gray-500 mb-6">
+                  {searchTerm ? 'Try adjusting your search terms.' : 'Start shopping to see your orders here.'}
+                </p>
+                <button className="bg-emerald-600 text-white px-6 py-3 rounded-xl font-medium hover:bg-emerald-700 transition-colors">
+                  Browse Marketplace
+                </button>
+              </div>
+            )}
+          </div>
         </main>
+
+        {/* Order Details Modal */}
+        {showOrderDetails && selectedOrder && (
+          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
+            <div className="bg-white rounded-2xl p-6 w-full max-w-4xl max-h-[90vh] overflow-y-auto">
+              <div className="flex items-center justify-between mb-6">
+                <h2 className="text-2xl font-bold text-gray-900">Order Details - {selectedOrder.orderNumber}</h2>
+                <button 
+                  onClick={() => setShowOrderDetails(false)}
+                  className="p-2 text-gray-400 hover:text-gray-600 rounded-lg"
+                >
+                  <X className="w-6 h-6" />
+                </button>
+              </div>
+
+              {/* Modal content with comprehensive order details */}
+              <div className="space-y-6">
+                {/* Order Status */}
+                <div className="flex items-center justify-between p-4 bg-gray-50 rounded-xl">
+                  <div className="flex items-center space-x-3">
+                    <div className={`w-12 h-12 rounded-xl flex items-center justify-center ${getStatusColor(selectedOrder.status)}`}>
+                      {React.createElement(getStatusIcon(selectedOrder.status), { className: "w-6 h-6" })}
+                    </div>
+                    <div>
+                      <div className="font-bold text-lg text-gray-900">{selectedOrder.status.charAt(0).toUpperCase() + selectedOrder.status.slice(1)}</div>
+                      <div className="text-sm text-gray-600">
+                        {selectedOrder.status === 'delivered' && selectedOrder.actualDelivery
+                          ? `Delivered on ${new Date(selectedOrder.actualDelivery).toLocaleDateString()}`
+                          : selectedOrder.estimatedDelivery
+                            ? `Expected by ${new Date(selectedOrder.estimatedDelivery).toLocaleDateString()}`
+                            : 'Status updated'
+                        }
+                      </div>
+                    </div>
+                  </div>
+                  <div className="text-right">
+                    <div className="text-2xl font-bold text-gray-900">Rs. {selectedOrder.total.toLocaleString()}</div>
+                    <div className="text-sm text-gray-600">{selectedOrder.items.length} items</div>
+                  </div>
+                </div>
+
+                {/* Comprehensive order details would go here */}
+                <div className="text-center py-8 text-gray-600">
+                  <Package className="w-16 h-16 text-gray-300 mx-auto mb-4" />
+                  <p>Detailed order information and tracking would be displayed here.</p>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
       </div>
     </div>
   );

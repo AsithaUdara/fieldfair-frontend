@@ -2,588 +2,379 @@
 
 import React, { useState, useEffect, useRef } from 'react';
 import Link from 'next/link';
-import { usePathname } from 'next/navigation';
+import FieldFairSidebar from '@/components/ui/layout/sidebar';
 import { 
-  LayoutGrid, 
+  LayoutGrid,
   QrCode,
   Camera,
   Upload,
-  Scan,
-  MapPin,
-  Calendar,
-  User,
-  Package,
-  Truck,
-  Shield,
-  Award,
-  Leaf,
-  Clock,
-  CheckCircle,
-  AlertCircle,
-  RefreshCw,
-  Download,
-  Share2,
   Eye,
   Star,
+  Shield,
+  Truck,
+  Calendar,
+  Clock,
+  CheckCircle,
+  AlertTriangle,
+  Info,
   Phone,
-  Search,
-  Filter,
-  Heart,
-  ShoppingCart,
-  SlidersHorizontal,
-  Grid3X3,
-  List,
-  TrendingUp,
-  Zap,
-  Target,
-  Sparkles,
-  Timer,
-  ThumbsUp,
-  Users,
   MessageCircle,
-  BarChart3, 
-  Settings,
-  ChevronLeft,
-  ChevronRight,
-  Sprout,
-  History,
-  Bell,
+  Plus,
+  Share2,
+  Download,
+  RefreshCw,
   Route,
-  Database,
-  FileText,
+  Package2,
+  Factory,
+  Home,
   Navigation,
-  Menu,
-  X
+  Target,
+  Scan,
+  ScanLine,
+  FileText,
+  History,
+  Clipboard,
+  ExternalLink,
+  TrendingUp,
+  Users as UsersIcon,
+  ThumbsUp,
+  Timer,
+  Sparkles,
+  Store,
+  ShoppingCart,
+  Heart,
+  Leaf,
+  Sprout,
+  MapPin,
+  X,
+  Menu
 } from 'lucide-react';
 
-// Modern Sidebar Component (same as marketplace)
-interface MenuItem {
-  name: string;
-  icon: React.ComponentType<any>;
-  path: string;
-  badge?: string;
-  hasSubmenu?: boolean;
-  active?: boolean;
-  submenu?: MenuItem[];
-}
-
-interface FieldFairSidebarProps {
-  isCollapsed?: boolean;
-  setIsCollapsed?: (collapsed: boolean) => void;
-  isMobile?: boolean;
-  isOpen?: boolean;
-  onClose?: () => void;
-  userType?: 'farmer' | 'customer';
-}
-
-const FieldFairSidebar: React.FC<FieldFairSidebarProps> = ({
-  isCollapsed = false,
-  setIsCollapsed,
-  isMobile = false,
-  isOpen = false,
-  onClose,
-  userType = 'customer'
-}) => {
-  const pathname = usePathname();
-  const scrollRef = useRef<HTMLDivElement>(null);
-  const [activeMenu, setActiveMenu] = useState('QR Scanner');
-  const [mounted, setMounted] = useState(false);
-  const [expandedMenus, setExpandedMenus] = useState<string[]>([]);
-  
-  // Customer menu items
-  const customerMenuItems: MenuItem[] = [
-    { name: 'Marketplace', icon: Search, path: '/marketplace' },
-    { name: 'My Cart', icon: ShoppingCart, path: '/marketplace/cart', badge: '2' },
-    { 
-      name: 'My Orders', 
-      icon: Package, 
-      path: '/customer/orders',
-      hasSubmenu: true,
-      submenu: [
-        { name: 'Current Orders', icon: Package, path: '/customer/orders' },
-        { name: 'Order History', icon: History, path: '/customer/history' }
-      ]
-    },
-    { name: 'Favorites', icon: Heart, path: '/customer/favorites' },
-    { 
-      name: 'Discover', 
-      icon: MapPin, 
-      path: '/customer/farms',
-      hasSubmenu: true,
-      submenu: [
-        { name: 'Find Farms', icon: MapPin, path: '/customer/farms' },
-        { name: 'QR Scanner', icon: QrCode, path: '/customer/qr-scanner', active: true },
-        { name: 'Track Products', icon: Route, path: '/maps/supply-chain' }
-      ]
-    },
-    {
-      name: 'AI Assistant',
-      icon: Zap,
-      path: '/ai/recommendations',
-      hasSubmenu: true,
-      submenu: [
-        { name: 'Recommendations', icon: Target, path: '/ai/recommendations' },
-        { name: 'Price Forecasting', icon: TrendingUp, path: '/ai/forecasting' },
-        { name: 'Chat Assistant', icon: MessageCircle, path: '/ai/chatbot' }
-      ]
-    }
-  ];
-  
-  const generalItems: MenuItem[] = [
-    { 
-      name: 'Profile', 
-      icon: User, 
-      path: '/customer/profile',
-      hasSubmenu: true,
-      submenu: [
-        { name: 'My Profile', icon: User, path: '/customer/profile' },
-        { name: 'Settings', icon: Settings, path: '/customer/settings' },
-        { name: 'Notifications', icon: Bell, path: '/customer/notifications' }
-      ]
-    }
-  ];
-
-  // Choose menu items based on user type
-  const menuItems = userType === 'farmer' ? [] : customerMenuItems;
-
-  // Prevent hydration issues
-  useEffect(() => {
-    setMounted(true);
-  }, []);
-
-  // Set active menu based on current path
-  useEffect(() => {
-    if (mounted) {
-      const allItems = [...menuItems, ...generalItems];
-      let foundItem = null;
-
-      // Check for QR Scanner specifically
-      if (pathname.includes('qr-scanner')) {
-        setActiveMenu('QR Scanner');
-        // Auto-expand Discover menu
-        setExpandedMenus(prev => 
-          prev.includes('Discover') ? prev : [...prev, 'Discover']
-        );
-        return;
-      }
-
-      // First, check for exact matches
-      foundItem = allItems.find(item => pathname === item.path);
-      
-      // If no exact match, check submenus
-      if (!foundItem) {
-        for (const item of allItems) {
-          if (item.submenu) {
-            const submenuItem = item.submenu.find(subItem => pathname === subItem.path || pathname.startsWith(subItem.path));
-            if (submenuItem) {
-              foundItem = item;
-              setExpandedMenus(prev => 
-                prev.includes(item.name) ? prev : [...prev, item.name]
-              );
-              break;
-            }
-          }
-        }
-      }
-
-      if (foundItem) {
-        setActiveMenu(foundItem.name);
-      }
-    }
-  }, [pathname, mounted, menuItems, generalItems]);
-
-  const handleMenuClick = (item: MenuItem) => {
-    if (item.hasSubmenu && !isCollapsed) {
-      setExpandedMenus(prev => 
-        prev.includes(item.name) 
-          ? prev.filter(name => name !== item.name)
-          : [...prev, item.name]
-      );
-    } else {
-      setActiveMenu(item.name);
-      if (isMobile && onClose) {
-        onClose();
-      }
-    }
-  };
-
-  const handleSubmenuClick = (parentItem: MenuItem, subItem: MenuItem) => {
-    setActiveMenu(subItem.name);
-    if (isMobile && onClose) {
-      onClose();
-    }
-  };
-
-  // Don't render until mounted to prevent hydration errors
-  if (!mounted) {
-    return null;
-  }
-
-  const userInfo = {
-    name: 'Nimal Perera',
-    subtitle: 'Premium Customer • Colombo',
-    avatar: 'NP',
-    status: 'Active Member',
-    statusColor: 'bg-blue-500'
-  };
-
-  const cn = (...classes: string[]) => classes.filter(Boolean).join(' ');
-
-  const renderMenuItem = (item: MenuItem, isSubmenu = false) => {
-    const isActive = activeMenu === item.name || 
-                    (item.submenu && item.submenu.some(subItem => activeMenu === subItem.name || pathname === subItem.path || pathname.startsWith(subItem.path)));
-    const isExpanded = expandedMenus.includes(item.name);
-    const hasActiveSubmenu = item.submenu && item.submenu.some(subItem => activeMenu === subItem.name || pathname === subItem.path || pathname.startsWith(subItem.path));
-
-    return (
-      <div key={item.name}>
-        <div className={isCollapsed && !isSubmenu ? "flex justify-center" : ""}>
-          <Link 
-            href={item.hasSubmenu ? '#' : item.path}
-            onClick={(e) => {
-              if (item.hasSubmenu) {
-                e.preventDefault();
-                handleMenuClick(item);
-              } else {
-                handleMenuClick(item);
-              }
-            }}
-            className={cn(
-              "flex items-center py-3.5 rounded-xl transition-all duration-300 group relative overflow-hidden",
-              isActive || hasActiveSubmenu
-                ? 'bg-gradient-to-r from-emerald-500 to-emerald-600 text-white shadow-lg shadow-emerald-500/25' 
-                : 'text-slate-300 hover:bg-white/5 hover:text-white backdrop-blur-sm',
-              isCollapsed && !isSubmenu ? "w-12 h-12 justify-center mx-auto" : "px-4 w-full mx-2",
-              isSubmenu ? "ml-6 text-sm" : ""
-            )}
-          >
-            {(isActive || hasActiveSubmenu) && !isCollapsed && !isSubmenu && (
-              <div className="absolute inset-0 bg-gradient-to-r from-emerald-400/20 to-emerald-600/20 rounded-xl animate-pulse"></div>
-            )}
-            
-            {(isActive || hasActiveSubmenu) && !isCollapsed && !isSubmenu && (
-              <span className="absolute left-0 top-1/2 -translate-y-1/2 w-1 h-8 bg-white rounded-r-full shadow-lg"></span>
-            )}
-            
-            <item.icon className={cn(
-              "w-5 h-5 relative z-10 transition-transform duration-300",
-              isActive || hasActiveSubmenu ? "text-white scale-110" : "text-slate-400 group-hover:text-white group-hover:scale-105",
-              isSubmenu ? "w-4 h-4" : ""
-            )} />
-            
-            {!isCollapsed && (
-              <>
-                <span className="ml-4 flex-1 text-left font-medium relative z-10 transition-all duration-300">
-                  {item.name}
-                </span>
-                {item.badge && (
-                  <span className="bg-gradient-to-r from-orange-400 to-orange-500 text-white text-[10px] px-2.5 py-1 rounded-full font-bold shadow-lg relative z-10 animate-pulse">
-                    {item.badge}
-                  </span>
-                )}
-                {item.hasSubmenu && (
-                  <ChevronLeft className={cn(
-                    "w-4 h-4 relative z-10 transition-all duration-300",
-                    isExpanded ? "rotate-90 text-white" : "text-slate-400 group-hover:text-white",
-                    isActive || hasActiveSubmenu ? "text-white" : ""
-                  )} />
-                )}
-              </>
-            )}
-
-            {isCollapsed && !isSubmenu && (
-              <div className="absolute left-full ml-3 px-3 py-2 bg-slate-800 text-white text-sm rounded-lg opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-300 z-50 whitespace-nowrap shadow-xl border border-slate-700">
-                <div className="font-medium">{item.name}</div>
-                {item.badge && (
-                  <span className="inline-block mt-1 bg-orange-500 text-xs px-2 py-0.5 rounded-full">
-                    {item.badge}
-                  </span>
-                )}
-                <div className="absolute right-full top-1/2 -translate-y-1/2 border-4 border-transparent border-r-slate-800"></div>
-              </div>
-            )}
-          </Link>
-        </div>
-
-        {item.hasSubmenu && !isCollapsed && isExpanded && item.submenu && (
-          <div className="ml-6 mt-2 space-y-1 animate-in slide-in-from-left-2 duration-300">
-            {item.submenu.map((subItem) => (
-              <Link
-                key={subItem.name}
-                href={subItem.path}
-                onClick={() => handleSubmenuClick(item, subItem)}
-                className={cn(
-                  "flex items-center py-3 px-4 rounded-lg transition-all duration-300 text-sm group relative overflow-hidden",
-                  activeMenu === subItem.name || pathname === subItem.path || pathname.startsWith(subItem.path)
-                    ? 'bg-gradient-to-r from-emerald-400/30 to-emerald-500/30 text-white backdrop-blur-sm'
-                    : 'text-slate-400 hover:bg-white/5 hover:text-white hover:pl-6'
-                )}
-              >
-                <subItem.icon className="w-4 h-4 mr-3 transition-transform duration-300 group-hover:scale-110" />
-                <span className="transition-all duration-300">{subItem.name}</span>
-                
-                {(activeMenu === subItem.name || pathname === subItem.path || pathname.startsWith(subItem.path)) && (
-                  <div className="absolute right-2 w-2 h-2 bg-white rounded-full animate-pulse"></div>
-                )}
-              </Link>
-            ))}
-          </div>
-        )}
-      </div>
-    );
-  };
-
-  return (
-    <>
-      {isMobile && isOpen && (
-        <div 
-          className="fixed inset-0 bg-black/60 backdrop-blur-sm z-40 transition-opacity duration-300 ease-in-out" 
-          onClick={onClose}
-        />
-      )}
-      
-      <aside 
-        className={cn(
-          "fixed h-screen left-0 top-0 z-50 transition-all duration-500 flex flex-col shadow-2xl border-r border-slate-800/50",
-          "bg-gradient-to-b from-slate-900 via-slate-800 to-slate-900 text-white backdrop-blur-xl",
-          isCollapsed ? "w-20" : "w-72",
-          isMobile ? (isOpen ? "translate-x-0" : "-translate-x-full") : "translate-x-0"
-        )}
-      >
-        <div className="absolute inset-0 z-0">
-          <div className="absolute inset-0 bg-gradient-to-br from-emerald-900/20 via-transparent to-blue-900/20"></div>
-          <div className="absolute inset-0 bg-[radial-gradient(circle_at_30%_80%,rgba(16,185,129,0.1),transparent_50%)]"></div>
-          <div className="absolute inset-0 bg-[radial-gradient(circle_at_70%_20%,rgba(59,130,246,0.1),transparent_50%)]"></div>
-          
-          <div className="absolute bottom-10 right-6 opacity-5">
-            <Leaf className="w-24 h-24 text-emerald-400 animate-pulse" />
-          </div>
-          <div className="absolute top-1/3 right-4 opacity-5">
-            <Sprout className="w-16 h-16 text-emerald-300 animate-bounce" style={{animationDuration: '3s'}} />
-          </div>
-        </div>
-
-        {isMobile && (
-          <button
-            onClick={onClose}
-            className="absolute top-4 right-4 w-10 h-10 flex items-center justify-center rounded-xl z-50 bg-slate-800/80 text-slate-300 lg:hidden hover:bg-slate-700 transition-all duration-300 backdrop-blur-sm border border-slate-700/50"
-          >
-            <X className="w-5 h-5" />
-          </button>
-        )}
-        
-        <div className={cn(
-          "border-b border-slate-700/50 relative z-10 backdrop-blur-sm",
-          isCollapsed ? "p-4" : "px-6 py-6"
-        )}>
-          <div className={cn(
-            "flex items-center",
-            isCollapsed ? "justify-center" : ""
-          )}>
-            <div className="w-10 h-10 bg-gradient-to-br from-emerald-400 to-emerald-600 rounded-xl flex items-center justify-center shadow-lg shadow-emerald-500/25 ring-2 ring-emerald-400/20">
-              <Sprout className="w-6 h-6 text-white" />
-            </div>
-            {!isCollapsed && (
-              <div className="ml-4">
-                <span className="text-2xl font-bold bg-gradient-to-r from-white to-emerald-200 bg-clip-text text-transparent">
-                  FieldFair
-                </span>
-                <div className="text-xs text-emerald-300/80 font-medium">Customer Portal</div>
-              </div>
-            )}
-          </div>
-          
-          {!isMobile && setIsCollapsed && (
-            <button 
-              onClick={() => setIsCollapsed(!isCollapsed)}
-              className={cn(
-                "absolute w-8 h-8 hidden lg:flex items-center justify-center rounded-full transition-all duration-300",
-                "bg-slate-800/80 text-slate-300 hover:bg-slate-700 hover:text-white shadow-lg backdrop-blur-sm border border-slate-600/50",
-                isCollapsed ? "right-0 -mr-4 top-[26px]" : "right-0 -mr-4 top-[32px]"
-              )}
-              aria-label="Toggle sidebar"
-            >
-              {isCollapsed ? (
-                <ChevronRight className="w-4 h-4" />
-              ) : (
-                <ChevronLeft className="w-4 h-4" />
-              )}
-            </button>
-          )}
-        </div>
-        
-        <div className="flex-1 relative overflow-hidden">
-          <div 
-            ref={scrollRef}
-            className="h-full py-6 overflow-y-auto transition-all duration-500 ease-in-out scrollbar-thin scrollbar-track-slate-800 scrollbar-thumb-slate-600 hover:scrollbar-thumb-slate-500"
-          >
-            <div className={cn("mb-8", isCollapsed ? "px-2" : "px-4")}>
-              {!isCollapsed && (
-                <div className="text-[10px] text-emerald-300/70 mb-4 uppercase tracking-[0.15em] font-bold px-2">
-                  🛒 MARKETPLACE
-                </div>
-              )}
-              <nav className="space-y-2">
-                {menuItems.map((item) => renderMenuItem(item))}
-              </nav>
-            </div>
-            
-            <div className={cn("mt-8", isCollapsed ? "px-2" : "px-4")}>
-              {!isCollapsed && (
-                <div className="text-[10px] text-emerald-300/70 mb-4 uppercase tracking-[0.15em] font-bold px-2">
-                  👤 ACCOUNT
-                </div>
-              )}
-              <nav className="space-y-2">
-                {generalItems.map((item) => renderMenuItem(item))}
-              </nav>
-            </div>
-          </div>
-        </div>
-        
-        {!isCollapsed && (
-          <div className="p-4 border-t border-slate-700/50 relative z-10 backdrop-blur-sm">
-            <div className="flex items-center bg-slate-800/30 rounded-xl p-3 backdrop-blur-sm border border-slate-700/30">
-              <div className="w-12 h-12 bg-gradient-to-br from-slate-600 to-slate-700 rounded-xl flex items-center justify-center relative ring-2 ring-slate-600/50">
-                <span className="text-sm font-bold text-white">{userInfo.avatar}</span>
-                <div className={cn(
-                  "absolute -bottom-1 -right-1 w-4 h-4 rounded-full border-2 border-slate-800",
-                  userInfo.statusColor
-                )}></div>
-              </div>
-              <div className="ml-3 flex-1">
-                <div className="text-sm font-semibold text-white">{userInfo.name}</div>
-                <div className="text-xs text-slate-300">{userInfo.subtitle}</div>
-                <div className="text-[10px] text-emerald-400 mt-1 font-medium">{userInfo.status}</div>
-              </div>
-              <button className="p-2 rounded-lg hover:bg-slate-700/50 transition-colors duration-300">
-                <Settings className="w-4 h-4 text-slate-400 hover:text-white transition-colors duration-300" />
-              </button>
-            </div>
-          </div>
-        )}
-      </aside>
-    </>
-  );
-};
-
-const QRScannerPage = () => {
+const CustomerQRScannerPage = () => {
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
-  const [isMobile, setIsMobile] = useState(false);
   const [mounted, setMounted] = useState(false);
-  const [scanMode, setScanMode] = useState<'camera' | 'upload'>('camera');
-  const [isScanning, setIsScanning] = useState(false);
-  const [scannedData, setScannedData] = useState<any>(null);
-  const [scanHistory, setScanHistory] = useState([
-    {
-      id: 1,
-      productName: 'Organic Tomatoes',
-      scannedDate: '2024-06-25T14:30:00',
-      farmerName: 'Ravi Mahathaya',
-      image: '🍅'
-    },
-    {
-      id: 2,
-      productName: 'Fresh Carrots',
-      scannedDate: '2024-06-20T09:15:00',
-      farmerName: 'Saman Silva',
-      image: '🥕'
-    }
-  ]);
+  const [scanning, setScanning] = useState(false);
+  const [manualCode, setManualCode] = useState('');
+  const [scannedProduct, setScannedProduct] = useState(null);
+  const [showTraceability, setShowTraceability] = useState(false);
+  const [scanHistory, setScanHistory] = useState([]);
+  const [activeTab, setActiveTab] = useState('scan');
+  const videoRef = useRef(null);
+  
+  // Enhanced responsive detection - same as marketplace
+  const [screenSize, setScreenSize] = useState({
+    isMobile: false,
+    isTablet: false,
+    isDesktop: false
+  });
 
-  // Mock QR scan result data
-  const mockScanResult = {
-    product: {
-      id: 'PRD-2024-001',
-      name: 'Organic Tomatoes',
-      image: '🍅',
-      description: 'Fresh organic tomatoes grown without pesticides using traditional farming methods.',
-      variety: 'Cherry Tomatoes',
-      category: 'Vegetables',
-      weight: '5 kg',
-      price: 300,
-      unit: 'kg'
-    },
-    farmer: {
-      name: 'Ravi Mahathaya',
-      avatar: 'RM',
-      phone: '077-296-7477',
-      location: 'Kurunegala, North Western Province',
-      farmName: "Ravi's Organic Farm",
-      farmSize: '2.5 acres',
-      established: '2018',
-      certifications: ['Organic Certified', 'Fair Trade'],
-      rating: 4.8,
-      totalOrders: 156
-    },
-    harvest: {
-      date: '2024-06-25',
-      location: 'Field A - Section 2',
-      method: 'Hand-picked at dawn',
-      quality: 'Grade A',
-      batchNumber: 'BATCH-2024-0625-A2'
-    },
-    processing: {
-      date: '2024-06-25',
-      location: 'On-farm processing center',
-      steps: [
-        'Quality inspection',
-        'Washing with clean water',
-        'Sorting and grading',
-        'Packaging'
-      ],
-      temperature: '4°C - 8°C',
-      packaging: 'Eco-friendly biodegradable bags'
-    },
-    transport: {
-      startDate: '2024-06-25T16:00:00',
-      route: 'Kurunegala → Colombo',
-      vehicle: 'Refrigerated truck - REF-001',
-      distance: '95 km',
-      duration: '2.5 hours',
-      temperature: '4°C - 6°C',
-      arrivalDate: '2024-06-25T18:30:00'
-    },
-    quality: {
-      inspectionDate: '2024-06-25',
-      inspector: 'Quality Control Team',
-      certificates: ['Organic Certificate', 'Food Safety Certificate'],
-      testResults: {
-        pesticide: 'Not detected',
-        heavyMetals: 'Within safe limits',
-        microbial: 'Passed',
-        freshness: 'Excellent'
+  // Mock product database for QR codes
+  const productDatabase = {
+    'FF-TOM-001': {
+      id: 1,
+      name: 'Premium Organic Tomatoes',
+      qrCode: 'FF-TOM-001',
+      farmer: {
+        name: 'Ravi Mahathaya',
+        avatar: 'RM',
+        verified: true,
+        farm: "Ravi's Organic Farm",
+        location: 'Kurunegala',
+        phone: '+94 77 123 4567',
+        rating: 4.8
       },
-      shelfLife: '7-10 days refrigerated',
-      storageInstructions: 'Store in refrigerator at 4°C - 8°C'
+      price: 300,
+      unit: 'kg',
+      rating: 4.8,
+      reviews: 127,
+      image: '🍅',
+      isOrganic: true,
+      inStock: true,
+      stockLevel: 45,
+      harvestDate: '2024-06-25',
+      packingDate: '2024-06-26',
+      expiryDate: '2024-07-05',
+      batchNumber: 'BAT-TOM-240625-001',
+      description: 'Fresh organic tomatoes grown without pesticides using traditional farming methods',
+      certifications: ['Organic Certified', 'Pesticide Free'],
+      nutritionScore: 'A+',
+      carbonFootprint: 'Low',
+      traceabilityJourney: [
+        {
+          stage: 'Seed Planting',
+          date: '2024-04-15',
+          location: "Ravi's Organic Farm, Kurunegala",
+          description: 'Organic tomato seeds planted in prepared soil',
+          icon: Sprout,
+          completed: true
+        },
+        {
+          stage: 'Growth & Care',
+          date: '2024-04-15 - 2024-06-20',
+          location: "Ravi's Organic Farm, Kurunegala",
+          description: 'Regular watering, organic fertilizing, and pest management',
+          icon: Leaf,
+          completed: true
+        },
+        {
+          stage: 'Harvest',
+          date: '2024-06-25',
+          location: "Ravi's Organic Farm, Kurunegala",
+          description: 'Hand-picked at peak ripeness for maximum flavor',
+          icon: Calendar,
+          completed: true
+        },
+        {
+          stage: 'Quality Check',
+          date: '2024-06-25',
+          location: "Farm Processing Center",
+          description: 'Quality inspection and organic certification verification',
+          icon: Shield,
+          completed: true
+        },
+        {
+          stage: 'Packaging',
+          date: '2024-06-26',
+          location: "Farm Processing Center",
+          description: 'Cleaned, sorted, and packaged with QR tracking code',
+          icon: Package2,
+          completed: true
+        },
+        {
+          stage: 'Distribution',
+          date: '2024-06-26',
+          location: 'FieldFair Marketplace',
+          description: 'Listed on FieldFair platform for direct consumer purchase',
+          icon: Store,
+          completed: true
+        },
+        {
+          stage: 'Consumer Purchase',
+          date: 'Pending',
+          location: 'Customer Location',
+          description: 'Product ready for purchase and delivery',
+          icon: Home,
+          completed: false
+        }
+      ]
     },
-    sustainability: {
-      carbonFootprint: '0.2 kg CO2e per kg',
-      waterUsage: '15 liters per kg',
-      packagingType: 'Biodegradable',
-      organicCertified: true,
-      fairTrade: true
+    'FF-CAR-002': {
+      id: 2,
+      name: 'Sweet Rainbow Carrots',
+      qrCode: 'FF-CAR-002',
+      farmer: {
+        name: 'Saman Silva',
+        avatar: 'SS',
+        verified: true,
+        farm: "Saman's Fresh Vegetables",
+        location: 'Matale',
+        phone: '+94 76 987 6543',
+        rating: 4.6
+      },
+      price: 250,
+      unit: 'kg',
+      rating: 4.6,
+      reviews: 89,
+      image: '🥕',
+      isOrganic: true,
+      inStock: true,
+      stockLevel: 28,
+      harvestDate: '2024-06-24',
+      packingDate: '2024-06-25',
+      expiryDate: '2024-07-15',
+      batchNumber: 'BAT-CAR-240624-002',
+      description: 'Sweet and crunchy rainbow carrots perfect for cooking and salads',
+      certifications: ['Organic Certified'],
+      nutritionScore: 'A',
+      carbonFootprint: 'Low',
+      traceabilityJourney: [
+        {
+          stage: 'Seed Planting',
+          date: '2024-03-20',
+          location: "Saman's Fresh Vegetables, Matale",
+          description: 'Rainbow carrot seeds planted in highland soil',
+          icon: Sprout,
+          completed: true
+        },
+        {
+          stage: 'Growth & Care',
+          date: '2024-03-20 - 2024-06-20',
+          location: "Saman's Fresh Vegetables, Matale",
+          description: 'Organic cultivation in highland climate conditions',
+          icon: Leaf,
+          completed: true
+        },
+        {
+          stage: 'Harvest',
+          date: '2024-06-24',
+          location: "Saman's Fresh Vegetables, Matale",
+          description: 'Carefully harvested to preserve color and nutrition',
+          icon: Calendar,
+          completed: true
+        },
+        {
+          stage: 'Quality Check',
+          date: '2024-06-24',
+          location: "Farm Quality Center",
+          description: 'Size grading and quality assessment',
+          icon: Shield,
+          completed: true
+        },
+        {
+          stage: 'Packaging',
+          date: '2024-06-25',
+          location: "Farm Processing Center",
+          description: 'Washed, sorted by color, and packaged',
+          icon: Package2,
+          completed: true
+        },
+        {
+          stage: 'Distribution',
+          date: '2024-06-25',
+          location: 'FieldFair Marketplace',
+          description: 'Available for direct consumer purchase',
+          icon: Store,
+          completed: true
+        },
+        {
+          stage: 'Consumer Purchase',
+          date: 'Pending',
+          location: 'Customer Location',
+          description: 'Ready for purchase and delivery',
+          icon: Home,
+          completed: false
+        }
+      ]
     }
   };
 
+  // Enhanced responsive detection - same as marketplace
   useEffect(() => {
     setMounted(true);
     
-    const checkMobile = () => {
-      setIsMobile(window.innerWidth < 1024);
+    const checkScreenSize = () => {
+      const width = window.innerWidth;
+      const newScreenSize = {
+        isMobile: width < 768,
+        isTablet: width >= 768 && width < 1024,
+        isDesktop: width >= 1024
+      };
+      
+      // Only update if there's a change
+      if (JSON.stringify(newScreenSize) !== JSON.stringify(screenSize)) {
+        setScreenSize(newScreenSize);
+      }
+
+      // Auto-close mobile menu when switching to desktop/tablet
+      if (!newScreenSize.isMobile && isMobileMenuOpen) {
+        setIsMobileMenuOpen(false);
+      }
     };
     
-    checkMobile();
-    window.addEventListener('resize', checkMobile);
+    checkScreenSize();
+    window.addEventListener('resize', checkScreenSize, { passive: true });
     
-    return () => window.removeEventListener('resize', checkMobile);
-  }, []);
+    return () => window.removeEventListener('resize', checkScreenSize);
+  }, [screenSize, isMobileMenuOpen]);
 
+  // Load scan history
+  useEffect(() => {
+    if (mounted) {
+      const savedHistory = localStorage.getItem('qr-scan-history');
+      if (savedHistory) {
+        setScanHistory(JSON.parse(savedHistory));
+      }
+    }
+  }, [mounted]);
+
+  const startScanning = async () => {
+    setScanning(true);
+    try {
+      const stream = await navigator.mediaDevices.getUserMedia({ 
+        video: { facingMode: 'environment' } 
+      });
+      if (videoRef.current) {
+        videoRef.current.srcObject = stream;
+      }
+    } catch (error) {
+      console.error('Error accessing camera:', error);
+      setScanning(false);
+      alert('Unable to access camera. Please check permissions and try again.');
+    }
+  };
+
+  const stopScanning = () => {
+    setScanning(false);
+    if (videoRef.current && videoRef.current.srcObject) {
+      const tracks = videoRef.current.srcObject.getTracks();
+      tracks.forEach(track => track.stop());
+    }
+  };
+
+  const handleManualCodeSubmit = () => {
+    if (manualCode.trim()) {
+      processQRCode(manualCode.trim());
+    }
+  };
+
+  const processQRCode = (code) => {
+    const product = productDatabase[code];
+    if (product) {
+      setScannedProduct(product);
+      setShowTraceability(true);
+      
+      // Add to scan history
+      const newScan = {
+        ...product,
+        scannedAt: new Date().toISOString(),
+        scanMethod: scanning ? 'camera' : 'manual'
+      };
+      
+      const updatedHistory = [newScan, ...scanHistory.filter(item => item.qrCode !== code)].slice(0, 10);
+      setScanHistory(updatedHistory);
+      if (mounted) {
+        localStorage.setItem('qr-scan-history', JSON.stringify(updatedHistory));
+      }
+      
+      stopScanning();
+      setManualCode('');
+    } else {
+      alert('Product not found. Please check the QR code and try again.');
+    }
+  };
+
+  const addToCart = (product) => {
+    console.log('Add to cart:', product.name);
+  };
+
+  const addToFavorites = (product) => {
+    console.log('Add to favorites:', product.name);
+  };
+
+  const contactFarmer = (farmer) => {
+    console.log('Contact farmer:', farmer.name);
+    window.open(`tel:${farmer.phone}`, '_self');
+  };
+
+  const shareProduct = (product) => {
+    if (navigator.share) {
+      navigator.share({
+        title: product.name,
+        text: `Check out this fresh ${product.name} from ${product.farmer.name}!`,
+        url: window.location.href
+      });
+    } else {
+      navigator.clipboard.writeText(window.location.href);
+      alert('Product link copied to clipboard!');
+    }
+  };
+
+  // Loading state to prevent hydration errors
   if (!mounted) {
     return (
       <div className="flex h-screen bg-gray-50">
-        <div className="w-72 bg-slate-900"></div>
+        <div className="w-64 bg-emerald-900 animate-pulse"></div>
         <div className="flex-1 flex items-center justify-center">
           <div className="text-gray-500">Loading...</div>
         </div>
@@ -591,529 +382,592 @@ const QRScannerPage = () => {
     );
   }
 
-  const startScanning = () => {
-    setIsScanning(true);
-    // Simulate scanning process
-    setTimeout(() => {
-      setIsScanning(false);
-      setScannedData(mockScanResult);
-      // Add to scan history
-      setScanHistory(prev => [{
-        id: Date.now(),
-        productName: mockScanResult.product.name,
-        scannedDate: new Date().toISOString(),
-        farmerName: mockScanResult.farmer.name,
-        image: mockScanResult.product.image
-      }, ...prev]);
-    }, 3000);
-  };
-
-  const handleFileUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
-    const file = event.target.files?.[0];
-    if (file) {
-      console.log('Processing uploaded file:', file.name);
-      // Simulate file processing
-      setIsScanning(true);
-      setTimeout(() => {
-        setIsScanning(false);
-        setScannedData(mockScanResult);
-      }, 2000);
-    }
-  };
-
-  const resetScanner = () => {
-    setScannedData(null);
-    setIsScanning(false);
-  };
-
-  const getStatusColor = (status: string) => {
-    switch (status) {
-      case 'Passed':
-      case 'Excellent':
-      case 'Grade A':
-        return 'text-green-600 bg-green-50';
-      case 'Good':
-        return 'text-blue-600 bg-blue-50';
-      case 'Fair':
-        return 'text-yellow-600 bg-yellow-50';
-      default:
-        return 'text-gray-600 bg-gray-50';
+  // Enhanced margin calculation - same as marketplace
+  const getMainContentMargin = () => {
+    if (screenSize.isMobile) {
+      return 'ml-0'; // No margin on mobile (sidebar overlays)
+    } else if (screenSize.isTablet) {
+      return 'ml-20'; // Always collapsed margin on tablet
+    } else {
+      return sidebarCollapsed ? 'ml-20' : 'ml-72'; // User controlled on desktop
     }
   };
 
   return (
-    <div className="min-h-screen bg-gray-50 flex">
-      {/* Modern Sidebar */}
-      <FieldFairSidebar
+    <div className="min-h-screen bg-gray-50 flex overflow-hidden">
+      {/* SINGLE Sidebar Component - Enhanced Responsive */}
+      <FieldFairSidebar 
         isCollapsed={sidebarCollapsed}
         setIsCollapsed={setSidebarCollapsed}
-        isMobile={false}
+        isMobile={screenSize.isMobile}
         isOpen={isMobileMenuOpen}
         onClose={() => setIsMobileMenuOpen(false)}
         userType="customer"
       />
 
-      {/* Mobile Sidebar */}
-      <FieldFairSidebar
-        isCollapsed={false}
-        isMobile={true}
-        isOpen={isMobileMenuOpen}
-        onClose={() => setIsMobileMenuOpen(false)}
-        userType="customer"
-      />
-
-      {/* Main Content - Responsive to sidebar */}
-      <div className={`flex-1 transition-all duration-500 ${sidebarCollapsed ? 'lg:ml-20' : 'lg:ml-72'}`}>
-        {/* Header */}
-        <header className="bg-white border-b border-gray-200 sticky top-0 z-10">
+      {/* Main Content - Enhanced Responsive Margin */}
+      <div className={`flex-1 transition-all duration-300 ${getMainContentMargin()}`}>
+        {/* Enhanced Header */}
+        <header className="bg-white border-b border-gray-200 sticky top-0 z-20 shadow-sm">
           <div className="max-w-7xl mx-auto px-4 lg:px-6 py-4">
             <div className="flex items-center justify-between">
               <div className="flex items-center">
-                {/* Mobile menu button */}
-                <button 
-                  onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
-                  className="lg:hidden p-2 rounded-lg text-gray-600 hover:bg-gray-100 mr-4"
-                >
-                  <Menu className="w-6 h-6" />
-                </button>
+                {/* Mobile menu button - only show on mobile */}
+                {screenSize.isMobile && (
+                  <button
+                    onClick={() => setIsMobileMenuOpen(true)}
+                    className="p-2 rounded-lg hover:bg-gray-100 mr-4 transition-colors"
+                    aria-label="Open menu"
+                  >
+                    <Menu className="w-6 h-6" />
+                  </button>
+                )}
                 
                 <div>
-                  <h1 className="text-2xl lg:text-3xl font-bold text-gray-900">📱 QR Code Scanner</h1>
-                  <p className="text-sm text-gray-600 mt-1 hidden sm:block">Trace your product's journey from farm to table</p>
+                  <h1 className="text-2xl lg:text-3xl font-bold text-gray-900 mb-1">
+                    {screenSize.isMobile ? '📱 QR Scanner' : '📱 QR Product Scanner'}
+                  </h1>
+                  <p className="text-gray-600 hidden sm:block">
+                    {screenSize.isMobile 
+                      ? 'Track food from farm to table' 
+                      : 'Scan QR codes to track your food from farm to table'
+                    }
+                  </p>
                 </div>
               </div>
               
-              {scannedData && (
-                <div className="flex items-center space-x-2">
-                  <button 
-                    onClick={() => console.log('Sharing scan result')}
-                    className="border border-gray-300 text-gray-700 px-3 lg:px-4 py-2 rounded-lg text-sm font-medium hover:bg-gray-50 transition-colors flex items-center space-x-1"
-                  >
-                    <Share2 className="w-4 h-4" />
-                    <span className="hidden sm:inline">Share</span>
-                  </button>
-                  <button 
-                    onClick={() => console.log('Downloading report')}
-                    className="border border-gray-300 text-gray-700 px-3 lg:px-4 py-2 rounded-lg text-sm font-medium hover:bg-gray-50 transition-colors flex items-center space-x-1"
-                  >
-                    <Download className="w-4 h-4" />
-                    <span className="hidden sm:inline">Download</span>
-                  </button>
-                  <button 
-                    onClick={resetScanner}
-                    className="bg-emerald-600 text-white px-3 lg:px-4 py-2 rounded-lg text-sm font-medium hover:bg-emerald-700 transition-colors"
-                  >
-                    Scan Another
-                  </button>
-                </div>
-              )}
+              <div className="flex items-center space-x-4">
+                <Link
+                  href="/marketplace"
+                  className={`${screenSize.isMobile ? 'p-2' : 'px-4 py-2'} flex items-center bg-emerald-50 border border-emerald-200 rounded-lg text-emerald-700 hover:bg-emerald-100 transition-colors`}
+                >
+                  <Store className="w-4 h-4 mr-2" />
+                  {!screenSize.isMobile && <span>Browse Marketplace</span>}
+                </Link>
+              </div>
             </div>
           </div>
         </header>
 
-        <main className="p-4 lg:p-6">
-          <div className="max-w-6xl mx-auto">
-            {!scannedData ? (
-              <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 lg:gap-8">
-                {/* Scanner */}
-                <div className="lg:col-span-2">
-                  <div className="bg-white rounded-2xl border border-gray-200 p-6 lg:p-8 shadow-lg">
-                    <div className="text-center mb-6">
-                      <div className="w-16 lg:w-20 h-16 lg:h-20 bg-emerald-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                        <QrCode className="w-8 lg:w-10 h-8 lg:h-10 text-emerald-600" />
-                      </div>
-                      <h2 className="text-xl lg:text-2xl font-bold text-gray-900 mb-2">Scan Product QR Code</h2>
-                      <p className="text-gray-600 text-sm lg:text-base">Point your camera at the QR code or upload an image to trace your product</p>
-                    </div>
+        <main className="max-w-6xl mx-auto p-4 lg:p-6">
+          {/* Enhanced Tab Navigation */}
+          <div className="bg-white rounded-xl border border-gray-200 p-4 mb-6">
+            <div className="flex space-x-1 bg-gray-100 rounded-lg p-1">
+              <button
+                onClick={() => setActiveTab('scan')}
+                className={`flex-1 flex items-center justify-center space-x-2 px-4 py-2 rounded-md transition-colors ${
+                  activeTab === 'scan' ? 'bg-white text-gray-900 shadow-sm' : 'text-gray-600'
+                }`}
+              >
+                <QrCode className="w-4 h-4" />
+                <span>{screenSize.isMobile ? 'Scan' : 'Scan QR Code'}</span>
+              </button>
+              <button
+                onClick={() => setActiveTab('history')}
+                className={`flex-1 flex items-center justify-center space-x-2 px-4 py-2 rounded-md transition-colors ${
+                  activeTab === 'history' ? 'bg-white text-gray-900 shadow-sm' : 'text-gray-600'
+                }`}
+              >
+                <History className="w-4 h-4" />
+                <span>{screenSize.isMobile ? 'History' : 'Scan History'}</span>
+                {scanHistory.length > 0 && (
+                  <span className="bg-emerald-100 text-emerald-800 text-xs px-2 py-0.5 rounded-full font-medium">
+                    {scanHistory.length}
+                  </span>
+                )}
+              </button>
+            </div>
+          </div>
 
-                    {/* Scan Mode Toggle */}
-                    <div className="flex justify-center mb-6">
-                      <div className="bg-gray-100 p-1 rounded-lg">
-                        <button
-                          onClick={() => setScanMode('camera')}
-                          className={`px-3 lg:px-4 py-2 rounded-md text-sm font-medium transition-colors ${
-                            scanMode === 'camera'
-                              ? 'bg-white text-gray-900 shadow-sm'
-                              : 'text-gray-600 hover:text-gray-900'
-                          }`}
-                        >
-                          <Camera className="w-4 h-4 mr-2 inline" />
-                          Camera
-                        </button>
-                        <button
-                          onClick={() => setScanMode('upload')}
-                          className={`px-3 lg:px-4 py-2 rounded-md text-sm font-medium transition-colors ${
-                            scanMode === 'upload'
-                              ? 'bg-white text-gray-900 shadow-sm'
-                              : 'text-gray-600 hover:text-gray-900'
-                          }`}
-                        >
-                          <Upload className="w-4 h-4 mr-2 inline" />
-                          Upload
-                        </button>
-                      </div>
-                    </div>
-
-                    {/* Scanner Interface */}
-                    <div className="relative">
-                      {scanMode === 'camera' ? (
-                        <div className="bg-gray-900 rounded-lg p-6 lg:p-8 text-center relative overflow-hidden">
-                          <div className="absolute inset-4 border-2 border-emerald-500 rounded-lg"></div>
-                          <div className="absolute inset-6 border border-emerald-300 rounded-lg opacity-50"></div>
-                          
-                          {isScanning ? (
-                            <div className="space-y-4">
-                              <div className="animate-pulse">
-                                <Scan className="w-12 lg:w-16 h-12 lg:h-16 text-emerald-500 mx-auto" />
-                              </div>
-                              <p className="text-white">Scanning QR code...</p>
-                              <div className="w-6 lg:w-8 h-6 lg:h-8 border-2 border-emerald-500 border-t-transparent rounded-full animate-spin mx-auto"></div>
-                            </div>
-                          ) : (
-                            <div className="space-y-4">
-                              <Camera className="w-12 lg:w-16 h-12 lg:h-16 text-gray-400 mx-auto" />
-                              <p className="text-gray-400">Position QR code within the frame</p>
-                              <button
-                                onClick={startScanning}
-                                className="bg-emerald-600 text-white px-6 py-3 rounded-lg font-semibold hover:bg-emerald-700 transition-colors"
-                              >
-                                Start Scanning
-                              </button>
-                            </div>
-                          )}
-                        </div>
-                      ) : (
-                        <div className="border-2 border-dashed border-gray-300 rounded-lg p-8 lg:p-12 text-center hover:border-emerald-300 transition-colors">
-                          <Upload className="w-12 lg:w-16 h-12 lg:h-16 text-gray-400 mx-auto mb-4" />
-                          <p className="text-gray-600 mb-4">Upload an image with QR code</p>
-                          <label className="bg-emerald-600 text-white px-6 py-3 rounded-lg font-semibold hover:bg-emerald-700 transition-colors cursor-pointer inline-block">
-                            Choose File
-                            <input
-                              type="file"
-                              accept="image/*"
-                              onChange={handleFileUpload}
-                              className="hidden"
-                            />
-                          </label>
-                          <p className="text-sm text-gray-500 mt-2">PNG, JPG up to 10MB</p>
-                        </div>
-                      )}
-                    </div>
+          {/* Scan Tab */}
+          {activeTab === 'scan' && (
+            <div className="space-y-6">
+              {/* Quick Demo Codes */}
+              <div className="bg-gradient-to-r from-blue-50 to-indigo-50 border border-blue-200 rounded-xl p-6">
+                <div className="flex items-center space-x-3 mb-4">
+                  <div className="w-10 h-10 bg-blue-100 rounded-full flex items-center justify-center">
+                    <Info className="w-5 h-5 text-blue-600" />
+                  </div>
+                  <div>
+                    <h3 className="font-semibold text-gray-900">Try Demo QR Codes</h3>
+                    <p className="text-sm text-gray-600">Test the scanner with these sample product codes</p>
                   </div>
                 </div>
+                <div className={`grid gap-4 ${
+                  screenSize.isMobile ? 'grid-cols-1' : 'grid-cols-2'
+                }`}>
+                  <button
+                    onClick={() => processQRCode('FF-TOM-001')}
+                    className="flex items-center space-x-3 p-4 bg-white border border-blue-200 rounded-lg hover:bg-blue-50 transition-colors text-left"
+                  >
+                    <span className="text-2xl">🍅</span>
+                    <div>
+                      <div className="font-medium text-gray-900">FF-TOM-001</div>
+                      <div className="text-sm text-gray-600">Premium Organic Tomatoes</div>
+                    </div>
+                  </button>
+                  <button
+                    onClick={() => processQRCode('FF-CAR-002')}
+                    className="flex items-center space-x-3 p-4 bg-white border border-blue-200 rounded-lg hover:bg-blue-50 transition-colors text-left"
+                  >
+                    <span className="text-2xl">🥕</span>
+                    <div>
+                      <div className="font-medium text-gray-900">FF-CAR-002</div>
+                      <div className="text-sm text-gray-600">Sweet Rainbow Carrots</div>
+                    </div>
+                  </button>
+                </div>
+              </div>
 
-                {/* Scan History */}
-                <div className="space-y-6">
-                  <div className="bg-white rounded-2xl border border-gray-200 p-6 shadow-lg">
-                    <h3 className="text-lg font-semibold text-gray-900 mb-4">Recent Scans</h3>
-                    <div className="space-y-3">
-                      {scanHistory.map((scan) => (
-                        <div key={scan.id} className="flex items-center space-x-3 p-3 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors">
-                          <div className="w-10 h-10 bg-white rounded-lg flex items-center justify-center shadow-sm">
-                            <span className="text-xl">{scan.image}</span>
-                          </div>
-                          <div className="flex-1">
-                            <div className="font-medium text-gray-900 text-sm">{scan.productName}</div>
-                            <div className="text-sm text-gray-600">{scan.farmerName}</div>
-                            <div className="text-xs text-gray-500">
-                              {new Date(scan.scannedDate).toLocaleDateString()}
+              <div className={`grid gap-6 ${
+                screenSize.isMobile ? 'grid-cols-1' : 'grid-cols-1 lg:grid-cols-2'
+              }`}>
+                {/* Camera Scanner */}
+                <div className="bg-white rounded-xl border border-gray-200 overflow-hidden">
+                  <div className="p-6 border-b border-gray-200">
+                    <div className="flex items-center space-x-3">
+                      <Camera className="w-6 h-6 text-emerald-600" />
+                      <h3 className="text-lg font-semibold text-gray-900">Camera Scanner</h3>
+                    </div>
+                    <p className="text-sm text-gray-600 mt-1">
+                      {screenSize.isMobile 
+                        ? 'Use camera to scan QR codes'
+                        : 'Use your device camera to scan QR codes'
+                      }
+                    </p>
+                  </div>
+
+                  <div className="p-6">
+                    {scanning ? (
+                      <div className="space-y-4">
+                        <div className="relative aspect-square bg-black rounded-lg overflow-hidden">
+                          <video
+                            ref={videoRef}
+                            autoPlay
+                            playsInline
+                            className="w-full h-full object-cover"
+                          />
+                          <div className="absolute inset-0 flex items-center justify-center">
+                            <div className={`border-2 border-emerald-500 rounded-lg bg-emerald-500/10 ${
+                              screenSize.isMobile ? 'w-40 h-40' : 'w-48 h-48'
+                            }`}>
+                              <div className="w-full h-full border border-dashed border-emerald-400 rounded-lg flex items-center justify-center">
+                                <ScanLine className="w-8 h-8 text-emerald-500 animate-pulse" />
+                              </div>
                             </div>
                           </div>
-                          <button className="text-emerald-600 hover:text-emerald-700 p-1">
-                            <Eye className="w-4 h-4" />
+                        </div>
+                        
+                        <div className="text-center">
+                          <p className="text-sm text-gray-600 mb-4">Position the QR code within the frame</p>
+                          <button
+                            onClick={stopScanning}
+                            className="bg-red-600 text-white px-4 py-2 rounded-lg hover:bg-red-700 transition-colors"
+                          >
+                            Stop Scanning
                           </button>
                         </div>
-                      ))}
+                      </div>
+                    ) : (
+                      <div className="text-center space-y-4">
+                        <div className={`bg-gray-100 rounded-lg mx-auto flex items-center justify-center ${
+                          screenSize.isMobile ? 'w-24 h-24' : 'w-32 h-32'
+                        }`}>
+                          <QrCode className={`text-gray-400 ${screenSize.isMobile ? 'w-12 h-12' : 'w-16 h-16'}`} />
+                        </div>
+                        <button
+                          onClick={startScanning}
+                          className="bg-emerald-600 text-white px-6 py-3 rounded-lg hover:bg-emerald-700 transition-colors flex items-center space-x-2 mx-auto"
+                        >
+                          <Camera className="w-5 h-5" />
+                          <span>Start Camera</span>
+                        </button>
+                        <p className="text-xs text-gray-500">Camera permission required</p>
+                      </div>
+                    )}
+                  </div>
+                </div>
+
+                {/* Manual Code Entry */}
+                <div className="bg-white rounded-xl border border-gray-200">
+                  <div className="p-6 border-b border-gray-200">
+                    <div className="flex items-center space-x-3">
+                      <Clipboard className="w-6 h-6 text-blue-600" />
+                      <h3 className="text-lg font-semibold text-gray-900">Manual Entry</h3>
                     </div>
+                    <p className="text-sm text-gray-600 mt-1">
+                      {screenSize.isMobile 
+                        ? 'Enter QR code manually'
+                        : 'Enter QR code manually if scanning isn\'t available'
+                      }
+                    </p>
                   </div>
 
-                  <div className="bg-emerald-50 border border-emerald-200 rounded-2xl p-6">
-                    <h3 className="text-lg font-semibold text-emerald-900 mb-3">How it works</h3>
-                    <div className="space-y-3 text-sm text-emerald-800">
-                      <div className="flex items-start space-x-2">
-                        <QrCode className="w-4 h-4 mt-0.5 text-emerald-600" />
-                        <span>Scan the QR code on your product package</span>
+                  <div className="p-6">
+                    <div className="space-y-4">
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-2">Product QR Code</label>
+                        <input
+                          type="text"
+                          value={manualCode}
+                          onChange={(e) => setManualCode(e.target.value)}
+                          placeholder="Enter code (e.g., FF-TOM-001)"
+                          className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-emerald-500"
+                          onKeyPress={(e) => e.key === 'Enter' && handleManualCodeSubmit()}
+                        />
                       </div>
-                      <div className="flex items-start space-x-2">
-                        <MapPin className="w-4 h-4 mt-0.5 text-emerald-600" />
-                        <span>View the complete journey from farm to your table</span>
-                      </div>
-                      <div className="flex items-start space-x-2">
-                        <Shield className="w-4 h-4 mt-0.5 text-emerald-600" />
-                        <span>Verify quality, safety, and authenticity</span>
+                      
+                      <button
+                        onClick={handleManualCodeSubmit}
+                        disabled={!manualCode.trim()}
+                        className="w-full bg-blue-600 text-white py-3 px-4 rounded-lg hover:bg-blue-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center space-x-2"
+                      >
+                        <Scan className="w-5 h-5" />
+                        <span>Search Product</span>
+                      </button>
+
+                      <div className="bg-gray-50 rounded-lg p-4">
+                        <h4 className="font-medium text-gray-900 mb-2">Code Format Examples:</h4>
+                        <div className="space-y-1 text-sm text-gray-600">
+                          <div>• FF-TOM-001 (Tomatoes)</div>
+                          <div>• FF-CAR-002 (Carrots)</div>
+                          <div>• FF-[PRODUCT]-[NUMBER]</div>
+                        </div>
                       </div>
                     </div>
                   </div>
                 </div>
               </div>
-            ) : (
-              /* Scan Results */
-              <div className="space-y-6">
-                {/* Product Overview */}
-                <div className="bg-white rounded-2xl border border-gray-200 p-6 shadow-lg">
-                  <div className="flex flex-col lg:flex-row items-start space-y-6 lg:space-y-0 lg:space-x-6">
-                    <div className="w-full lg:w-32 h-32 bg-gray-100 rounded-xl flex items-center justify-center">
-                      <span className="text-4xl lg:text-6xl">{scannedData.product.image}</span>
-                    </div>
-                    <div className="flex-1">
-                      <div className="flex flex-col lg:flex-row lg:items-start justify-between">
-                        <div className="mb-4 lg:mb-0">
-                          <h2 className="text-2xl lg:text-3xl font-bold text-gray-900 mb-2">{scannedData.product.name}</h2>
-                          <p className="text-gray-600 mb-4">{scannedData.product.description}</p>
-                          <div className="flex flex-wrap items-center gap-2">
-                            <span className="bg-emerald-100 text-emerald-800 px-3 py-1 rounded-full text-sm font-medium">
-                              {scannedData.product.variety}
-                            </span>
-                            <span className="bg-blue-100 text-blue-800 px-3 py-1 rounded-full text-sm font-medium">
-                              {scannedData.product.weight}
-                            </span>
+            </div>
+          )}
+
+          {/* History Tab */}
+          {activeTab === 'history' && (
+            <div className="bg-white rounded-xl border border-gray-200">
+              <div className="p-6 border-b border-gray-200">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center space-x-3">
+                    <History className="w-6 h-6 text-purple-600" />
+                    <h3 className="text-lg font-semibold text-gray-900">Recent Scans</h3>
+                  </div>
+                  {scanHistory.length > 0 && (
+                    <button
+                      onClick={() => {
+                        setScanHistory([]);
+                        localStorage.removeItem('qr-scan-history');
+                      }}
+                      className="text-sm text-red-600 hover:text-red-700"
+                    >
+                      Clear History
+                    </button>
+                  )}
+                </div>
+                <p className="text-sm text-gray-600 mt-1">Your previously scanned products</p>
+              </div>
+
+              <div className="p-6">
+                {scanHistory.length === 0 ? (
+                  <div className="text-center py-12">
+                    <QrCode className="w-16 h-16 text-gray-300 mx-auto mb-4" />
+                    <h4 className="text-lg font-semibold text-gray-900 mb-2">No scans yet</h4>
+                    <p className="text-gray-500 mb-6">Start scanning QR codes to see your history here</p>
+                    <button
+                      onClick={() => setActiveTab('scan')}
+                      className="bg-emerald-600 text-white px-6 py-3 rounded-lg hover:bg-emerald-700 transition-colors"
+                    >
+                      Start Scanning
+                    </button>
+                  </div>
+                ) : (
+                  <div className="space-y-4">
+                    {scanHistory.map((item, index) => (
+                      <div key={index} className={`flex items-center space-x-4 p-4 border border-gray-200 rounded-lg hover:shadow-md transition-shadow ${
+                        screenSize.isMobile ? 'flex-col space-y-3 space-x-0' : ''
+                      }`}>
+                        <div className={`bg-gray-100 rounded-lg flex items-center justify-center text-2xl ${
+                          screenSize.isMobile ? 'w-16 h-16' : 'w-12 h-12'
+                        }`}>
+                          {item.image}
+                        </div>
+                        <div className={`flex-1 ${screenSize.isMobile ? 'text-center' : ''}`}>
+                          <h4 className="font-medium text-gray-900">{item.name}</h4>
+                          <div className="text-sm text-gray-600">
+                            {item.farmer.name} • {new Date(item.scannedAt).toLocaleDateString()}
+                          </div>
+                          <div className="text-xs text-gray-500">
+                            Code: {item.qrCode} • Scanned via {item.scanMethod}
                           </div>
                         </div>
-                        <div className="text-left lg:text-right">
-                          <div className="text-2xl font-bold text-emerald-600">Rs. {scannedData.product.price}</div>
-                          <div className="text-gray-500">per {scannedData.product.unit}</div>
-                          <div className="text-sm text-gray-600 mt-1">Product ID: {scannedData.product.id}</div>
+                        <button
+                          onClick={() => {
+                            setScannedProduct(item);
+                            setShowTraceability(true);
+                          }}
+                          className={`bg-emerald-600 text-white px-4 py-2 rounded-lg hover:bg-emerald-700 transition-colors text-sm ${
+                            screenSize.isMobile ? 'w-full' : ''
+                          }`}
+                        >
+                          View Details
+                        </button>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+            </div>
+          )}
+
+          {/* Enhanced Product Details Modal */}
+          {showTraceability && scannedProduct && (
+            <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
+              <div className={`bg-white rounded-2xl w-full max-h-[90vh] overflow-y-auto ${
+                screenSize.isMobile ? 'max-w-sm' : 'max-w-4xl'
+              }`}>
+                {/* Modal Header */}
+                <div className="sticky top-0 bg-white border-b border-gray-200 p-6 rounded-t-2xl">
+                  <div className="flex items-center justify-between">
+                    <div className={`flex items-center space-x-4 ${screenSize.isMobile ? 'flex-col space-y-2 space-x-0' : ''}`}>
+                      <div className={`bg-gray-100 rounded-lg flex items-center justify-center text-3xl ${
+                        screenSize.isMobile ? 'w-12 h-12' : 'w-16 h-16'
+                      }`}>
+                        {scannedProduct.image}
+                      </div>
+                      <div className={screenSize.isMobile ? 'text-center' : ''}>
+                        <h2 className={`font-bold text-gray-900 ${screenSize.isMobile ? 'text-xl' : 'text-2xl'}`}>
+                          {scannedProduct.name}
+                        </h2>
+                        <div className={`text-sm text-gray-600 ${screenSize.isMobile ? 'space-y-1' : 'flex items-center space-x-4'}`}>
+                          <span>QR: {scannedProduct.qrCode}</span>
+                          <span>Batch: {scannedProduct.batchNumber}</span>
                         </div>
                       </div>
                     </div>
+                    <button
+                      onClick={() => setShowTraceability(false)}
+                      className="p-2 text-gray-400 hover:text-gray-600 rounded-lg"
+                    >
+                      <X className="w-6 h-6" />
+                    </button>
                   </div>
                 </div>
 
-                {/* Farmer Information */}
-                <div className="bg-white rounded-2xl border border-gray-200 p-6 shadow-lg">
-                  <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center">
-                    <User className="w-5 h-5 mr-2 text-emerald-600" />
-                    Farmer Information
-                  </h3>
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    <div>
-                      <div className="flex items-center space-x-4 mb-4">
-                        <div className="w-16 h-16 bg-emerald-100 rounded-full flex items-center justify-center">
-                          <span className="text-lg font-bold text-emerald-700">{scannedData.farmer.avatar}</span>
+                <div className="p-6">
+                  <div className={`grid gap-6 ${
+                    screenSize.isMobile ? 'grid-cols-1' : 'grid-cols-1 lg:grid-cols-3'
+                  }`}>
+                    {/* Product Information */}
+                    <div className={`space-y-6 ${screenSize.isMobile ? 'order-2' : 'lg:col-span-1'}`}>
+                      {/* Price & Details */}
+                      <div className="bg-emerald-50 rounded-xl p-4">
+                        <div className="text-2xl font-bold text-emerald-600 mb-2">
+                          Rs. {scannedProduct.price} per {scannedProduct.unit}
                         </div>
-                        <div>
-                          <h4 className="text-xl font-bold text-gray-900">{scannedData.farmer.name}</h4>
-                          <p className="text-gray-600">{scannedData.farmer.farmName}</p>
-                          <div className="flex items-center space-x-1 mt-1">
-                            <Star className="w-4 h-4 text-yellow-400 fill-current" />
-                            <span className="font-medium">{scannedData.farmer.rating}</span>
-                            <span className="text-gray-500">({scannedData.farmer.totalOrders} orders)</span>
-                          </div>
-                        </div>
-                      </div>
-                      <div className="space-y-2 text-sm">
-                        <div className="flex items-center space-x-2">
-                          <MapPin className="w-4 h-4 text-gray-500" />
-                          <span>{scannedData.farmer.location}</span>
-                        </div>
-                        <div className="flex items-center space-x-2">
-                          <Phone className="w-4 h-4 text-gray-500" />
-                          <span>{scannedData.farmer.phone}</span>
-                        </div>
-                      </div>
-                    </div>
-                    <div>
-                      <h5 className="font-medium text-gray-900 mb-3">Farm Details</h5>
-                      <div className="space-y-2 text-sm">
-                        <div className="flex justify-between">
-                          <span className="text-gray-600">Farm Size:</span>
-                          <span className="font-medium">{scannedData.farmer.farmSize}</span>
-                        </div>
-                        <div className="flex justify-between">
-                          <span className="text-gray-600">Established:</span>
-                          <span className="font-medium">{scannedData.farmer.established}</span>
-                        </div>
-                      </div>
-                      <div className="mt-3">
-                        <h5 className="font-medium text-gray-900 mb-2">Certifications</h5>
-                        <div className="flex flex-wrap gap-1">
-                          {scannedData.farmer.certifications.map((cert: string, index: number) => (
-                            <span key={index} className="bg-green-100 text-green-800 px-2 py-1 rounded-full text-xs font-medium flex items-center">
-                              <Award className="w-3 h-3 mr-1" />
-                              {cert}
-                            </span>
-                          ))}
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-
-                {/* Journey Timeline */}
-                <div className="bg-white rounded-2xl border border-gray-200 p-6 shadow-lg">
-                  <h3 className="text-lg font-semibold text-gray-900 mb-6 flex items-center">
-                    <Truck className="w-5 h-5 mr-2 text-emerald-600" />
-                    Product Journey
-                  </h3>
-                  <div className="space-y-6">
-                    {/* Harvest */}
-                    <div className="flex items-start space-x-4">
-                      <div className="w-10 h-10 bg-green-100 rounded-full flex items-center justify-center">
-                        <Leaf className="w-5 h-5 text-green-600" />
-                      </div>
-                      <div className="flex-1">
-                        <h4 className="font-semibold text-gray-900">Harvest</h4>
-                        <p className="text-gray-600 text-sm mb-2">Hand-picked fresh from the farm</p>
-                        <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 text-sm">
-                          <div>
-                            <span className="text-gray-500">Date:</span>
-                            <span className="ml-2 font-medium">{new Date(scannedData.harvest.date).toLocaleDateString()}</span>
-                          </div>
-                          <div>
-                            <span className="text-gray-500">Location:</span>
-                            <span className="ml-2 font-medium">{scannedData.harvest.location}</span>
-                          </div>
-                          <div>
-                            <span className="text-gray-500">Quality:</span>
-                            <span className={`ml-2 px-2 py-1 rounded-full text-xs font-medium ${getStatusColor(scannedData.harvest.quality)}`}>
-                              {scannedData.harvest.quality}
-                            </span>
-                          </div>
-                          <div>
-                            <span className="text-gray-500">Batch:</span>
-                            <span className="ml-2 font-medium">{scannedData.harvest.batchNumber}</span>
-                          </div>
-                        </div>
-                      </div>
-                    </div>
-
-                    {/* Processing */}
-                    <div className="flex items-start space-x-4">
-                      <div className="w-10 h-10 bg-blue-100 rounded-full flex items-center justify-center">
-                        <Package className="w-5 h-5 text-blue-600" />
-                      </div>
-                      <div className="flex-1">
-                        <h4 className="font-semibold text-gray-900">Processing & Packaging</h4>
-                        <p className="text-gray-600 text-sm mb-2">Cleaned, sorted, and packaged with care</p>
-                        <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 text-sm">
-                          <div>
-                            <span className="text-gray-500">Date:</span>
-                            <span className="ml-2 font-medium">{new Date(scannedData.processing.date).toLocaleDateString()}</span>
-                          </div>
-                          <div>
-                            <span className="text-gray-500">Temperature:</span>
-                            <span className="ml-2 font-medium">{scannedData.processing.temperature}</span>
-                          </div>
-                        </div>
-                        <div className="mt-2">
-                          <span className="text-gray-500 text-sm">Processing steps:</span>
-                          <ul className="ml-4 mt-1 text-sm">
-                            {scannedData.processing.steps.map((step: string, index: number) => (
-                              <li key={index} className="flex items-center space-x-2">
-                                <CheckCircle className="w-3 h-3 text-green-500" />
-                                <span>{step}</span>
-                              </li>
+                        <div className="flex items-center space-x-2 mb-3">
+                          <div className="flex items-center space-x-1">
+                            {[1,2,3,4,5].map(i => (
+                              <Star
+                                key={i}
+                                className={`w-4 h-4 ${
+                                  i <= Math.floor(scannedProduct.rating) 
+                                    ? 'text-yellow-400 fill-current' 
+                                    : 'text-gray-300'
+                                }`}
+                              />
                             ))}
-                          </ul>
+                          </div>
+                          <span className="font-medium text-gray-900">{scannedProduct.rating}</span>
+                          <span className="text-gray-500">({scannedProduct.reviews})</span>
                         </div>
-                      </div>
-                    </div>
-
-                    {/* Transport */}
-                    <div className="flex items-start space-x-4">
-                      <div className="w-10 h-10 bg-purple-100 rounded-full flex items-center justify-center">
-                        <Truck className="w-5 h-5 text-purple-600" />
-                      </div>
-                      <div className="flex-1">
-                        <h4 className="font-semibold text-gray-900">Transportation</h4>
-                        <p className="text-gray-600 text-sm mb-2">Safe delivery maintaining cold chain</p>
-                        <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 text-sm">
-                          <div>
-                            <span className="text-gray-500">Route:</span>
-                            <span className="ml-2 font-medium">{scannedData.transport.route}</span>
+                        
+                        <div className="space-y-2 text-sm">
+                          <div className="flex items-center justify-between">
+                            <span className="text-gray-600">Stock:</span>
+                            <span className="font-medium text-gray-900">{scannedProduct.stockLevel} {scannedProduct.unit}</span>
                           </div>
-                          <div>
-                            <span className="text-gray-500">Distance:</span>
-                            <span className="ml-2 font-medium">{scannedData.transport.distance}</span>
+                          <div className="flex items-center justify-between">
+                            <span className="text-gray-600">Harvested:</span>
+                            <span className="font-medium text-gray-900">{new Date(scannedProduct.harvestDate).toLocaleDateString()}</span>
                           </div>
-                          <div>
-                            <span className="text-gray-500">Duration:</span>
-                            <span className="ml-2 font-medium">{scannedData.transport.duration}</span>
-                          </div>
-                          <div>
-                            <span className="text-gray-500">Temperature:</span>
-                            <span className="ml-2 font-medium">{scannedData.transport.temperature}</span>
+                          <div className="flex items-center justify-between">
+                            <span className="text-gray-600">Best Before:</span>
+                            <span className="font-medium text-gray-900">{new Date(scannedProduct.expiryDate).toLocaleDateString()}</span>
                           </div>
                         </div>
                       </div>
-                    </div>
-                  </div>
-                </div>
 
-                {/* Quality & Sustainability */}
-                <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                  {/* Quality Assurance */}
-                  <div className="bg-white rounded-2xl border border-gray-200 p-6 shadow-lg">
-                    <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center">
-                      <Shield className="w-5 h-5 mr-2 text-emerald-600" />
-                      Quality Assurance
-                    </h3>
-                    <div className="space-y-4">
-                      <div>
-                        <h4 className="font-medium text-gray-900 mb-2">Test Results</h4>
+                      {/* Farmer Information */}
+                      <div className="bg-gray-50 rounded-xl p-4">
+                        <h4 className="font-semibold text-gray-900 mb-3">Farm Information</h4>
+                        <div className="flex items-center space-x-3 mb-3">
+                          <div className="w-10 h-10 bg-emerald-100 rounded-full flex items-center justify-center relative">
+                            <span className="text-sm font-bold text-emerald-700">{scannedProduct.farmer.avatar}</span>
+                            {scannedProduct.farmer.verified && (
+                              <Shield className="w-3 h-3 text-blue-500 absolute -top-1 -right-1" />
+                            )}
+                          </div>
+                          <div>
+                            <div className="font-medium text-gray-900">{scannedProduct.farmer.name}</div>
+                            <div className="text-sm text-gray-600">{scannedProduct.farmer.farm}</div>
+                            <div className="text-sm text-gray-600">{scannedProduct.farmer.location}</div>
+                          </div>
+                        </div>
+                        <div className="flex items-center space-x-2 mb-3">
+                          <Star className="w-4 h-4 text-yellow-400 fill-current" />
+                          <span className="text-sm font-medium text-gray-900">{scannedProduct.farmer.rating} farmer rating</span>
+                        </div>
+                      </div>
+
+                      {/* Certifications */}
+                      <div className="bg-green-50 rounded-xl p-4">
+                        <h4 className="font-semibold text-gray-900 mb-3">Certifications & Quality</h4>
                         <div className="space-y-2">
-                          {Object.entries(scannedData.quality.testResults).map(([test, result]) => (
-                            <div key={test} className="flex justify-between items-center">
-                              <span className="text-gray-600 capitalize">{test.replace(/([A-Z])/g, ' $1')}</span>
-                              <span className={`px-2 py-1 rounded-full text-xs font-medium ${getStatusColor(result as string)}`}>
-                                {result}
-                              </span>
+                          {scannedProduct.certifications.map((cert, index) => (
+                            <div key={index} className="flex items-center space-x-2">
+                              <CheckCircle className="w-4 h-4 text-green-600" />
+                              <span className="text-sm text-gray-700">{cert}</span>
                             </div>
                           ))}
+                          <div className="flex items-center justify-between mt-3">
+                            <span className="text-sm text-gray-600">Nutrition Score:</span>
+                            <span className="font-bold text-green-600">{scannedProduct.nutritionScore}</span>
+                          </div>
+                          <div className="flex items-center justify-between">
+                            <span className="text-sm text-gray-600">Carbon Footprint:</span>
+                            <span className="font-medium text-green-600">{scannedProduct.carbonFootprint}</span>
+                          </div>
                         </div>
                       </div>
-                      <div>
-                        <h4 className="font-medium text-gray-900 mb-2">Storage Instructions</h4>
-                        <p className="text-sm text-gray-600">{scannedData.quality.storageInstructions}</p>
-                      </div>
-                      <div>
-                        <h4 className="font-medium text-gray-900 mb-2">Shelf Life</h4>
-                        <p className="text-sm text-gray-600">{scannedData.quality.shelfLife}</p>
+
+                      {/* Action Buttons */}
+                      <div className="space-y-3">
+                        <button
+                          onClick={() => addToCart(scannedProduct)}
+                          className="w-full bg-emerald-600 text-white py-3 px-4 rounded-lg hover:bg-emerald-700 transition-colors flex items-center justify-center space-x-2"
+                        >
+                          <ShoppingCart className="w-5 h-5" />
+                          <span>Add to Cart</span>
+                        </button>
+                        
+                        <div className="grid grid-cols-3 gap-2">
+                          <button
+                            onClick={() => addToFavorites(scannedProduct)}
+                            className="flex items-center justify-center space-x-1 py-2 px-3 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors"
+                          >
+                            <Heart className="w-4 h-4" />
+                            <span className="text-xs">Save</span>
+                          </button>
+                          
+                          <button
+                            onClick={() => contactFarmer(scannedProduct.farmer)}
+                            className="flex items-center justify-center space-x-1 py-2 px-3 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors"
+                          >
+                            <Phone className="w-4 h-4" />
+                            <span className="text-xs">Call</span>
+                          </button>
+                          
+                          <button
+                            onClick={() => shareProduct(scannedProduct)}
+                            className="flex items-center justify-center space-x-1 py-2 px-3 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors"
+                          >
+                            <Share2 className="w-4 h-4" />
+                            <span className="text-xs">Share</span>
+                          </button>
+                        </div>
                       </div>
                     </div>
-                  </div>
 
-                  {/* Sustainability */}
-                  <div className="bg-white rounded-2xl border border-gray-200 p-6 shadow-lg">
-                    <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center">
-                      <Leaf className="w-5 h-5 mr-2 text-emerald-600" />
-                      Sustainability
-                    </h3>
-                    <div className="space-y-4">
-                      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-                        <div className="bg-green-50 p-3 rounded-lg">
-                          <div className="text-sm text-gray-600">Carbon Footprint</div>
-                          <div className="font-bold text-green-600">{scannedData.sustainability.carbonFootprint}</div>
-                        </div>
-                        <div className="bg-blue-50 p-3 rounded-lg">
-                          <div className="text-sm text-gray-600">Water Usage</div>
-                          <div className="font-bold text-blue-600">{scannedData.sustainability.waterUsage}</div>
-                        </div>
+                    {/* Traceability Journey */}
+                    <div className={`${screenSize.isMobile ? 'order-1' : 'lg:col-span-2'}`}>
+                      <h3 className={`font-bold text-gray-900 mb-6 ${screenSize.isMobile ? 'text-lg' : 'text-xl'}`}>
+                        🌱 Farm to Table Journey
+                      </h3>
+                      
+                      <div className="space-y-4">
+                        {scannedProduct.traceabilityJourney.map((step, index) => {
+                          const StepIcon = step.icon;
+                          const isLast = index === scannedProduct.traceabilityJourney.length - 1;
+                          
+                          return (
+                            <div key={index} className="relative">
+                              {/* Timeline Line */}
+                              {!isLast && (
+                                <div className={`absolute w-0.5 ${
+                                  step.completed ? 'bg-emerald-400' : 'bg-gray-300'
+                                } ${screenSize.isMobile ? 'left-5 top-10 h-12' : 'left-6 top-12 h-16'}`} />
+                              )}
+                              
+                              {/* Step Content */}
+                              <div className={`flex items-start space-x-4 p-4 rounded-xl border-2 transition-all ${
+                                step.completed 
+                                  ? 'border-emerald-200 bg-emerald-50' 
+                                  : 'border-gray-200 bg-gray-50'
+                              }`}>
+                                {/* Step Icon */}
+                                <div className={`rounded-full flex items-center justify-center ${
+                                  step.completed 
+                                    ? 'bg-emerald-500 text-white' 
+                                    : 'bg-gray-300 text-gray-600'
+                                } ${screenSize.isMobile ? 'w-10 h-10' : 'w-12 h-12'}`}>
+                                  <StepIcon className={screenSize.isMobile ? 'w-5 h-5' : 'w-6 h-6'} />
+                                </div>
+                                
+                                {/* Step Details */}
+                                <div className="flex-1">
+                                  <div className="flex items-center justify-between mb-2">
+                                    <h4 className={`font-semibold ${
+                                      step.completed ? 'text-emerald-900' : 'text-gray-700'
+                                    } ${screenSize.isMobile ? 'text-sm' : ''}`}>
+                                      {step.stage}
+                                    </h4>
+                                    {step.completed && (
+                                      <CheckCircle className="w-5 h-5 text-emerald-600" />
+                                    )}
+                                  </div>
+                                  
+                                  <p className={`text-sm mb-2 ${
+                                    step.completed ? 'text-emerald-700' : 'text-gray-600'
+                                  }`}>
+                                    {step.description}
+                                  </p>
+                                  
+                                  <div className={`${
+                                    screenSize.isMobile ? 'space-y-1' : 'flex items-center space-x-4'
+                                  } text-xs ${
+                                    step.completed ? 'text-emerald-600' : 'text-gray-500'
+                                  }`}>
+                                    <div className="flex items-center space-x-1">
+                                      <Calendar className="w-3 h-3" />
+                                      <span>{step.date}</span>
+                                    </div>
+                                    <div className="flex items-center space-x-1">
+                                      <MapPin className="w-3 h-3" />
+                                      <span>{step.location}</span>
+                                    </div>
+                                  </div>
+                                </div>
+                              </div>
+                            </div>
+                          );
+                        })}
                       </div>
-                      <div className="space-y-2">
-                        <div className="flex items-center justify-between">
-                          <span className="text-gray-600">Organic Certified</span>
-                          <CheckCircle className="w-5 h-5 text-green-500" />
-                        </div>
-                        <div className="flex items-center justify-between">
-                          <span className="text-gray-600">Fair Trade</span>
-                          <CheckCircle className="w-5 h-5 text-green-500" />
-                        </div>
-                        <div className="flex items-center justify-between">
-                          <span className="text-gray-600">Biodegradable Packaging</span>
-                          <CheckCircle className="w-5 h-5 text-green-500" />
-                        </div>
+
+                      {/* Additional Product Info */}
+                      <div className="mt-8 bg-gray-50 rounded-xl p-4">
+                        <h4 className="font-semibold text-gray-900 mb-3">Product Description</h4>
+                        <p className="text-gray-700 text-sm leading-relaxed">
+                          {scannedProduct.description}
+                        </p>
                       </div>
                     </div>
                   </div>
                 </div>
               </div>
-            )}
-          </div>
+            </div>
+          )}
         </main>
       </div>
     </div>
   );
 };
 
-export default QRScannerPage;
+export default CustomerQRScannerPage;

@@ -1,582 +1,173 @@
 "use client";
 
-import React, { useState, useEffect, useRef } from 'react';
-import Link from 'next/link';
-import { usePathname } from 'next/navigation';
+import React, { useState, useEffect } from 'react';
+import FieldFairSidebar from '@/components/ui/layout/sidebar';
 import { 
   LayoutGrid, 
   User,
-  MapPin,
-  CreditCard,
-  Bell,
-  Shield,
-  Camera,
   Edit,
   Save,
-  Plus,
-  Trash2,
-  Check,
-  Star,
-  Package,
-  Heart,
+  Camera,
+  Upload,
   Phone,
   Mail,
-  Home,
+  MapPin,
   Calendar,
-  Search,
-  History,
-  QrCode,
-  Route,
-  Zap,
-  Target,
+  Award,
+  Star,
+  CheckCircle,
+  Shield,
+  Heart,
+  Users,
   TrendingUp,
-  MessageCircle,
+  Package,
+  Clock,
+  Eye,
+  Share2,
+  Download,
   Settings,
-  ChevronLeft,
-  ChevronRight,
-  Sprout,
-  ChevronDown,
-  Leaf,
+  Bell,
+  Lock,
+  CreditCard,
+  Globe,
+  FileText,
+  Image as ImageIcon,
+  Plus,
+  X,
+  Copy,
+  ExternalLink,
+  MessageCircle,
+  Truck,
+  Gift,
+  Percent,
+  Target,
+  DollarSign,
   ShoppingCart,
-  Menu,
-  X
+  Leaf,
+  ThumbsUp,
+  Sparkles,
+  Navigation,
+  Info,
+  AlertCircle,
+  RefreshCw,
+  Menu
 } from 'lucide-react';
 
-// Modern Sidebar Component (embedded)
-interface MenuItem {
-  name: string;
-  icon: React.ComponentType<any>;
-  path: string;
-  badge?: string;
-  hasSubmenu?: boolean;
-  active?: boolean;
-  submenu?: MenuItem[];
-}
-
-interface FieldFairSidebarProps {
-  isCollapsed?: boolean;
-  setIsCollapsed?: (collapsed: boolean) => void;
-  isMobile?: boolean;
-  isOpen?: boolean;
-  onClose?: () => void;
-  userType?: 'farmer' | 'customer';
-}
-
-const FieldFairSidebar: React.FC<FieldFairSidebarProps> = ({
-  isCollapsed = false,
-  setIsCollapsed,
-  isMobile = false,
-  isOpen = false,
-  onClose,
-  userType = 'customer'
-}) => {
-  const pathname = usePathname();
-  const scrollRef = useRef<HTMLDivElement>(null);
-  const [activeMenu, setActiveMenu] = useState('Profile');
-  const [mounted, setMounted] = useState(false);
-  const [expandedMenus, setExpandedMenus] = useState<string[]>([]);
-  
-  // Customer menu items
-  const customerMenuItems: MenuItem[] = [
-    { name: 'Marketplace', icon: Search, path: '/marketplace' },
-    { name: 'My Cart', icon: ShoppingCart, path: '/marketplace/cart', badge: '2' },
-    { 
-      name: 'My Orders', 
-      icon: Package, 
-      path: '/customer/orders',
-      hasSubmenu: true,
-      submenu: [
-        { name: 'Current Orders', icon: Package, path: '/customer/orders' },
-        { name: 'Order History', icon: History, path: '/customer/history' }
-      ]
-    },
-    { name: 'Favorites', icon: Heart, path: '/customer/favorites' },
-    { 
-      name: 'Discover', 
-      icon: MapPin, 
-      path: '/customer/farms',
-      hasSubmenu: true,
-      submenu: [
-        { name: 'Find Farms', icon: MapPin, path: '/customer/farms' },
-        { name: 'QR Scanner', icon: QrCode, path: '/customer/qr-scanner' },
-        { name: 'Track Products', icon: Route, path: '/maps/supply-chain' }
-      ]
-    },
-    {
-      name: 'AI Assistant',
-      icon: Zap,
-      path: '/ai/recommendations',
-      hasSubmenu: true,
-      submenu: [
-        { name: 'Recommendations', icon: Target, path: '/ai/recommendations' },
-        { name: 'Price Forecasting', icon: TrendingUp, path: '/ai/forecasting' },
-        { name: 'Chat Assistant', icon: MessageCircle, path: '/ai/chatbot' }
-      ]
-    }
-  ];
-  
-  const generalItems: MenuItem[] = [
-    { 
-      name: 'Profile', 
-      icon: User, 
-      path: '/customer/profile',
-      active: true,
-      hasSubmenu: true,
-      submenu: [
-        { name: 'My Profile', icon: User, path: '/customer/profile' },
-        { name: 'Settings', icon: Settings, path: '/customer/settings' },
-        { name: 'Notifications', icon: Bell, path: '/customer/notifications' }
-      ]
-    }
-  ];
-
-  // Choose menu items based on user type
-  const menuItems = userType === 'farmer' ? [] : customerMenuItems;
-
-  // Prevent hydration issues
-  useEffect(() => {
-    setMounted(true);
-  }, []);
-
-  // Set active menu based on current path
-  useEffect(() => {
-    if (mounted) {
-      const allItems = [...menuItems, ...generalItems];
-      let foundItem = null;
-
-      // First, check for exact matches
-      foundItem = allItems.find(item => pathname === item.path);
-      
-      // If no exact match, check submenus
-      if (!foundItem) {
-        for (const item of allItems) {
-          if (item.submenu) {
-            const submenuItem = item.submenu.find(subItem => pathname === subItem.path || pathname.startsWith(subItem.path));
-            if (submenuItem) {
-              foundItem = item;
-              // Auto-expand parent menu if submenu item is active
-              setExpandedMenus(prev => 
-                prev.includes(item.name) ? prev : [...prev, item.name]
-              );
-              break;
-            }
-          }
-        }
-      }
-
-      // If still no match, check for path prefixes
-      if (!foundItem) {
-        foundItem = allItems.find(item => pathname.startsWith(item.path));
-      }
-
-      if (foundItem) {
-        setActiveMenu(foundItem.name);
-      }
-    }
-  }, [pathname, mounted, menuItems, generalItems]);
-
-  const handleMenuClick = (item: MenuItem) => {
-    if (item.hasSubmenu && !isCollapsed) {
-      // Toggle submenu expansion
-      setExpandedMenus(prev => 
-        prev.includes(item.name) 
-          ? prev.filter(name => name !== item.name)
-          : [...prev, item.name]
-      );
-    } else {
-      setActiveMenu(item.name);
-      if (isMobile && onClose) {
-        onClose();
-      }
-    }
-  };
-
-  const handleSubmenuClick = (parentItem: MenuItem, subItem: MenuItem) => {
-    setActiveMenu(parentItem.name);
-    if (isMobile && onClose) {
-      onClose();
-    }
-  };
-
-  // Don't render until mounted to prevent hydration errors
-  if (!mounted) {
-    return null;
-  }
-
-  // Get user info based on type
-  const getUserInfo = () => {
-    return {
-      name: 'Nimal Perera',
-      subtitle: 'Premium Customer • Colombo',
-      avatar: 'NP',
-      status: 'Active Member',
-      statusColor: 'bg-blue-500'
-    };
-  };
-
-  const userInfo = getUserInfo();
-
-  const cn = (...classes: string[]) => classes.filter(Boolean).join(' ');
-
-  const renderMenuItem = (item: MenuItem, isSubmenu = false) => {
-    const isActive = activeMenu === item.name || 
-                    (item.submenu && item.submenu.some(subItem => pathname === subItem.path || pathname.startsWith(subItem.path)));
-    const isExpanded = expandedMenus.includes(item.name);
-    const hasActiveSubmenu = item.submenu && item.submenu.some(subItem => pathname === subItem.path || pathname.startsWith(subItem.path));
-
-    return (
-      <div key={item.name}>
-        <div className={isCollapsed && !isSubmenu ? "flex justify-center" : ""}>
-          <Link 
-            href={item.hasSubmenu ? '#' : item.path}
-            onClick={(e) => {
-              if (item.hasSubmenu) {
-                e.preventDefault();
-                handleMenuClick(item);
-              } else {
-                handleMenuClick(item);
-              }
-            }}
-            className={cn(
-              "flex items-center py-3.5 rounded-xl transition-all duration-300 group relative overflow-hidden",
-              isActive || hasActiveSubmenu
-                ? 'bg-gradient-to-r from-emerald-500 to-emerald-600 text-white shadow-lg shadow-emerald-500/25' 
-                : 'text-slate-300 hover:bg-white/5 hover:text-white backdrop-blur-sm',
-              isCollapsed && !isSubmenu ? "w-12 h-12 justify-center mx-auto" : "px-4 w-full mx-2",
-              isSubmenu ? "ml-6 text-sm" : ""
-            )}
-          >
-            {/* Animated background for active state */}
-            {(isActive || hasActiveSubmenu) && !isCollapsed && !isSubmenu && (
-              <div className="absolute inset-0 bg-gradient-to-r from-emerald-400/20 to-emerald-600/20 rounded-xl animate-pulse"></div>
-            )}
-            
-            {/* Modern active indicator */}
-            {(isActive || hasActiveSubmenu) && !isCollapsed && !isSubmenu && (
-              <span className="absolute left-0 top-1/2 -translate-y-1/2 w-1 h-8 bg-white rounded-r-full shadow-lg"></span>
-            )}
-            
-            <item.icon className={cn(
-              "w-5 h-5 relative z-10 transition-transform duration-300",
-              isActive || hasActiveSubmenu ? "text-white scale-110" : "text-slate-400 group-hover:text-white group-hover:scale-105",
-              isSubmenu ? "w-4 h-4" : ""
-            )} />
-            
-            {!isCollapsed && (
-              <>
-                <span className="ml-4 flex-1 text-left font-medium relative z-10 transition-all duration-300">
-                  {item.name}
-                </span>
-                {item.badge && (
-                  <span className="bg-gradient-to-r from-orange-400 to-orange-500 text-white text-[10px] px-2.5 py-1 rounded-full font-bold shadow-lg relative z-10 animate-pulse">
-                    {item.badge}
-                  </span>
-                )}
-                {item.hasSubmenu && (
-                  <ChevronDown className={cn(
-                    "w-4 h-4 relative z-10 transition-all duration-300",
-                    isExpanded ? "rotate-180 text-white" : "text-slate-400 group-hover:text-white",
-                    isActive || hasActiveSubmenu ? "text-white" : ""
-                  )} />
-                )}
-              </>
-            )}
-
-            {/* Enhanced tooltip for collapsed state */}
-            {isCollapsed && !isSubmenu && (
-              <div className="absolute left-full ml-3 px-3 py-2 bg-slate-800 text-white text-sm rounded-lg opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-300 z-50 whitespace-nowrap shadow-xl border border-slate-700">
-                <div className="font-medium">{item.name}</div>
-                {item.badge && (
-                  <span className="inline-block mt-1 bg-orange-500 text-xs px-2 py-0.5 rounded-full">
-                    {item.badge}
-                  </span>
-                )}
-                {/* Tooltip arrow */}
-                <div className="absolute right-full top-1/2 -translate-y-1/2 border-4 border-transparent border-r-slate-800"></div>
-              </div>
-            )}
-          </Link>
-        </div>
-
-        {/* Enhanced submenu with modern styling */}
-        {item.hasSubmenu && !isCollapsed && isExpanded && item.submenu && (
-          <div className="ml-6 mt-2 space-y-1 animate-in slide-in-from-left-2 duration-300">
-            {item.submenu.map((subItem) => (
-              <Link
-                key={subItem.name}
-                href={subItem.path}
-                onClick={() => handleSubmenuClick(item, subItem)}
-                className={cn(
-                  "flex items-center py-3 px-4 rounded-lg transition-all duration-300 text-sm group relative overflow-hidden",
-                  pathname === subItem.path || pathname.startsWith(subItem.path)
-                    ? 'bg-gradient-to-r from-emerald-400/30 to-emerald-500/30 text-white backdrop-blur-sm'
-                    : 'text-slate-400 hover:bg-white/5 hover:text-white hover:pl-6'
-                )}
-              >
-                <subItem.icon className="w-4 h-4 mr-3 transition-transform duration-300 group-hover:scale-110" />
-                <span className="transition-all duration-300">{subItem.name}</span>
-                
-                {/* Submenu active indicator */}
-                {(pathname === subItem.path || pathname.startsWith(subItem.path)) && (
-                  <div className="absolute right-2 w-2 h-2 bg-white rounded-full animate-pulse"></div>
-                )}
-              </Link>
-            ))}
-          </div>
-        )}
-      </div>
-    );
-  };
-
-  return (
-    <>
-      {/* Enhanced backdrop for mobile */}
-      {isMobile && isOpen && (
-        <div 
-          className="fixed inset-0 bg-black/60 backdrop-blur-sm z-40 transition-opacity duration-300 ease-in-out" 
-          onClick={onClose}
-        />
-      )}
-      
-      <aside 
-        className={cn(
-          "fixed h-screen left-0 top-0 z-50 transition-all duration-500 flex flex-col shadow-2xl border-r border-slate-800/50",
-          "bg-gradient-to-b from-slate-900 via-slate-800 to-slate-900 text-white backdrop-blur-xl",
-          isCollapsed ? "w-20" : "w-72",
-          isMobile ? (isOpen ? "translate-x-0" : "-translate-x-full") : "translate-x-0"
-        )}
-      >
-        {/* Modern background pattern */}
-        <div className="absolute inset-0 z-0">
-          <div className="absolute inset-0 bg-gradient-to-br from-emerald-900/20 via-transparent to-blue-900/20"></div>
-          <div className="absolute inset-0 bg-[radial-gradient(circle_at_30%_80%,rgba(16,185,129,0.1),transparent_50%)]"></div>
-          <div className="absolute inset-0 bg-[radial-gradient(circle_at_70%_20%,rgba(59,130,246,0.1),transparent_50%)]"></div>
-          
-          {/* Animated floating elements */}
-          <div className="absolute bottom-10 right-6 opacity-5">
-            <Leaf className="w-24 h-24 text-emerald-400 animate-pulse" />
-          </div>
-          <div className="absolute top-1/3 right-4 opacity-5">
-            <Sprout className="w-16 h-16 text-emerald-300 animate-bounce" style={{animationDuration: '3s'}} />
-          </div>
-        </div>
-
-        {/* Modern close button for mobile */}
-        {isMobile && (
-          <button
-            onClick={onClose}
-            className="absolute top-4 right-4 w-10 h-10 flex items-center justify-center rounded-xl z-50 bg-slate-800/80 text-slate-300 lg:hidden hover:bg-slate-700 transition-all duration-300 backdrop-blur-sm border border-slate-700/50"
-          >
-            <X className="w-5 h-5" />
-          </button>
-        )}
-        
-        {/* Enhanced Logo Section */}
-        <div className={cn(
-          "border-b border-slate-700/50 relative z-10 backdrop-blur-sm",
-          isCollapsed ? "p-4" : "px-6 py-6"
-        )}>
-          <div className={cn(
-            "flex items-center",
-            isCollapsed ? "justify-center" : ""
-          )}>
-            {/* Modern FieldFair Logo */}
-            <div className="w-10 h-10 bg-gradient-to-br from-emerald-400 to-emerald-600 rounded-xl flex items-center justify-center shadow-lg shadow-emerald-500/25 ring-2 ring-emerald-400/20">
-              <Sprout className="w-6 h-6 text-white" />
-            </div>
-            {!isCollapsed && (
-              <div className="ml-4">
-                <span className="text-2xl font-bold bg-gradient-to-r from-white to-emerald-200 bg-clip-text text-transparent">
-                  FieldFair
-                </span>
-                <div className="text-xs text-emerald-300/80 font-medium">Customer Portal</div>
-              </div>
-            )}
-          </div>
-          
-          {/* Modern toggle button */}
-          {!isMobile && setIsCollapsed && (
-            <button 
-              onClick={() => setIsCollapsed(!isCollapsed)}
-              className={cn(
-                "absolute w-8 h-8 hidden lg:flex items-center justify-center rounded-full transition-all duration-300",
-                "bg-slate-800/80 text-slate-300 hover:bg-slate-700 hover:text-white shadow-lg backdrop-blur-sm border border-slate-600/50",
-                isCollapsed ? "right-0 -mr-4 top-[26px]" : "right-0 -mr-4 top-[32px]"
-              )}
-              aria-label="Toggle sidebar"
-            >
-              {isCollapsed ? (
-                <ChevronRight className="w-4 h-4" />
-              ) : (
-                <ChevronLeft className="w-4 h-4" />
-              )}
-            </button>
-          )}
-        </div>
-        
-        {/* Enhanced Menu Section */}
-        <div className="flex-1 relative overflow-hidden">
-          <div 
-            ref={scrollRef}
-            className="h-full py-6 overflow-y-auto transition-all duration-500 ease-in-out scrollbar-thin scrollbar-track-slate-800 scrollbar-thumb-slate-600 hover:scrollbar-thumb-slate-500"
-          >
-            {/* Main Section */}
-            <div className={cn("mb-8", isCollapsed ? "px-2" : "px-4")}>
-              {!isCollapsed && (
-                <div className="text-[10px] text-emerald-300/70 mb-4 uppercase tracking-[0.15em] font-bold px-2">
-                  🛒 MARKETPLACE
-                </div>
-              )}
-              <nav className="space-y-2">
-                {menuItems.map((item) => renderMenuItem(item))}
-              </nav>
-            </div>
-            
-            {/* Account Section */}
-            <div className={cn("mt-8", isCollapsed ? "px-2" : "px-4")}>
-              {!isCollapsed && (
-                <div className="text-[10px] text-emerald-300/70 mb-4 uppercase tracking-[0.15em] font-bold px-2">
-                  👤 ACCOUNT
-                </div>
-              )}
-              <nav className="space-y-2">
-                {generalItems.map((item) => renderMenuItem(item))}
-              </nav>
-            </div>
-          </div>
-        </div>
-        
-        {/* Enhanced User Profile */}
-        {!isCollapsed && (
-          <div className="p-4 border-t border-slate-700/50 relative z-10 backdrop-blur-sm">
-            <div className="flex items-center bg-slate-800/30 rounded-xl p-3 backdrop-blur-sm border border-slate-700/30">
-              <div className="w-12 h-12 bg-gradient-to-br from-slate-600 to-slate-700 rounded-xl flex items-center justify-center relative ring-2 ring-slate-600/50">
-                <span className="text-sm font-bold text-white">{userInfo.avatar}</span>
-                {/* Online status indicator */}
-                <div className={cn(
-                  "absolute -bottom-1 -right-1 w-4 h-4 rounded-full border-2 border-slate-800",
-                  userInfo.statusColor
-                )}></div>
-              </div>
-              <div className="ml-3 flex-1">
-                <div className="text-sm font-semibold text-white">{userInfo.name}</div>
-                <div className="text-xs text-slate-300">{userInfo.subtitle}</div>
-                <div className="text-[10px] text-emerald-400 mt-1 font-medium">{userInfo.status}</div>
-              </div>
-              <button className="p-2 rounded-lg hover:bg-slate-700/50 transition-colors duration-300">
-                <Settings className="w-4 h-4 text-slate-400 hover:text-white transition-colors duration-300" />
-              </button>
-            </div>
-          </div>
-        )}
-      </aside>
-    </>
-  );
-};
-
-// Main Customer Profile Component
 const CustomerProfilePage = () => {
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
-  const [isMobile, setIsMobile] = useState(false);
   const [mounted, setMounted] = useState(false);
-  const [activeTab, setActiveTab] = useState('personal');
-  const [isEditing, setIsEditing] = useState(false);
-
-  // Mock user data
-  const [userData, setUserData] = useState({
-    personal: {
-      firstName: 'Nimal',
-      lastName: 'Perera',
-      email: 'nimal.perera@email.com',
-      phone: '+94 77 123 4567',
-      dateOfBirth: '1985-06-15',
-      gender: 'male',
-      joinedDate: '2023-01-15',
-      avatar: 'NP'
-    },
-    addresses: [
-      {
-        id: 1,
-        type: 'home',
-        label: 'Home',
-        address: 'No. 45, Galle Road',
-        city: 'Colombo',
-        district: 'Colombo',
-        postalCode: '00700',
-        isDefault: true
-      },
-      {
-        id: 2,
-        type: 'work',
-        label: 'Office',
-        address: 'No. 123, Union Place',
-        city: 'Colombo',
-        district: 'Colombo',
-        postalCode: '00200',
-        isDefault: false
-      }
-    ],
-    paymentMethods: [
-      {
-        id: 1,
-        type: 'card',
-        label: 'Visa ****4532',
-        expiryDate: '12/26',
-        isDefault: true
-      },
-      {
-        id: 2,
-        type: 'mobile',
-        label: 'Dialog Pay',
-        phone: '+94 77 123 4567',
-        isDefault: false
-      }
-    ],
-    preferences: {
-      organic: true,
-      local: true,
-      maxDistance: 15,
-      priceRange: 'medium',
-      notifications: {
-        orderUpdates: true,
-        promotions: true,
-        newFarmers: false,
-        priceAlerts: true
-      }
-    },
-    stats: {
-      totalOrders: 24,
-      totalSpent: 18500,
-      favoriteProducts: 12,
-      reviews: 8
-    }
+  const [editMode, setEditMode] = useState(false);
+  const [activeTab, setActiveTab] = useState('overview');
+  
+  // Enhanced responsive detection that matches the sidebar
+  const [screenSize, setScreenSize] = useState({
+    isMobile: false,
+    isTablet: false,
+    isDesktop: false
   });
 
-  const tabs = [
-    { id: 'personal', label: 'Personal Info', icon: User },
-    { id: 'addresses', label: 'Addresses', icon: MapPin },
-    { id: 'payment', label: 'Payment Methods', icon: CreditCard },
-    { id: 'preferences', label: 'Preferences', icon: Bell }
-  ];
+  // Customer profile data
+  const [profileData, setProfileData] = useState({
+    // Basic Info
+    name: 'Nimal Perera',
+    email: 'nimal.perera@fieldfair.lk',
+    phone: '+94 77 987 6543',
+    address: 'No. 45, Galle Road, Colombo 03, Western Province',
+    joinDate: '2023-01-15',
+    
+    // Preferences
+    preferredDeliveryTime: 'Morning (8AM - 12PM)',
+    maxDeliveryDistance: '15 km',
+    preferredPaymentMethod: 'Card',
+    dietaryPreferences: ['Organic', 'Fresh', 'Local'],
+    allergyInfo: 'None',
+    
+    // Stats
+    stats: {
+      totalOrders: 47,
+      totalSpent: 25600,
+      favoriteProducts: 23,
+      reviewsGiven: 31,
+      averageOrderValue: 544,
+      loyaltyPoints: 2560,
+      membershipLevel: 'Premium',
+      carbonFootprintSaved: 12.5
+    },
+    
+    // Profile Settings
+    profileVisibility: 'friends',
+    allowNotifications: true,
+    shareOrderHistory: false,
+    showReviews: true,
+    
+    // Bio
+    bio: 'Health-conscious food enthusiast who loves supporting local farmers and sustainable agriculture. Always looking for the freshest, organic produce for my family.',
+    
+    // Social & Interests
+    interests: ['Organic Food', 'Healthy Living', 'Sustainable Farming', 'Cooking', 'Nutrition'],
+    
+    // Images
+    profileImage: '👨‍💼',
+    badges: ['Early Adopter', 'Organic Supporter', 'Local Champion', 'Review Master'],
+    
+    // Recent Activity
+    recentOrders: [
+      { id: 'ORD-2024-001', date: '2024-06-25', total: 1400, status: 'delivered', farmer: 'Ravi Mahathaya' },
+      { id: 'ORD-2024-002', date: '2024-06-20', total: 850, status: 'delivered', farmer: 'Saman Silva' },
+      { id: 'ORD-2024-003', date: '2024-06-15', total: 1200, status: 'delivered', farmer: 'Kamala Perera' }
+    ],
+    
+    // Favorite Farmers
+    favoriteFarmers: [
+      { name: 'Ravi Mahathaya', farm: "Ravi's Organic Farm", location: 'Kurunegala', rating: 4.8, orders: 15 },
+      { name: 'Saman Silva', farm: "Saman's Fresh Vegetables", location: 'Matale', rating: 4.6, orders: 12 },
+      { name: 'Priya Fernando', farm: "Fernando's Coconut Estate", location: 'Negombo', rating: 4.5, orders: 8 }
+    ],
+    
+    // Achievements
+    achievements: [
+      { name: 'First Order', description: 'Completed your first order', date: '2023-01-20', icon: '🎉' },
+      { name: 'Loyal Customer', description: 'Made 25+ orders', date: '2023-08-15', icon: '⭐' },
+      { name: 'Review Master', description: 'Left 25+ helpful reviews', date: '2024-03-10', icon: '📝' },
+      { name: 'Organic Champion', description: 'Ordered 100+ organic products', date: '2024-05-20', icon: '🌱' }
+    ]
+  });
 
+  // Enhanced responsive detection - same as marketplace page
   useEffect(() => {
     setMounted(true);
     
-    const checkMobile = () => {
-      setIsMobile(window.innerWidth < 1024);
+    const checkScreenSize = () => {
+      const width = window.innerWidth;
+      const newScreenSize = {
+        isMobile: width < 768,
+        isTablet: width >= 768 && width < 1024,
+        isDesktop: width >= 1024
+      };
+      
+      // Only update if there's a change
+      if (JSON.stringify(newScreenSize) !== JSON.stringify(screenSize)) {
+        setScreenSize(newScreenSize);
+      }
+
+      // Auto-close mobile menu when switching to desktop/tablet
+      if (!newScreenSize.isMobile && isMobileMenuOpen) {
+        setIsMobileMenuOpen(false);
+      }
     };
     
-    checkMobile();
-    window.addEventListener('resize', checkMobile);
+    checkScreenSize();
+    window.addEventListener('resize', checkScreenSize, { passive: true });
     
-    return () => window.removeEventListener('resize', checkMobile);
-  }, []);
+    return () => window.removeEventListener('resize', checkScreenSize);
+  }, [screenSize, isMobileMenuOpen]);
 
+  // Loading state to prevent hydration errors
   if (!mounted) {
     return (
       <div className="flex h-screen bg-gray-50">
-        <div className="w-72 bg-slate-900"></div>
+        <div className="w-64 bg-emerald-900 animate-pulse"></div>
         <div className="flex-1 flex items-center justify-center">
           <div className="text-gray-500">Loading...</div>
         </div>
@@ -585,160 +176,297 @@ const CustomerProfilePage = () => {
   }
 
   const handleSave = () => {
-    setIsEditing(false);
-    console.log('Saving profile data:', userData);
+    setEditMode(false);
+    // Save logic here
   };
 
-  const addAddress = () => {
-    const newAddress = {
-      id: Date.now(),
-      type: 'other',
-      label: 'New Address',
-      address: '',
-      city: '',
-      district: '',
-      postalCode: '',
-      isDefault: false
-    };
-    setUserData(prev => ({
-      ...prev,
-      addresses: [...prev.addresses, newAddress]
-    }));
+  // Enhanced margin calculation that matches the sidebar logic
+  const getMainContentMargin = () => {
+    if (screenSize.isMobile) {
+      return 'ml-0'; // No margin on mobile (sidebar overlays)
+    } else if (screenSize.isTablet) {
+      return 'ml-20'; // Always collapsed margin on tablet
+    } else {
+      return sidebarCollapsed ? 'ml-20' : 'ml-72'; // User controlled on desktop
+    }
   };
 
-  const removeAddress = (addressId: number) => {
-    setUserData(prev => ({
-      ...prev,
-      addresses: prev.addresses.filter(addr => addr.id !== addressId)
-    }));
-  };
+  // Responsive tabs - hide some on mobile
+  const tabs = [
+    { id: 'overview', label: screenSize.isMobile ? 'Info' : 'Overview', icon: User },
+    { id: 'orders', label: 'Orders', icon: Package },
+    { id: 'farmers', label: screenSize.isMobile ? 'Farms' : 'Favorite Farmers', icon: Users },
+    { id: 'achievements', label: screenSize.isMobile ? 'Awards' : 'Achievements', icon: Award },
+    { id: 'settings', label: 'Privacy', icon: Shield }
+  ];
 
-  const setDefaultAddress = (addressId: number) => {
-    setUserData(prev => ({
-      ...prev,
-      addresses: prev.addresses.map(addr => ({
-        ...addr,
-        isDefault: addr.id === addressId
-      }))
-    }));
+  const getMembershipColor = (level) => {
+    switch (level) {
+      case 'Premium': return 'from-purple-500 to-purple-600';
+      case 'Gold': return 'from-yellow-500 to-yellow-600';
+      case 'Silver': return 'from-gray-400 to-gray-500';
+      default: return 'from-emerald-500 to-emerald-600';
+    }
   };
 
   return (
-    <div className="flex h-screen bg-gray-50 overflow-hidden">
-      {/* Modern Sidebar */}
+    <div className="flex h-screen bg-white overflow-hidden">
+      {/* Enhanced Sidebar Component */}
       <FieldFairSidebar
         isCollapsed={sidebarCollapsed}
         setIsCollapsed={setSidebarCollapsed}
-        isMobile={isMobile}
+        isMobile={screenSize.isMobile}
         isOpen={isMobileMenuOpen}
         onClose={() => setIsMobileMenuOpen(false)}
         userType="customer"
       />
 
-      {/* Main Content - Responsive to sidebar */}
-      <div className={`flex-1 flex flex-col bg-gray-50 transition-all duration-500 ${
-        isMobile ? 'ml-0' : (sidebarCollapsed ? 'ml-20' : 'ml-72')
-      }`}>
+      <div className={`flex-1 flex flex-col bg-gray-50 transition-all duration-300 ${getMainContentMargin()}`}>
         {/* Enhanced Header */}
         <header className="bg-white border-b border-gray-200 px-4 lg:px-6 py-4">
           <div className="flex items-center justify-between">
-            <div className="flex items-center space-x-4">
-              <button 
-                onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
-                className="lg:hidden p-2 rounded-lg text-gray-600 hover:bg-gray-100"
-              >
-                <Menu className="w-6 h-6" />
-              </button>
-              <div>
-                <h1 className="text-2xl font-bold text-gray-900">My Profile</h1>
-                <p className="text-sm text-gray-600 mt-1 hidden sm:block">Manage your account information and preferences</p>
+            <div>
+              <div className="flex items-center space-x-4">
+                {/* Mobile menu button - only show on mobile */}
+                {screenSize.isMobile && (
+                  <button 
+                    onClick={() => setIsMobileMenuOpen(true)}
+                    className="p-2 rounded-lg text-gray-600 hover:bg-gray-100 transition-colors"
+                    aria-label="Open menu"
+                  >
+                    <Menu className="w-6 h-6" />
+                  </button>
+                )}
+                <div>
+                  <h1 className="text-xl lg:text-2xl font-bold text-gray-900">
+                    {screenSize.isMobile ? 'Profile' : 'My Profile'}
+                  </h1>
+                  <p className="text-sm text-gray-600 mt-1 hidden sm:block">
+                    Manage your account and preferences
+                  </p>
+                </div>
               </div>
             </div>
             
-            <div className="flex items-center space-x-4">
-              {isEditing ? (
-                <button
+            <div className="flex items-center space-x-2 lg:space-x-4">
+              {!screenSize.isMobile && (
+                <>
+                  <button className="hidden md:flex items-center bg-blue-50 border border-blue-200 rounded-xl px-4 py-2 text-blue-700 hover:bg-blue-100 transition-colors text-sm">
+                    <Eye className="w-4 h-4 mr-2" />
+                    Public View
+                  </button>
+                  
+                  <button className="hidden md:flex items-center bg-gray-50 border border-gray-200 rounded-xl px-4 py-2 text-gray-700 hover:bg-gray-100 transition-colors text-sm">
+                    <Share2 className="w-4 h-4 mr-2" />
+                    Share Profile
+                  </button>
+                </>
+              )}
+              
+              {editMode ? (
+                <button 
                   onClick={handleSave}
-                  className="flex items-center space-x-2 bg-emerald-600 text-white px-4 py-2 rounded-lg font-medium hover:bg-emerald-700 transition-colors"
+                  className="bg-emerald-600 text-white px-3 lg:px-4 py-2 rounded-xl text-sm font-semibold flex items-center hover:bg-emerald-700 transition-colors shadow-lg"
                 >
-                  <Save className="w-4 h-4" />
-                  <span className="hidden sm:inline">Save Changes</span>
+                  <Save className="w-4 h-4 mr-2" />
+                  <span className="hidden sm:inline">Save</span>
                 </button>
               ) : (
-                <button
-                  onClick={() => setIsEditing(true)}
-                  className="flex items-center space-x-2 border border-gray-300 text-gray-700 px-4 py-2 rounded-lg font-medium hover:bg-gray-50 transition-colors"
+                <button 
+                  onClick={() => setEditMode(true)}
+                  className="bg-emerald-600 text-white px-3 lg:px-4 py-2 rounded-xl text-sm font-semibold flex items-center hover:bg-emerald-700 transition-colors shadow-lg"
                 >
-                  <Edit className="w-4 h-4" />
-                  <span className="hidden sm:inline">Edit Profile</span>
+                  <Edit className="w-4 h-4 mr-2" />
+                  <span className="hidden sm:inline">Edit</span>
                 </button>
               )}
             </div>
           </div>
         </header>
 
+        {/* Main Content */}
         <main className="flex-1 overflow-auto p-4 lg:p-6">
           <div className="max-w-6xl mx-auto">
-            {/* Enhanced Profile Header */}
-            <div className="bg-white rounded-xl border border-gray-200 p-4 lg:p-6 mb-6 shadow-sm">
-              <div className="flex flex-col lg:flex-row lg:items-center space-y-6 lg:space-y-0 lg:space-x-6">
-                <div className="relative flex justify-center lg:justify-start">
-                  <div className="w-20 lg:w-24 h-20 lg:h-24 bg-emerald-100 rounded-full flex items-center justify-center">
-                    <span className="text-xl lg:text-2xl font-bold text-emerald-700">{userData.personal.avatar}</span>
-                  </div>
-                  {isEditing && (
-                    <button className="absolute -bottom-1 -right-1 w-8 h-8 bg-emerald-600 text-white rounded-full flex items-center justify-center hover:bg-emerald-700 transition-colors">
-                      <Camera className="w-4 h-4" />
+            {/* Profile Header - Responsive */}
+            <div className="bg-white rounded-2xl border border-gray-200 overflow-hidden mb-6 shadow-sm">
+              {/* Cover Section - Responsive Height */}
+              <div className={`relative bg-gradient-to-r from-emerald-400 via-emerald-500 to-emerald-600 flex items-center justify-center ${
+                screenSize.isMobile ? 'h-24' : 'h-32 lg:h-48'
+              }`}>
+                <div className="absolute inset-0 bg-black/10"></div>
+                <div className="relative text-center">
+                  <span className={screenSize.isMobile ? 'text-4xl' : 'text-6xl lg:text-8xl'}>🌱</span>
+                  {editMode && !screenSize.isMobile && (
+                    <button className="absolute top-4 right-4 p-2 bg-white/20 rounded-xl backdrop-blur-sm hover:bg-white/30 transition-colors">
+                      <Camera className="w-5 h-5 text-white" />
                     </button>
                   )}
                 </div>
-                
-                <div className="flex-1 text-center lg:text-left">
-                  <h2 className="text-xl lg:text-2xl font-bold text-gray-900">
-                    {userData.personal.firstName} {userData.personal.lastName}
-                  </h2>
-                  <p className="text-gray-600">{userData.personal.email}</p>
-                  <div className="flex items-center justify-center lg:justify-start space-x-4 mt-2">
-                    <div className="flex items-center space-x-1">
-                      <Calendar className="w-4 h-4 text-gray-500" />
-                      <span className="text-sm text-gray-600">
-                        Joined {new Date(userData.personal.joinedDate).toLocaleDateString()}
-                      </span>
+              </div>
+              
+              {/* Profile Info - Enhanced Responsive */}
+              <div className="p-4 lg:p-6">
+                <div className="flex flex-col lg:flex-row lg:items-center space-y-4 lg:space-y-0 lg:space-x-6">
+                  {/* Profile Picture - Responsive Size */}
+                  <div className="relative">
+                    <div className={`bg-gradient-to-br from-emerald-100 to-emerald-200 rounded-2xl flex items-center justify-center border-4 border-white shadow-lg ${
+                      screenSize.isMobile 
+                        ? 'w-16 h-16 text-2xl -mt-8' 
+                        : 'w-20 lg:w-32 h-20 lg:h-32 text-4xl lg:text-6xl -mt-10 lg:-mt-16'
+                    }`}>
+                      {profileData.profileImage}
+                    </div>
+                    {editMode && (
+                      <button className="absolute bottom-0 right-0 p-2 bg-emerald-600 rounded-xl text-white hover:bg-emerald-700 transition-colors shadow-lg">
+                        <Camera className="w-4 h-4" />
+                      </button>
+                    )}
+                  </div>
+                  
+                  {/* Basic Info - Responsive Layout */}
+                  <div className="flex-1">
+                    <div className="flex flex-col lg:flex-row lg:items-start lg:justify-between">
+                      <div>
+                        <div className="flex flex-col sm:flex-row sm:items-center space-y-2 sm:space-y-0 sm:space-x-3 mb-2">
+                          <h2 className="text-lg sm:text-xl lg:text-2xl font-bold text-gray-900">{profileData.name}</h2>
+                          <div className="flex items-center space-x-2">
+                            <div className="flex items-center space-x-1">
+                              <Shield className="w-4 h-4 text-blue-500" />
+                              <span className="text-xs sm:text-sm text-blue-600 font-semibold">Verified</span>
+                            </div>
+                            <div className={`px-2 py-1 rounded-full text-xs font-semibold text-white bg-gradient-to-r ${getMembershipColor(profileData.stats.membershipLevel)}`}>
+                              {profileData.stats.membershipLevel}
+                            </div>
+                          </div>
+                        </div>
+                        
+                        <div className={`grid gap-2 mb-4 ${
+                          screenSize.isMobile ? 'grid-cols-1' : 'grid-cols-2 lg:grid-cols-4'
+                        }`}>
+                          <div className="flex items-center space-x-2 text-sm text-gray-600">
+                            <MapPin className="w-4 h-4" />
+                            <span>Colombo</span>
+                          </div>
+                          <div className="flex items-center space-x-2 text-sm text-gray-600">
+                            <Calendar className="w-4 h-4" />
+                            <span>Joined {new Date(profileData.joinDate).getFullYear()}</span>
+                          </div>
+                          <div className="flex items-center space-x-2 text-sm text-gray-600">
+                            <Package className="w-4 h-4" />
+                            <span>{profileData.stats.totalOrders} orders</span>
+                          </div>
+                          <div className="flex items-center space-x-2 text-sm text-gray-600">
+                            <Star className="w-4 h-4 text-yellow-400 fill-current" />
+                            <span>{profileData.stats.reviewsGiven} reviews</span>
+                          </div>
+                        </div>
+                      </div>
+                      
+                      {/* Quick Stats - Responsive Grid */}
+                      <div className={`grid gap-4 ${
+                        screenSize.isMobile ? 'grid-cols-2' : 'lg:grid-cols-1 grid-cols-2 lg:gap-2'
+                      }`}>
+                        <div className="text-center lg:text-right">
+                          <div className={`font-bold text-emerald-600 ${
+                            screenSize.isMobile ? 'text-lg' : 'text-xl lg:text-2xl'
+                          }`}>
+                            Rs. {profileData.stats.totalSpent.toLocaleString()}
+                          </div>
+                          <div className="text-xs lg:text-sm text-gray-500">Total Spent</div>
+                        </div>
+                        <div className="text-center lg:text-right">
+                          <div className={`font-bold text-purple-600 ${
+                            screenSize.isMobile ? 'text-lg' : 'text-xl lg:text-2xl'
+                          }`}>
+                            {profileData.stats.loyaltyPoints}
+                          </div>
+                          <div className="text-xs lg:text-sm text-gray-500">Loyalty Points</div>
+                        </div>
+                      </div>
                     </div>
                   </div>
                 </div>
                 
-                {/* Enhanced Stats */}
-                <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 lg:gap-6">
-                  <div className="text-center p-3 bg-emerald-50 rounded-lg">
-                    <div className="text-xl lg:text-2xl font-bold text-emerald-600">{userData.stats.totalOrders}</div>
-                    <div className="text-xs lg:text-sm text-gray-600">Orders</div>
-                  </div>
-                  <div className="text-center p-3 bg-blue-50 rounded-lg">
-                    <div className="text-xl lg:text-2xl font-bold text-blue-600">{userData.stats.reviews}</div>
-                    <div className="text-xs lg:text-sm text-gray-600">Reviews</div>
-                  </div>
-                  <div className="text-center p-3 bg-yellow-50 rounded-lg">
-                    <div className="text-xl lg:text-2xl font-bold text-yellow-600">{userData.stats.favoriteProducts}</div>
-                    <div className="text-xs lg:text-sm text-gray-600">Favorites</div>
-                  </div>
-                  <div className="text-center p-3 bg-purple-50 rounded-lg">
-                    <div className="text-lg lg:text-xl font-bold text-purple-600">Rs. {userData.stats.totalSpent.toLocaleString()}</div>
-                    <div className="text-xs lg:text-sm text-gray-600">Total Spent</div>
-                  </div>
+                {/* Badges - Responsive Layout */}
+                <div className="mt-6 flex flex-wrap gap-2">
+                  {profileData.badges.map((badge, index) => (
+                    <span key={index} className="inline-flex items-center px-2 lg:px-3 py-1 rounded-full text-xs lg:text-sm font-medium bg-gradient-to-r from-blue-100 to-purple-100 text-purple-700 border border-purple-200">
+                      <Award className="w-3 h-3 mr-1" />
+                      {badge}
+                    </span>
+                  ))}
                 </div>
               </div>
             </div>
 
-            {/* Enhanced Tabs */}
-            <div className="bg-white rounded-xl border border-gray-200 shadow-sm">
-              <div className="border-b border-gray-200 overflow-x-auto">
-                <nav className="flex space-x-4 lg:space-x-8 px-4 lg:px-6">
+            {/* Stats Cards - Enhanced Responsive Grid */}
+            <div className={`grid gap-4 lg:gap-6 mb-6 ${
+              screenSize.isMobile ? 'grid-cols-2' : 
+              screenSize.isTablet ? 'grid-cols-3' : 
+              'grid-cols-4'
+            }`}>
+              <div className="bg-white p-4 lg:p-6 rounded-2xl border border-gray-200 shadow-sm">
+                <div className="flex items-center justify-between mb-4">
+                  <div className="p-3 bg-emerald-100 rounded-xl">
+                    <Package className="w-6 h-6 text-emerald-600" />
+                  </div>
+                  <TrendingUp className="w-5 h-5 text-emerald-500" />
+                </div>
+                <div className="text-2xl font-bold text-gray-900 mb-1">{profileData.stats.totalOrders}</div>
+                <div className="text-sm text-gray-600">Total Orders</div>
+              </div>
+              
+              <div className="bg-white p-4 lg:p-6 rounded-2xl border border-gray-200 shadow-sm">
+                <div className="flex items-center justify-between mb-4">
+                  <div className="p-3 bg-purple-100 rounded-xl">
+                    <DollarSign className="w-6 h-6 text-purple-600" />
+                  </div>
+                  <TrendingUp className="w-5 h-5 text-purple-500" />
+                </div>
+                <div className={`font-bold text-gray-900 mb-1 ${
+                  screenSize.isMobile ? 'text-lg' : 'text-lg lg:text-2xl'
+                }`}>
+                  Rs. {profileData.stats.averageOrderValue}
+                </div>
+                <div className="text-sm text-gray-600">Avg. Order Value</div>
+              </div>
+              
+              <div className="bg-white p-4 lg:p-6 rounded-2xl border border-gray-200 shadow-sm">
+                <div className="flex items-center justify-between mb-4">
+                  <div className="p-3 bg-red-100 rounded-xl">
+                    <Heart className="w-6 h-6 text-red-600" />
+                  </div>
+                  <Star className="w-5 h-5 text-red-500" />
+                </div>
+                <div className="text-2xl font-bold text-gray-900 mb-1">{profileData.stats.favoriteProducts}</div>
+                <div className="text-sm text-gray-600">Favorites</div>
+              </div>
+              
+              <div className={`bg-white p-4 lg:p-6 rounded-2xl border border-gray-200 shadow-sm ${
+                screenSize.isMobile ? 'col-span-2' : ''
+              }`}>
+                <div className="flex items-center justify-between mb-4">
+                  <div className="p-3 bg-green-100 rounded-xl">
+                    <Leaf className="w-6 h-6 text-green-600" />
+                  </div>
+                  <CheckCircle className="w-5 h-5 text-green-500" />
+                </div>
+                <div className="text-2xl font-bold text-gray-900 mb-1">{profileData.stats.carbonFootprintSaved}kg</div>
+                <div className="text-sm text-gray-600">CO₂ Saved</div>
+              </div>
+            </div>
+
+            {/* Tabs - Enhanced Responsive */}
+            <div className="bg-white rounded-2xl border border-gray-200 mb-6 shadow-sm">
+              <div className="border-b border-gray-200">
+                <nav className={`flex px-4 lg:px-6 ${
+                  screenSize.isMobile ? 'space-x-4 overflow-x-auto' : 'space-x-8'
+                }`}>
                   {tabs.map((tab) => (
                     <button
                       key={tab.id}
                       onClick={() => setActiveTab(tab.id)}
-                      className={`py-4 text-sm font-medium border-b-2 transition-colors flex items-center space-x-2 whitespace-nowrap ${
+                      className={`flex items-center space-x-2 py-4 border-b-2 font-semibold text-sm transition-colors whitespace-nowrap ${
                         activeTab === tab.id
                           ? 'border-emerald-500 text-emerald-600'
                           : 'border-transparent text-gray-500 hover:text-gray-700'
@@ -750,193 +478,190 @@ const CustomerProfilePage = () => {
                   ))}
                 </nav>
               </div>
-
+              
               <div className="p-4 lg:p-6">
-                {/* Personal Info Tab */}
-                {activeTab === 'personal' && (
+                {/* Overview Tab */}
+                {activeTab === 'overview' && (
                   <div className="space-y-6">
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                      <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-2">First Name</label>
-                        <input
-                          type="text"
-                          value={userData.personal.firstName}
-                          onChange={(e) => setUserData(prev => ({
-                            ...prev,
-                            personal: { ...prev.personal, firstName: e.target.value }
-                          }))}
-                          disabled={!isEditing}
-                          className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 disabled:bg-gray-50"
+                    {/* Bio */}
+                    <div>
+                      <h3 className="text-lg font-semibold text-gray-900 mb-3">About Me</h3>
+                      {editMode ? (
+                        <textarea
+                          className="w-full border border-gray-300 rounded-xl px-4 py-3 focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
+                          rows={4}
+                          value={profileData.bio}
+                          onChange={(e) => setProfileData({...profileData, bio: e.target.value})}
                         />
-                      </div>
-                      
-                      <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-2">Last Name</label>
-                        <input
-                          type="text"
-                          value={userData.personal.lastName}
-                          onChange={(e) => setUserData(prev => ({
-                            ...prev,
-                            personal: { ...prev.personal, lastName: e.target.value }
-                          }))}
-                          disabled={!isEditing}
-                          className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 disabled:bg-gray-50"
-                        />
-                      </div>
-                      
-                      <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-2">Email</label>
-                        <input
-                          type="email"
-                          value={userData.personal.email}
-                          onChange={(e) => setUserData(prev => ({
-                            ...prev,
-                            personal: { ...prev.personal, email: e.target.value }
-                          }))}
-                          disabled={!isEditing}
-                          className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 disabled:bg-gray-50"
-                        />
-                      </div>
-                      
-                      <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-2">Phone</label>
-                        <input
-                          type="tel"
-                          value={userData.personal.phone}
-                          onChange={(e) => setUserData(prev => ({
-                            ...prev,
-                            personal: { ...prev.personal, phone: e.target.value }
-                          }))}
-                          disabled={!isEditing}
-                          className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 disabled:bg-gray-50"
-                        />
-                      </div>
-                      
-                      <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-2">Date of Birth</label>
-                        <input
-                          type="date"
-                          value={userData.personal.dateOfBirth}
-                          onChange={(e) => setUserData(prev => ({
-                            ...prev,
-                            personal: { ...prev.personal, dateOfBirth: e.target.value }
-                          }))}
-                          disabled={!isEditing}
-                          className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 disabled:bg-gray-50"
-                        />
-                      </div>
-                      
-                      <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-2">Gender</label>
-                        <select
-                          value={userData.personal.gender}
-                          onChange={(e) => setUserData(prev => ({
-                            ...prev,
-                            personal: { ...prev.personal, gender: e.target.value }
-                          }))}
-                          disabled={!isEditing}
-                          className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 disabled:bg-gray-50"
-                        >
-                          <option value="male">Male</option>
-                          <option value="female">Female</option>
-                          <option value="other">Other</option>
-                          <option value="prefer_not_to_say">Prefer not to say</option>
-                        </select>
-                      </div>
+                      ) : (
+                        <p className="text-gray-600 leading-relaxed">{profileData.bio}</p>
+                      )}
                     </div>
-                  </div>
-                )}
 
-                {/* Addresses Tab */}
-                {activeTab === 'addresses' && (
-                  <div className="space-y-6">
-                    <div className="flex items-center justify-between">
-                      <h3 className="text-lg font-medium text-gray-900">Delivery Addresses</h3>
-                      <button
-                        onClick={addAddress}
-                        className="flex items-center space-x-2 bg-emerald-600 text-white px-4 py-2 rounded-lg font-medium hover:bg-emerald-700 transition-colors"
-                      >
-                        <Plus className="w-4 h-4" />
-                        <span className="hidden sm:inline">Add Address</span>
-                      </button>
+                    {/* Contact Information - Enhanced Responsive */}
+                    <div>
+                      <h3 className="text-lg font-semibold text-gray-900 mb-4">Contact Information</h3>
+                      <div className={`grid gap-4 ${
+                        screenSize.isMobile ? 'grid-cols-1' : 'grid-cols-1 md:grid-cols-2'
+                      }`}>
+                        <div className="flex items-center space-x-3 p-4 bg-gray-50 rounded-xl">
+                          <Phone className="w-5 h-5 text-gray-500" />
+                          <div className="flex-1">
+                            <div className="text-sm text-gray-500">Phone</div>
+                            {editMode ? (
+                              <input
+                                type="tel"
+                                className="border border-gray-300 rounded-lg px-3 py-2 text-sm w-full mt-1"
+                                value={profileData.phone}
+                                onChange={(e) => setProfileData({...profileData, phone: e.target.value})}
+                              />
+                            ) : (
+                              <div className="font-semibold text-gray-900">{profileData.phone}</div>
+                            )}
+                          </div>
+                        </div>
+                        
+                        <div className="flex items-center space-x-3 p-4 bg-gray-50 rounded-xl">
+                          <Mail className="w-5 h-5 text-gray-500" />
+                          <div className="flex-1">
+                            <div className="text-sm text-gray-500">Email</div>
+                            {editMode ? (
+                              <input
+                                type="email"
+                                className="border border-gray-300 rounded-lg px-3 py-2 text-sm w-full mt-1"
+                                value={profileData.email}
+                                onChange={(e) => setProfileData({...profileData, email: e.target.value})}
+                              />
+                            ) : (
+                              <div className="font-semibold text-gray-900">{profileData.email}</div>
+                            )}
+                          </div>
+                        </div>
+                        
+                        <div className={`flex items-start space-x-3 p-4 bg-gray-50 rounded-xl ${
+                          screenSize.isMobile ? 'col-span-1' : 'md:col-span-2'
+                        }`}>
+                          <MapPin className="w-5 h-5 text-gray-500 mt-1" />
+                          <div className="flex-1">
+                            <div className="text-sm text-gray-500">Address</div>
+                            {editMode ? (
+                              <textarea
+                                className="border border-gray-300 rounded-lg px-3 py-2 text-sm w-full mt-1"
+                                rows={2}
+                                value={profileData.address}
+                                onChange={(e) => setProfileData({...profileData, address: e.target.value})}
+                              />
+                            ) : (
+                              <div className="font-semibold text-gray-900">{profileData.address}</div>
+                            )}
+                          </div>
+                        </div>
+                      </div>
                     </div>
-                    
-                    <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                      {userData.addresses.map((address) => (
-                        <div key={address.id} className="border border-gray-200 rounded-lg p-4">
-                          <div className="flex items-start justify-between mb-3">
-                            <div className="flex items-center space-x-2">
-                              <Home className="w-4 h-4 text-gray-500" />
-                              <span className="font-medium text-gray-900">{address.label}</span>
-                              {address.isDefault && (
-                                <span className="bg-emerald-100 text-emerald-800 text-xs px-2 py-1 rounded-full font-medium">
-                                  Default
-                                </span>
-                              )}
-                            </div>
-                            <button
-                              onClick={() => removeAddress(address.id)}
-                              className="text-red-500 hover:text-red-700 transition-colors"
+
+                    {/* Preferences - Enhanced Responsive */}
+                    <div>
+                      <h3 className="text-lg font-semibold text-gray-900 mb-4">Preferences</h3>
+                      <div className={`grid gap-6 ${
+                        screenSize.isMobile ? 'grid-cols-1' : 'grid-cols-1 md:grid-cols-2'
+                      }`}>
+                        <div>
+                          <label className="block text-sm font-medium text-gray-700 mb-2">Preferred Delivery Time</label>
+                          {editMode ? (
+                            <select 
+                              className="w-full border border-gray-300 rounded-xl px-4 py-3 focus:outline-none focus:ring-2 focus:ring-emerald-500"
+                              value={profileData.preferredDeliveryTime}
+                              onChange={(e) => setProfileData({...profileData, preferredDeliveryTime: e.target.value})}
                             >
-                              <Trash2 className="w-4 h-4" />
-                            </button>
-                          </div>
-                          
-                          <div className="space-y-2 text-sm text-gray-600">
-                            <div>{address.address}</div>
-                            <div>{address.city}, {address.district}</div>
-                            <div>Postal Code: {address.postalCode}</div>
-                          </div>
-                          
-                          {!address.isDefault && (
-                            <button
-                              onClick={() => setDefaultAddress(address.id)}
-                              className="mt-3 text-emerald-600 hover:text-emerald-700 text-sm font-medium transition-colors"
-                            >
-                              Set as Default
-                            </button>
+                              <option>Morning (8AM - 12PM)</option>
+                              <option>Afternoon (12PM - 5PM)</option>
+                              <option>Evening (5PM - 8PM)</option>
+                              <option>Flexible</option>
+                            </select>
+                          ) : (
+                            <p className="text-gray-900 font-medium">{profileData.preferredDeliveryTime}</p>
                           )}
                         </div>
-                      ))}
+                        
+                        <div>
+                          <label className="block text-sm font-medium text-gray-700 mb-2">Max Delivery Distance</label>
+                          {editMode ? (
+                            <select 
+                              className="w-full border border-gray-300 rounded-xl px-4 py-3 focus:outline-none focus:ring-2 focus:ring-emerald-500"
+                              value={profileData.maxDeliveryDistance}
+                              onChange={(e) => setProfileData({...profileData, maxDeliveryDistance: e.target.value})}
+                            >
+                              <option>5 km</option>
+                              <option>10 km</option>
+                              <option>15 km</option>
+                              <option>25 km</option>
+                              <option>50 km</option>
+                            </select>
+                          ) : (
+                            <p className="text-gray-900 font-medium">{profileData.maxDeliveryDistance}</p>
+                          )}
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Interests */}
+                    <div>
+                      <h3 className="text-lg font-semibold text-gray-900 mb-4">Interests</h3>
+                      <div className="flex flex-wrap gap-2">
+                        {profileData.interests.map((interest, index) => (
+                          <span key={index} className="inline-flex items-center px-3 py-2 rounded-xl text-sm font-medium bg-emerald-100 text-emerald-800 border border-emerald-200">
+                            <Sparkles className="w-3 h-3 mr-1" />
+                            {interest}
+                          </span>
+                        ))}
+                        {editMode && (
+                          <button className="inline-flex items-center px-3 py-2 rounded-xl text-sm font-medium bg-gray-100 text-gray-600 border-2 border-dashed border-gray-300 hover:border-emerald-300 hover:bg-emerald-50 transition-colors">
+                            <Plus className="w-3 h-3 mr-1" />
+                            Add Interest
+                          </button>
+                        )}
+                      </div>
                     </div>
                   </div>
                 )}
 
-                {/* Payment Methods Tab */}
-                {activeTab === 'payment' && (
-                  <div className="space-y-6">
+                {/* Orders Tab - Enhanced Responsive */}
+                {activeTab === 'orders' && (
+                  <div className="space-y-4">
                     <div className="flex items-center justify-between">
-                      <h3 className="text-lg font-medium text-gray-900">Payment Methods</h3>
-                      <button className="flex items-center space-x-2 bg-emerald-600 text-white px-4 py-2 rounded-lg font-medium hover:bg-emerald-700 transition-colors">
-                        <Plus className="w-4 h-4" />
-                        <span className="hidden sm:inline">Add Payment Method</span>
+                      <h3 className="text-lg font-semibold text-gray-900">Recent Orders</h3>
+                      <button className="text-emerald-600 hover:text-emerald-700 text-sm font-medium">
+                        View All Orders
                       </button>
                     </div>
                     
                     <div className="space-y-4">
-                      {userData.paymentMethods.map((method) => (
-                        <div key={method.id} className="border border-gray-200 rounded-lg p-4">
-                          <div className="flex items-center justify-between">
-                            <div className="flex items-center space-x-3">
-                              <CreditCard className="w-6 h-6 text-gray-500" />
-                              <div>
-                                <div className="font-medium text-gray-900">{method.label}</div>
-                                {method.expiryDate && (
-                                  <div className="text-sm text-gray-600">Expires {method.expiryDate}</div>
-                                )}
-                                {method.phone && (
-                                  <div className="text-sm text-gray-600">{method.phone}</div>
-                                )}
-                              </div>
-                              {method.isDefault && (
-                                <span className="bg-emerald-100 text-emerald-800 text-xs px-2 py-1 rounded-full font-medium">
-                                  Default
-                                </span>
-                              )}
+                      {profileData.recentOrders.map((order) => (
+                        <div key={order.id} className={`flex items-center justify-between p-4 border border-gray-200 rounded-xl hover:shadow-md transition-shadow ${
+                          screenSize.isMobile ? 'flex-col space-y-3' : ''
+                        }`}>
+                          <div className={`flex items-center space-x-4 ${
+                            screenSize.isMobile ? 'w-full' : ''
+                          }`}>
+                            <div className="w-12 h-12 bg-emerald-100 rounded-xl flex items-center justify-center">
+                              <Package className="w-6 h-6 text-emerald-600" />
                             </div>
-                            <button className="text-red-500 hover:text-red-700 transition-colors">
-                              <Trash2 className="w-4 h-4" />
-                            </button>
+                            <div>
+                              <div className="font-semibold text-gray-900">{order.id}</div>
+                              <div className="text-sm text-gray-600">
+                                {new Date(order.date).toLocaleDateString()} • {order.farmer}
+                              </div>
+                            </div>
+                          </div>
+                          <div className={`text-right ${
+                            screenSize.isMobile ? 'w-full flex justify-between items-center' : ''
+                          }`}>
+                            <div className="font-bold text-gray-900">Rs. {order.total.toLocaleString()}</div>
+                            <div className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium ${
+                              order.status === 'delivered' ? 'bg-green-100 text-green-800' : 'bg-blue-100 text-blue-800'
+                            }`}>
+                              {order.status}
+                            </div>
                           </div>
                         </div>
                       ))}
@@ -944,93 +669,157 @@ const CustomerProfilePage = () => {
                   </div>
                 )}
 
-                {/* Preferences Tab */}
-                {activeTab === 'preferences' && (
-                  <div className="space-y-8">
-                    {/* Shopping Preferences */}
-                    <div>
-                      <h3 className="text-lg font-medium text-gray-900 mb-4">Shopping Preferences</h3>
-                      <div className="space-y-4">
-                        <div className="flex items-center justify-between">
-                          <div>
-                            <div className="font-medium text-gray-900">Prefer Organic Products</div>
-                            <div className="text-sm text-gray-600">Show organic products first in search results</div>
-                          </div>
-                          <input
-                            type="checkbox"
-                            checked={userData.preferences.organic}
-                            onChange={(e) => setUserData(prev => ({
-                              ...prev,
-                              preferences: { ...prev.preferences, organic: e.target.checked }
-                            }))}
-                            className="w-4 h-4 text-emerald-600 rounded focus:ring-emerald-500"
-                          />
-                        </div>
-                        
-                        <div className="flex items-center justify-between">
-                          <div>
-                            <div className="font-medium text-gray-900">Local Products Priority</div>
-                            <div className="text-sm text-gray-600">Prioritize products from nearby farms</div>
-                          </div>
-                          <input
-                            type="checkbox"
-                            checked={userData.preferences.local}
-                            onChange={(e) => setUserData(prev => ({
-                              ...prev,
-                              preferences: { ...prev.preferences, local: e.target.checked }
-                            }))}
-                            className="w-4 h-4 text-emerald-600 rounded focus:ring-emerald-500"
-                          />
-                        </div>
-                        
-                        <div>
-                          <div className="font-medium text-gray-900 mb-2">Maximum Distance</div>
-                          <select
-                            value={userData.preferences.maxDistance}
-                            onChange={(e) => setUserData(prev => ({
-                              ...prev,
-                              preferences: { ...prev.preferences, maxDistance: parseInt(e.target.value) }
-                            }))}
-                            className="border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
-                          >
-                            <option value={5}>5 km</option>
-                            <option value={10}>10 km</option>
-                            <option value={15}>15 km</option>
-                            <option value={25}>25 km</option>
-                            <option value={50}>50 km</option>
-                          </select>
-                        </div>
-                      </div>
+                {/* Farmers Tab - Enhanced Responsive */}
+                {activeTab === 'farmers' && (
+                  <div className="space-y-4">
+                    <div className="flex items-center justify-between">
+                      <h3 className="text-lg font-semibold text-gray-900">Favorite Farmers</h3>
+                      <button className="text-emerald-600 hover:text-emerald-700 text-sm font-medium">
+                        Discover More
+                      </button>
                     </div>
-
-                    {/* Notifications */}
-                    <div>
-                      <h3 className="text-lg font-medium text-gray-900 mb-4">Notifications</h3>
-                      <div className="space-y-4">
-                        {Object.entries(userData.preferences.notifications).map(([key, value]) => (
-                          <div key={key} className="flex items-center justify-between">
+                    
+                    <div className={`grid gap-4 ${
+                      screenSize.isMobile ? 'grid-cols-1' : 
+                      screenSize.isTablet ? 'grid-cols-2' : 
+                      'grid-cols-1 md:grid-cols-2 lg:grid-cols-3'
+                    }`}>
+                      {profileData.favoriteFarmers.map((farmer, index) => (
+                        <div key={index} className="p-4 border border-gray-200 rounded-xl hover:shadow-md transition-shadow">
+                          <div className="flex items-center space-x-3 mb-3">
+                            <div className="w-12 h-12 bg-emerald-100 rounded-xl flex items-center justify-center">
+                              <span className="text-sm font-bold text-emerald-700">{farmer.name.split(' ').map(n => n[0]).join('')}</span>
+                            </div>
                             <div>
-                              <div className="font-medium text-gray-900 capitalize">
-                                {key.replace(/([A-Z])/g, ' $1').trim()}
+                              <div className="font-semibold text-gray-900">{farmer.name}</div>
+                              <div className="text-sm text-gray-600">{farmer.farm}</div>
+                            </div>
+                          </div>
+                          <div className="space-y-2">
+                            <div className="flex items-center justify-between text-sm">
+                              <span className="text-gray-600">Location:</span>
+                              <span className="font-medium text-gray-900">{farmer.location}</span>
+                            </div>
+                            <div className="flex items-center justify-between text-sm">
+                              <span className="text-gray-600">Rating:</span>
+                              <div className="flex items-center space-x-1">
+                                <Star className="w-4 h-4 text-yellow-400 fill-current" />
+                                <span className="font-medium text-gray-900">{farmer.rating}</span>
                               </div>
                             </div>
-                            <input
-                              type="checkbox"
-                              checked={value}
-                              onChange={(e) => setUserData(prev => ({
-                                ...prev,
-                                preferences: {
-                                  ...prev.preferences,
-                                  notifications: {
-                                    ...prev.preferences.notifications,
-                                    [key]: e.target.checked
-                                  }
-                                }
-                              }))}
-                              className="w-4 h-4 text-emerald-600 rounded focus:ring-emerald-500"
-                            />
+                            <div className="flex items-center justify-between text-sm">
+                              <span className="text-gray-600">Orders:</span>
+                              <span className="font-medium text-gray-900">{farmer.orders}</span>
+                            </div>
                           </div>
-                        ))}
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+                {/* Achievements Tab - Enhanced Responsive */}
+                {activeTab === 'achievements' && (
+                  <div className="space-y-4">
+                    <h3 className="text-lg font-semibold text-gray-900">Your Achievements</h3>
+                    
+                    <div className={`grid gap-4 ${
+                      screenSize.isMobile ? 'grid-cols-1' : 'grid-cols-1 md:grid-cols-2'
+                    }`}>
+                      {profileData.achievements.map((achievement, index) => (
+                        <div key={index} className="flex items-center space-x-4 p-4 bg-gradient-to-r from-emerald-50 to-blue-50 border border-emerald-200 rounded-xl">
+                          <div className="text-3xl">{achievement.icon}</div>
+                          <div>
+                            <div className="font-semibold text-gray-900">{achievement.name}</div>
+                            <div className="text-sm text-gray-600">{achievement.description}</div>
+                            <div className="text-xs text-emerald-600 font-medium">
+                              Achieved on {new Date(achievement.date).toLocaleDateString()}
+                            </div>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+                {/* Settings Tab - Enhanced Responsive */}
+                {activeTab === 'settings' && (
+                  <div className="space-y-6">
+                    <h3 className="text-lg font-semibold text-gray-900">Privacy Settings</h3>
+                    
+                    <div className="space-y-4">
+                      <div className={`flex items-center justify-between p-4 bg-gray-50 rounded-xl ${
+                        screenSize.isMobile ? 'flex-col space-y-3' : ''
+                      }`}>
+                        <div className={screenSize.isMobile ? 'w-full' : ''}>
+                          <div className="font-medium text-gray-900">Profile Visibility</div>
+                          <div className="text-sm text-gray-600">Control who can see your profile</div>
+                        </div>
+                        <select 
+                          className={`border border-gray-300 rounded-lg px-3 py-2 ${
+                            screenSize.isMobile ? 'w-full' : ''
+                          }`}
+                          value={profileData.profileVisibility}
+                          onChange={(e) => setProfileData({...profileData, profileVisibility: e.target.value})}
+                        >
+                          <option value="public">Public</option>
+                          <option value="friends">Friends Only</option>
+                          <option value="private">Private</option>
+                        </select>
+                      </div>
+                      
+                      <div className={`flex items-center justify-between p-4 bg-gray-50 rounded-xl ${
+                        screenSize.isMobile ? 'flex-col space-y-3' : ''
+                      }`}>
+                        <div className={screenSize.isMobile ? 'w-full' : ''}>
+                          <div className="font-medium text-gray-900">Allow Notifications</div>
+                          <div className="text-sm text-gray-600">Receive notifications about orders and updates</div>
+                        </div>
+                        <label className="relative inline-flex items-center cursor-pointer">
+                          <input 
+                            type="checkbox" 
+                            className="sr-only peer"
+                            checked={profileData.allowNotifications}
+                            onChange={(e) => setProfileData({...profileData, allowNotifications: e.target.checked})}
+                          />
+                          <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-emerald-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-emerald-600"></div>
+                        </label>
+                      </div>
+                      
+                      <div className={`flex items-center justify-between p-4 bg-gray-50 rounded-xl ${
+                        screenSize.isMobile ? 'flex-col space-y-3' : ''
+                      }`}>
+                        <div className={screenSize.isMobile ? 'w-full' : ''}>
+                          <div className="font-medium text-gray-900">Share Order History</div>
+                          <div className="text-sm text-gray-600">Allow farmers to see your purchase history</div>
+                        </div>
+                        <label className="relative inline-flex items-center cursor-pointer">
+                          <input 
+                            type="checkbox" 
+                            className="sr-only peer"
+                            checked={profileData.shareOrderHistory}
+                            onChange={(e) => setProfileData({...profileData, shareOrderHistory: e.target.checked})}
+                          />
+                          <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-emerald-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-emerald-600"></div>
+                        </label>
+                      </div>
+                      
+                      <div className={`flex items-center justify-between p-4 bg-gray-50 rounded-xl ${
+                        screenSize.isMobile ? 'flex-col space-y-3' : ''
+                      }`}>
+                        <div className={screenSize.isMobile ? 'w-full' : ''}>
+                          <div className="font-medium text-gray-900">Show Public Reviews</div>
+                          <div className="text-sm text-gray-600">Display your reviews on your public profile</div>
+                        </div>
+                        <label className="relative inline-flex items-center cursor-pointer">
+                          <input 
+                            type="checkbox" 
+                            className="sr-only peer"
+                            checked={profileData.showReviews}
+                            onChange={(e) => setProfileData({...profileData, showReviews: e.target.checked})}
+                          />
+                          <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-emerald-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-emerald-600"></div>
+                        </label>
                       </div>
                     </div>
                   </div>

@@ -1,540 +1,203 @@
 "use client";
 
-import React, { useState, useEffect, useRef } from 'react';
-import { useRouter } from 'next/navigation';
-import Link from 'next/link';
-import { usePathname } from 'next/navigation';
+import React, { useState, useEffect } from 'react';
+import FieldFairSidebar from '@/components/ui/layout/sidebar';
 import { 
   LayoutGrid, 
-  BarChart3, 
-  Package, 
   ShoppingCart,
-  Users,
-  TrendingUp,
-  MapPin,
-  Leaf,
-  Settings,
-  Shield,
-  ChevronDown,
-  ChevronLeft,
-  ChevronRight,
-  Sprout,
-  Search,
-  Heart,
-  History,
-  QrCode,
-  Star,
-  User,
-  Bell,
-  Eye,
-  Route,
-  Calendar,
-  Phone,
-  MessageCircle,
-  Award,
-  Truck,
-  Globe,
-  Zap,
-  Target,
-  Database,
-  FileText,
-  Camera,
-  Navigation,
-  Scan,
-  Menu,
-  X,
   Plus,
   Minus,
   Trash2,
-  ArrowRight,
+  Heart,
+  MapPin,
+  Truck,
   CreditCard,
   Clock,
+  Shield,
+  Leaf,
+  Star,
+  Phone,
+  MessageCircle,
+  ArrowLeft,
+  ArrowRight,
+  Calculator,
+  Gift,
+  Tag,
+  AlertCircle,
   CheckCircle,
-  AlertCircle
+  Info,
+  X,
+  Edit,
+  Copy,
+  Percent,
+  Package,
+  User,
+  Calendar,
+  Award,
+  Sparkles,
+  ThumbsUp,
+  TrendingUp,
+  Eye,
+  Share2,
+  RefreshCw,
+  Timer,
+  Navigation,
+  Zap,
+  Target,
+  Menu
 } from 'lucide-react';
 
-// Modern Sidebar Component (same as marketplace)
-interface MenuItem {
-  name: string;
-  icon: React.ComponentType<any>;
-  path: string;
-  badge?: string;
-  hasSubmenu?: boolean;
-  active?: boolean;
-  submenu?: MenuItem[];
-}
-
-interface FieldFairSidebarProps {
-  isCollapsed?: boolean;
-  setIsCollapsed?: (collapsed: boolean) => void;
-  isMobile?: boolean;
-  isOpen?: boolean;
-  onClose?: () => void;
-  userType?: 'farmer' | 'customer';
-}
-
-const FieldFairSidebar: React.FC<FieldFairSidebarProps> = ({
-  isCollapsed = false,
-  setIsCollapsed,
-  isMobile = false,
-  isOpen = false,
-  onClose,
-  userType = 'customer'
-}) => {
-  const pathname = usePathname();
-  const scrollRef = useRef<HTMLDivElement>(null);
-  const [activeMenu, setActiveMenu] = useState('My Cart');
-  const [mounted, setMounted] = useState(false);
-  const [expandedMenus, setExpandedMenus] = useState<string[]>([]);
-  
-  // Customer menu items
-  const customerMenuItems: MenuItem[] = [
-    { name: 'Marketplace', icon: Search, path: '/marketplace' },
-    { name: 'My Cart', icon: ShoppingCart, path: '/marketplace/cart', badge: '2', active: true },
-    { 
-      name: 'My Orders', 
-      icon: Package, 
-      path: '/customer/orders',
-      hasSubmenu: true,
-      submenu: [
-        { name: 'Current Orders', icon: Package, path: '/customer/orders' },
-        { name: 'Order History', icon: History, path: '/customer/history' }
-      ]
-    },
-    { name: 'Favorites', icon: Heart, path: '/customer/favorites' },
-    { 
-      name: 'Discover', 
-      icon: MapPin, 
-      path: '/customer/farms',
-      hasSubmenu: true,
-      submenu: [
-        { name: 'Find Farms', icon: MapPin, path: '/customer/farms' },
-        { name: 'QR Scanner', icon: QrCode, path: '/customer/qr-scanner' },
-        { name: 'Track Products', icon: Route, path: '/maps/supply-chain' }
-      ]
-    },
-    {
-      name: 'AI Assistant',
-      icon: Zap,
-      path: '/ai/recommendations',
-      hasSubmenu: true,
-      submenu: [
-        { name: 'Recommendations', icon: Target, path: '/ai/recommendations' },
-        { name: 'Price Forecasting', icon: TrendingUp, path: '/ai/forecasting' },
-        { name: 'Chat Assistant', icon: MessageCircle, path: '/ai/chatbot' }
-      ]
-    }
-  ];
-  
-  const generalItems: MenuItem[] = [
-    { 
-      name: 'Profile', 
-      icon: User, 
-      path: '/customer/profile',
-      hasSubmenu: true,
-      submenu: [
-        { name: 'My Profile', icon: User, path: '/customer/profile' },
-        { name: 'Settings', icon: Settings, path: '/customer/settings' },
-        { name: 'Notifications', icon: Bell, path: '/customer/notifications' }
-      ]
-    }
-  ];
-
-  const menuItems = customerMenuItems;
-
-  useEffect(() => {
-    setMounted(true);
-  }, []);
-
-  useEffect(() => {
-    if (mounted) {
-      const allItems = [...menuItems, ...generalItems];
-      let foundItem = null;
-
-      foundItem = allItems.find(item => pathname === item.path);
-      
-      if (!foundItem) {
-        for (const item of allItems) {
-          if (item.submenu) {
-            const submenuItem = item.submenu.find(subItem => pathname === subItem.path || pathname.startsWith(subItem.path));
-            if (submenuItem) {
-              foundItem = item;
-              setExpandedMenus(prev => 
-                prev.includes(item.name) ? prev : [...prev, item.name]
-              );
-              break;
-            }
-          }
-        }
-      }
-
-      if (!foundItem) {
-        foundItem = allItems.find(item => pathname.startsWith(item.path));
-      }
-
-      if (foundItem) {
-        setActiveMenu(foundItem.name);
-      }
-    }
-  }, [pathname, mounted, menuItems, generalItems]);
-
-  const handleMenuClick = (item: MenuItem) => {
-    if (item.hasSubmenu && !isCollapsed) {
-      setExpandedMenus(prev => 
-        prev.includes(item.name) 
-          ? prev.filter(name => name !== item.name)
-          : [...prev, item.name]
-      );
-    } else {
-      setActiveMenu(item.name);
-      if (isMobile && onClose) {
-        onClose();
-      }
-    }
-  };
-
-  const handleSubmenuClick = (parentItem: MenuItem, subItem: MenuItem) => {
-    setActiveMenu(parentItem.name);
-    if (isMobile && onClose) {
-      onClose();
-    }
-  };
-
-  if (!mounted) {
-    return null;
-  }
-
-  const getUserInfo = () => {
-    return {
-      name: 'Nimal Perera',
-      subtitle: 'Premium Customer • Colombo',
-      avatar: 'NP',
-      status: 'Active Member',
-      statusColor: 'bg-blue-500'
-    };
-  };
-
-  const userInfo = getUserInfo();
-
-  const cn = (...classes: string[]) => classes.filter(Boolean).join(' ');
-
-  const renderMenuItem = (item: MenuItem, isSubmenu = false) => {
-    const isActive = activeMenu === item.name || 
-                    (item.submenu && item.submenu.some(subItem => pathname === subItem.path || pathname.startsWith(subItem.path)));
-    const isExpanded = expandedMenus.includes(item.name);
-    const hasActiveSubmenu = item.submenu && item.submenu.some(subItem => pathname === subItem.path || pathname.startsWith(subItem.path));
-
-    return (
-      <div key={item.name}>
-        <div className={isCollapsed && !isSubmenu ? "flex justify-center" : ""}>
-          <Link 
-            href={item.hasSubmenu ? '#' : item.path}
-            onClick={(e) => {
-              if (item.hasSubmenu) {
-                e.preventDefault();
-                handleMenuClick(item);
-              } else {
-                handleMenuClick(item);
-              }
-            }}
-            className={cn(
-              "flex items-center py-3.5 rounded-xl transition-all duration-300 group relative overflow-hidden",
-              isActive || hasActiveSubmenu
-                ? 'bg-gradient-to-r from-emerald-500 to-emerald-600 text-white shadow-lg shadow-emerald-500/25' 
-                : 'text-slate-300 hover:bg-white/5 hover:text-white backdrop-blur-sm',
-              isCollapsed && !isSubmenu ? "w-12 h-12 justify-center mx-auto" : "px-4 w-full mx-2",
-              isSubmenu ? "ml-6 text-sm" : ""
-            )}
-          >
-            {(isActive || hasActiveSubmenu) && !isCollapsed && !isSubmenu && (
-              <div className="absolute inset-0 bg-gradient-to-r from-emerald-400/20 to-emerald-600/20 rounded-xl animate-pulse"></div>
-            )}
-            
-            {(isActive || hasActiveSubmenu) && !isCollapsed && !isSubmenu && (
-              <span className="absolute left-0 top-1/2 -translate-y-1/2 w-1 h-8 bg-white rounded-r-full shadow-lg"></span>
-            )}
-            
-            <item.icon className={cn(
-              "w-5 h-5 relative z-10 transition-transform duration-300",
-              isActive || hasActiveSubmenu ? "text-white scale-110" : "text-slate-400 group-hover:text-white group-hover:scale-105",
-              isSubmenu ? "w-4 h-4" : ""
-            )} />
-            
-            {!isCollapsed && (
-              <>
-                <span className="ml-4 flex-1 text-left font-medium relative z-10 transition-all duration-300">
-                  {item.name}
-                </span>
-                {item.badge && (
-                  <span className="bg-gradient-to-r from-orange-400 to-orange-500 text-white text-[10px] px-2.5 py-1 rounded-full font-bold shadow-lg relative z-10 animate-pulse">
-                    {item.badge}
-                  </span>
-                )}
-                {item.hasSubmenu && (
-                  <ChevronDown className={cn(
-                    "w-4 h-4 relative z-10 transition-all duration-300",
-                    isExpanded ? "rotate-180 text-white" : "text-slate-400 group-hover:text-white",
-                    isActive || hasActiveSubmenu ? "text-white" : ""
-                  )} />
-                )}
-              </>
-            )}
-
-            {isCollapsed && !isSubmenu && (
-              <div className="absolute left-full ml-3 px-3 py-2 bg-slate-800 text-white text-sm rounded-lg opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-300 z-50 whitespace-nowrap shadow-xl border border-slate-700">
-                <div className="font-medium">{item.name}</div>
-                {item.badge && (
-                  <span className="inline-block mt-1 bg-orange-500 text-xs px-2 py-0.5 rounded-full">
-                    {item.badge}
-                  </span>
-                )}
-                <div className="absolute right-full top-1/2 -translate-y-1/2 border-4 border-transparent border-r-slate-800"></div>
-              </div>
-            )}
-          </Link>
-        </div>
-
-        {item.hasSubmenu && !isCollapsed && isExpanded && item.submenu && (
-          <div className="ml-6 mt-2 space-y-1 animate-in slide-in-from-left-2 duration-300">
-            {item.submenu.map((subItem) => (
-              <Link
-                key={subItem.name}
-                href={subItem.path}
-                onClick={() => handleSubmenuClick(item, subItem)}
-                className={cn(
-                  "flex items-center py-3 px-4 rounded-lg transition-all duration-300 text-sm group relative overflow-hidden",
-                  pathname === subItem.path || pathname.startsWith(subItem.path)
-                    ? 'bg-gradient-to-r from-emerald-400/30 to-emerald-500/30 text-white backdrop-blur-sm'
-                    : 'text-slate-400 hover:bg-white/5 hover:text-white hover:pl-6'
-                )}
-              >
-                <subItem.icon className="w-4 h-4 mr-3 transition-transform duration-300 group-hover:scale-110" />
-                <span className="transition-all duration-300">{subItem.name}</span>
-                
-                {(pathname === subItem.path || pathname.startsWith(subItem.path)) && (
-                  <div className="absolute right-2 w-2 h-2 bg-white rounded-full animate-pulse"></div>
-                )}
-              </Link>
-            ))}
-          </div>
-        )}
-      </div>
-    );
-  };
-
-  return (
-    <>
-      {isMobile && isOpen && (
-        <div 
-          className="fixed inset-0 bg-black/60 backdrop-blur-sm z-40 transition-opacity duration-300 ease-in-out" 
-          onClick={onClose}
-        />
-      )}
-      
-      <aside 
-        className={cn(
-          "fixed h-screen left-0 top-0 z-50 transition-all duration-500 flex flex-col shadow-2xl border-r border-slate-800/50",
-          "bg-gradient-to-b from-slate-900 via-slate-800 to-slate-900 text-white backdrop-blur-xl",
-          isCollapsed ? "w-20" : "w-72",
-          isMobile ? (isOpen ? "translate-x-0" : "-translate-x-full") : "translate-x-0"
-        )}
-      >
-        <div className="absolute inset-0 z-0">
-          <div className="absolute inset-0 bg-gradient-to-br from-emerald-900/20 via-transparent to-blue-900/20"></div>
-          <div className="absolute inset-0 bg-[radial-gradient(circle_at_30%_80%,rgba(16,185,129,0.1),transparent_50%)]"></div>
-          <div className="absolute inset-0 bg-[radial-gradient(circle_at_70%_20%,rgba(59,130,246,0.1),transparent_50%)]"></div>
-          
-          <div className="absolute bottom-10 right-6 opacity-5">
-            <Leaf className="w-24 h-24 text-emerald-400 animate-pulse" />
-          </div>
-          <div className="absolute top-1/3 right-4 opacity-5">
-            <Sprout className="w-16 h-16 text-emerald-300 animate-bounce" style={{animationDuration: '3s'}} />
-          </div>
-        </div>
-
-        {isMobile && (
-          <button
-            onClick={onClose}
-            className="absolute top-4 right-4 w-10 h-10 flex items-center justify-center rounded-xl z-50 bg-slate-800/80 text-slate-300 lg:hidden hover:bg-slate-700 transition-all duration-300 backdrop-blur-sm border border-slate-700/50"
-          >
-            <X className="w-5 h-5" />
-          </button>
-        )}
-        
-        <div className={cn(
-          "border-b border-slate-700/50 relative z-10 backdrop-blur-sm",
-          isCollapsed ? "p-4" : "px-6 py-6"
-        )}>
-          <div className={cn(
-            "flex items-center",
-            isCollapsed ? "justify-center" : ""
-          )}>
-            <div className="w-10 h-10 bg-gradient-to-br from-emerald-400 to-emerald-600 rounded-xl flex items-center justify-center shadow-lg shadow-emerald-500/25 ring-2 ring-emerald-400/20">
-              <Sprout className="w-6 h-6 text-white" />
-            </div>
-            {!isCollapsed && (
-              <div className="ml-4">
-                <span className="text-2xl font-bold bg-gradient-to-r from-white to-emerald-200 bg-clip-text text-transparent">
-                  FieldFair
-                </span>
-                <div className="text-xs text-emerald-300/80 font-medium">Customer Portal</div>
-              </div>
-            )}
-          </div>
-          
-          {!isMobile && setIsCollapsed && (
-            <button 
-              onClick={() => setIsCollapsed(!isCollapsed)}
-              className={cn(
-                "absolute w-8 h-8 hidden lg:flex items-center justify-center rounded-full transition-all duration-300",
-                "bg-slate-800/80 text-slate-300 hover:bg-slate-700 hover:text-white shadow-lg backdrop-blur-sm border border-slate-600/50",
-                isCollapsed ? "right-0 -mr-4 top-[26px]" : "right-0 -mr-4 top-[32px]"
-              )}
-              aria-label="Toggle sidebar"
-            >
-              {isCollapsed ? (
-                <ChevronRight className="w-4 h-4" />
-              ) : (
-                <ChevronLeft className="w-4 h-4" />
-              )}
-            </button>
-          )}
-        </div>
-        
-        <div className="flex-1 relative overflow-hidden">
-          <div 
-            ref={scrollRef}
-            className="h-full py-6 overflow-y-auto transition-all duration-500 ease-in-out scrollbar-thin scrollbar-track-slate-800 scrollbar-thumb-slate-600 hover:scrollbar-thumb-slate-500"
-          >
-            <div className={cn("mb-8", isCollapsed ? "px-2" : "px-4")}>
-              {!isCollapsed && (
-                <div className="text-[10px] text-emerald-300/70 mb-4 uppercase tracking-[0.15em] font-bold px-2">
-                  🛒 MARKETPLACE
-                </div>
-              )}
-              <nav className="space-y-2">
-                {menuItems.map((item) => renderMenuItem(item))}
-              </nav>
-            </div>
-            
-            <div className={cn("mt-8", isCollapsed ? "px-2" : "px-4")}>
-              {!isCollapsed && (
-                <div className="text-[10px] text-emerald-300/70 mb-4 uppercase tracking-[0.15em] font-bold px-2">
-                  👤 ACCOUNT
-                </div>
-              )}
-              <nav className="space-y-2">
-                {generalItems.map((item) => renderMenuItem(item))}
-              </nav>
-            </div>
-          </div>
-        </div>
-        
-        {!isCollapsed && (
-          <div className="p-4 border-t border-slate-700/50 relative z-10 backdrop-blur-sm">
-            <div className="flex items-center bg-slate-800/30 rounded-xl p-3 backdrop-blur-sm border border-slate-700/30">
-              <div className="w-12 h-12 bg-gradient-to-br from-slate-600 to-slate-700 rounded-xl flex items-center justify-center relative ring-2 ring-slate-600/50">
-                <span className="text-sm font-bold text-white">{userInfo.avatar}</span>
-                <div className={cn(
-                  "absolute -bottom-1 -right-1 w-4 h-4 rounded-full border-2 border-slate-800",
-                  userInfo.statusColor
-                )}></div>
-              </div>
-              <div className="ml-3 flex-1">
-                <div className="text-sm font-semibold text-white">{userInfo.name}</div>
-                <div className="text-xs text-slate-300">{userInfo.subtitle}</div>
-                <div className="text-[10px] text-emerald-400 mt-1 font-medium">{userInfo.status}</div>
-              </div>
-              <button className="p-2 rounded-lg hover:bg-slate-700/50 transition-colors duration-300">
-                <Settings className="w-4 h-4 text-slate-400 hover:text-white transition-colors duration-300" />
-              </button>
-            </div>
-          </div>
-        )}
-      </aside>
-    </>
-  );
-};
-
-// Main Cart Component
-const CartPage = () => {
-  const router = useRouter();
+const CustomerCartPage = () => {
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [mounted, setMounted] = useState(false);
-  const [selectedDelivery, setSelectedDelivery] = useState('standard');
-  const [promoCode, setPromoCode] = useState('');
-  const [promoApplied, setPromoApplied] = useState(false);
+  const [couponCode, setCouponCode] = useState('');
+  const [appliedCoupon, setAppliedCoupon] = useState(null);
+  const [selectedDeliveryMethod, setSelectedDeliveryMethod] = useState('delivery');
+  const [showCheckout, setShowCheckout] = useState(false);
+  const [showRemoveConfirm, setShowRemoveConfirm] = useState(null);
 
-  // Mock cart items
+  // Enhanced responsive detection - same as marketplace
+  const [screenSize, setScreenSize] = useState({
+    isMobile: false,
+    isTablet: false,
+    isDesktop: false
+  });
+
+  // Enhanced cart data matching marketplace style
   const [cartItems, setCartItems] = useState([
     {
       id: 1,
-      name: 'Organic Tomatoes',
-      farmer: 'Ravi Mahathaya',
-      location: 'Kurunegala',
+      name: 'Premium Organic Tomatoes',
+      farmer: {
+        name: 'Ravi Mahathaya',
+        avatar: 'RM',
+        farm: "Ravi's Organic Farm",
+        location: 'Kurunegala',
+        phone: '+94 77 123 4567',
+        verified: true,
+        rating: 4.8,
+        sustainabilityScore: 95
+      },
       price: 300,
       originalPrice: 350,
       unit: 'kg',
-      quantity: 3,
+      quantity: 2,
       image: '🍅',
       isOrganic: true,
-      inStock: true,
-      maxStock: 45,
-      harvestDate: '2024-06-25',
+      stockLevel: 45,
+      deliveryMethods: ['delivery', 'pickup'],
+      estimatedDelivery: '1-2 days',
+      tags: ['Organic', 'Fresh', 'Local'],
+      discount: 14,
       rating: 4.8,
-      farmerId: 1
+      reviews: 127,
+      harvestDate: '2024-06-25',
+      description: 'Fresh organic tomatoes grown without pesticides using traditional farming methods',
+      carbonFootprint: 'Low',
+      nutritionScore: 'A+',
+      badges: ['Best Seller', 'Eco-Friendly']
     },
     {
       id: 2,
-      name: 'Fresh Carrots',
-      farmer: 'Saman Silva',
-      location: 'Matale',
+      name: 'Sweet Rainbow Carrots',
+      farmer: {
+        name: 'Saman Silva',
+        avatar: 'SS',
+        farm: "Saman's Fresh Vegetables",
+        location: 'Matale',
+        phone: '+94 76 987 6543',
+        verified: true,
+        rating: 4.6,
+        sustainabilityScore: 88
+      },
       price: 250,
       originalPrice: 280,
       unit: 'kg',
-      quantity: 2,
+      quantity: 1,
       image: '🥕',
       isOrganic: true,
-      inStock: true,
-      maxStock: 20,
-      harvestDate: '2024-06-24',
+      stockLevel: 28,
+      deliveryMethods: ['delivery', 'pickup'],
+      estimatedDelivery: '1-2 days',
+      tags: ['Organic', 'Sweet', 'Colorful'],
+      discount: 11,
       rating: 4.6,
-      farmerId: 2
+      reviews: 89,
+      harvestDate: '2024-06-24',
+      description: 'Sweet and crunchy rainbow carrots perfect for cooking and salads',
+      carbonFootprint: 'Low',
+      nutritionScore: 'A',
+      badges: ['Rainbow Variety', 'Sweet Taste']
     },
     {
       id: 3,
-      name: 'Green Beans',
-      farmer: 'Nimal Gunasekara',
-      location: 'Nuwara Eliya',
+      name: 'Premium Green Beans',
+      farmer: {
+        name: 'Nimal Gunasekara',
+        avatar: 'NG',
+        farm: "Nimal's Highland Farm",
+        location: 'Nuwara Eliya',
+        phone: '+94 71 444 5566',
+        verified: true,
+        rating: 4.9,
+        sustainabilityScore: 93
+      },
       price: 400,
-      originalPrice: 420,
+      originalPrice: 450,
       unit: 'kg',
       quantity: 1,
       image: '🫘',
       isOrganic: true,
-      inStock: false,
-      maxStock: 0,
-      harvestDate: '2024-06-25',
+      stockLevel: 15,
+      deliveryMethods: ['pickup'],
+      estimatedDelivery: '2-3 days',
+      tags: ['Organic', 'Premium', 'High-altitude'],
+      discount: 11,
       rating: 4.9,
-      farmerId: 3
+      reviews: 78,
+      harvestDate: '2024-06-25',
+      description: 'Tender green beans rich in nutrients, perfect for healthy meals',
+      carbonFootprint: 'Medium',
+      nutritionScore: 'A+',
+      badges: ['Premium Quality', 'Highland Grown']
     }
   ]);
 
-  const deliveryOptions = [
-    { id: 'standard', name: 'Standard Delivery', time: '2-3 days', cost: 150, description: 'Regular delivery service' },
-    { id: 'express', name: 'Express Delivery', time: '1 day', cost: 300, description: 'Next day delivery' },
-    { id: 'pickup', name: 'Farm Pickup', time: 'Same day', cost: 0, description: 'Pick up from individual farms' }
-  ];
-
+  // Enhanced responsive detection - same as marketplace
   useEffect(() => {
     setMounted(true);
-  }, []);
+    
+    const checkScreenSize = () => {
+      const width = window.innerWidth;
+      const newScreenSize = {
+        isMobile: width < 768,
+        isTablet: width >= 768 && width < 1024,
+        isDesktop: width >= 1024
+      };
+      
+      // Only update if there's a change
+      if (JSON.stringify(newScreenSize) !== JSON.stringify(screenSize)) {
+        setScreenSize(newScreenSize);
+      }
 
+      // Auto-close mobile menu when switching to desktop/tablet
+      if (!newScreenSize.isMobile && isMobileMenuOpen) {
+        setIsMobileMenuOpen(false);
+      }
+    };
+    
+    checkScreenSize();
+    window.addEventListener('resize', checkScreenSize, { passive: true });
+    
+    return () => window.removeEventListener('resize', checkScreenSize);
+  }, [screenSize, isMobileMenuOpen]);
+
+  // Loading state to prevent hydration errors
   if (!mounted) {
     return (
       <div className="flex h-screen bg-gray-50">
-        <div className="w-72 bg-gradient-to-b from-slate-900 via-slate-800 to-slate-900"></div>
+        <div className="w-64 bg-emerald-900 animate-pulse"></div>
         <div className="flex-1 flex items-center justify-center">
           <div className="text-gray-500">Loading...</div>
         </div>
@@ -542,409 +205,696 @@ const CartPage = () => {
     );
   }
 
-  const updateQuantity = (id: number, delta: number) => {
-    setCartItems(items => 
-      items.map(item => {
-        if (item.id === id) {
-          const newQuantity = Math.max(1, Math.min(item.maxStock, item.quantity + delta));
-          return { ...item, quantity: newQuantity };
-        }
-        return item;
-      })
-    );
-  };
-
-  const removeItem = (id: number) => {
-    setCartItems(items => items.filter(item => item.id !== id));
-  };
-
-  const moveToWishlist = (id: number) => {
-    console.log('Moving to wishlist:', id);
-    removeItem(id);
-  };
-
-  const applyPromoCode = () => {
-    if (promoCode.toLowerCase() === 'fresh10') {
-      setPromoApplied(true);
+  const updateQuantity = (itemId, newQuantity) => {
+    if (newQuantity <= 0) {
+      setShowRemoveConfirm(itemId);
+      return;
     }
+    
+    setCartItems(cartItems.map(item => 
+      item.id === itemId ? { ...item, quantity: Math.min(newQuantity, item.stockLevel) } : item
+    ));
+  };
+
+  const removeItem = (itemId) => {
+    setCartItems(cartItems.filter(item => item.id !== itemId));
+    setShowRemoveConfirm(null);
+  };
+
+  const addToFavorites = (item) => {
+    console.log('Add to favorites:', item.name);
+  };
+
+  const contactFarmer = (farmer) => {
+    console.log('Contact farmer:', farmer.name);
+  };
+
+  const applyCoupon = () => {
+    if (couponCode === 'FRESH10') {
+      setAppliedCoupon({
+        code: 'FRESH10',
+        discount: 0.1,
+        description: '10% off fresh vegetables'
+      });
+    } else if (couponCode === 'FIRSTBUY') {
+      setAppliedCoupon({
+        code: 'FIRSTBUY',
+        discount: 50,
+        description: 'Rs. 50 off first purchase',
+        type: 'fixed'
+      });
+    } else if (couponCode === 'ORGANIC15') {
+      setAppliedCoupon({
+        code: 'ORGANIC15',
+        discount: 0.15,
+        description: '15% off organic products'
+      });
+    } else {
+      alert('Invalid coupon code');
+    }
+    setCouponCode('');
+  };
+
+  const removeCoupon = () => {
+    setAppliedCoupon(null);
   };
 
   // Calculate totals
   const subtotal = cartItems.reduce((sum, item) => sum + (item.price * item.quantity), 0);
-  const discount = promoApplied ? subtotal * 0.1 : 0;
-  const deliveryCost = selectedDelivery === 'pickup' ? 0 : deliveryOptions.find(opt => opt.id === selectedDelivery)?.cost || 0;
-  const total = subtotal - discount + deliveryCost;
+  const originalTotal = cartItems.reduce((sum, item) => sum + (item.originalPrice * item.quantity), 0);
+  const productSavings = originalTotal - subtotal;
+  const deliveryFee = selectedDeliveryMethod === 'delivery' ? 150 : 0;
+  const discount = appliedCoupon ? 
+    (appliedCoupon.type === 'fixed' ? appliedCoupon.discount : subtotal * appliedCoupon.discount) : 0;
+  const total = subtotal + deliveryFee - discount;
 
-  // Group items by farmer for pickup option
-  const groupedByFarmer = cartItems.reduce((acc, item) => {
-    if (!acc[item.farmerId]) {
-      acc[item.farmerId] = [];
+  // Group items by farmer
+  const itemsByFarmer = cartItems.reduce((groups, item) => {
+    const farmerId = item.farmer.name;
+    if (!groups[farmerId]) {
+      groups[farmerId] = {
+        farmer: item.farmer,
+        items: []
+      };
     }
-    acc[item.farmerId].push(item);
-    return acc;
-  }, {} as Record<number, typeof cartItems>);
+    groups[farmerId].items.push(item);
+    return groups;
+  }, {});
 
-  const handleCheckout = () => {
-    console.log('Proceeding to checkout with:', {
-      items: cartItems,
-      delivery: selectedDelivery,
-      total,
-      promoApplied
-    });
+  const totalItems = cartItems.reduce((sum, item) => sum + item.quantity, 0);
+
+  // Enhanced margin calculation - same as marketplace
+  const getMainContentMargin = () => {
+    if (screenSize.isMobile) {
+      return 'ml-0'; // No margin on mobile (sidebar overlays)
+    } else if (screenSize.isTablet) {
+      return 'ml-20'; // Always collapsed margin on tablet
+    } else {
+      return sidebarCollapsed ? 'ml-20' : 'ml-72'; // User controlled on desktop
+    }
   };
 
-  if (cartItems.length === 0) {
-    return (
-      <div className="flex h-screen bg-gray-50">
-        <FieldFairSidebar
-          isCollapsed={sidebarCollapsed}
-          setIsCollapsed={setSidebarCollapsed}
-          isMobile={false}
-          isOpen={isMobileMenuOpen}
-          onClose={() => setIsMobileMenuOpen(false)}
-          userType="customer"
-        />
-
-        <FieldFairSidebar
-          isCollapsed={false}
-          isMobile={true}
-          isOpen={isMobileMenuOpen}
-          onClose={() => setIsMobileMenuOpen(false)}
-          userType="customer"
-        />
-
-        <div className={`flex-1 flex flex-col transition-all duration-500 ${sidebarCollapsed ? 'lg:ml-20' : 'lg:ml-72'}`}>
-          <header className="bg-white border-b border-gray-200 px-4 lg:px-6 py-4">
-            <div className="flex items-center space-x-4">
-              <button 
-                onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
-                className="lg:hidden p-2 rounded-lg text-gray-600 hover:bg-gray-100"
-              >
-                <Menu className="w-6 h-6" />
-              </button>
-              <div>
-                <h1 className="text-2xl font-bold text-gray-900">🛒 Shopping Cart</h1>
-                <p className="text-sm text-gray-600">Your selected products</p>
-              </div>
-            </div>
-          </header>
-
-          <main className="flex-1 flex items-center justify-center p-6">
-            <div className="text-center">
-              <ShoppingCart className="w-24 h-24 text-gray-300 mx-auto mb-6" />
-              <h2 className="text-2xl font-bold text-gray-900 mb-2">Your cart is empty</h2>
-              <p className="text-gray-600 mb-6">Start shopping to add items to your cart</p>
-              <button
-                onClick={() => router.push('/marketplace')}
-                className="bg-emerald-600 text-white px-6 py-3 rounded-xl font-semibold hover:bg-emerald-700 transition-colors shadow-lg hover:shadow-xl transform hover:scale-105"
-              >
-                Continue Shopping
-              </button>
-            </div>
-          </main>
-        </div>
-      </div>
-    );
-  }
-
   return (
-    <div className="flex h-screen bg-gray-50">
-      {/* Desktop Sidebar */}
+    <div className="flex h-screen bg-white overflow-hidden">
+      {/* Enhanced Sidebar - Single Component */}
       <FieldFairSidebar
         isCollapsed={sidebarCollapsed}
         setIsCollapsed={setSidebarCollapsed}
-        isMobile={false}
+        isMobile={screenSize.isMobile}
         isOpen={isMobileMenuOpen}
         onClose={() => setIsMobileMenuOpen(false)}
         userType="customer"
       />
 
-      {/* Mobile Sidebar */}
-      <FieldFairSidebar
-        isCollapsed={false}
-        isMobile={true}
-        isOpen={isMobileMenuOpen}
-        onClose={() => setIsMobileMenuOpen(false)}
-        userType="customer"
-      />
-
-      {/* Main Content - Responsive to sidebar */}
-      <div className={`flex-1 flex flex-col transition-all duration-500 ${sidebarCollapsed ? 'lg:ml-20' : 'lg:ml-72'}`}>
-        {/* Header */}
-        <header className="bg-white border-b border-gray-200 px-4 lg:px-6 py-4">
+      <div className={`flex-1 flex flex-col bg-gray-50 transition-all duration-300 ${getMainContentMargin()}`}>
+        {/* Enhanced Header - Responsive */}
+        <header className="bg-white border-b border-gray-200 px-4 lg:px-6 py-4 shadow-sm">
           <div className="flex items-center justify-between">
-            <div className="flex items-center space-x-4">
-              <button 
-                onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
-                className="lg:hidden p-2 rounded-lg text-gray-600 hover:bg-gray-100"
-              >
-                <Menu className="w-6 h-6" />
-              </button>
-              <div>
-                <h1 className="text-2xl lg:text-3xl font-bold text-gray-900">🛒 Shopping Cart</h1>
-                <p className="text-sm text-gray-600">{cartItems.length} items in your cart</p>
+            <div>
+              <div className="flex items-center space-x-4">
+                {/* Mobile menu button - only show on mobile */}
+                {screenSize.isMobile && (
+                  <button 
+                    onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
+                    className="p-2 rounded-lg text-gray-600 hover:bg-gray-100 transition-colors"
+                    aria-label="Open menu"
+                  >
+                    <Menu className="w-6 h-6" />
+                  </button>
+                )}
+                <div>
+                  <h1 className="text-2xl lg:text-3xl font-bold text-gray-900">
+                    {screenSize.isMobile ? '🛒 Cart' : '🛒 Shopping Cart'}
+                  </h1>
+                  <p className="text-sm text-gray-600 mt-1">
+                    {screenSize.isMobile ? (
+                      `${totalItems} items`
+                    ) : (
+                      <>
+                        {totalItems} {totalItems === 1 ? 'item' : 'items'} from {Object.keys(itemsByFarmer).length} {Object.keys(itemsByFarmer).length === 1 ? 'farmer' : 'farmers'}
+                        {productSavings > 0 && (
+                          <span className="ml-2 text-emerald-600 font-medium">
+                            • You're saving Rs. {productSavings.toLocaleString()}!
+                          </span>
+                        )}
+                      </>
+                    )}
+                  </p>
+                </div>
               </div>
             </div>
             
-            <button
-              onClick={() => router.push('/marketplace')}
-              className="border border-emerald-600 text-emerald-600 px-4 py-2 rounded-xl hover:bg-emerald-50 transition-colors font-medium"
-            >
-              Continue Shopping
-            </button>
+            <div className="flex items-center space-x-2 lg:space-x-4">
+              {!screenSize.isMobile && (
+                <button 
+                  onClick={() => window.history.back()}
+                  className="hidden md:flex items-center bg-emerald-50 border border-emerald-200 rounded-xl px-4 py-2.5 text-emerald-700 hover:bg-emerald-100 transition-colors"
+                >
+                  <ArrowLeft className="w-4 h-4 mr-2" />
+                  Continue Shopping
+                </button>
+              )}
+              
+              {screenSize.isDesktop && (
+                <div className="flex items-center bg-blue-50 border border-blue-200 rounded-xl px-4 py-2.5">
+                  <Shield className="w-4 h-4 text-blue-600 mr-2" />
+                  <span className="text-sm text-blue-700 font-medium">Secure Checkout</span>
+                </div>
+              )}
+            </div>
           </div>
         </header>
 
+        {/* Main Content */}
         <main className="flex-1 overflow-auto p-4 lg:p-6">
           <div className="max-w-7xl mx-auto">
-            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 lg:gap-8">
-              {/* Cart Items */}
-              <div className="lg:col-span-2 space-y-4">
-                {cartItems.map((item) => (
-                  <div key={item.id} className="bg-white p-4 lg:p-6 rounded-2xl border border-gray-200 hover:shadow-lg transition-shadow">
-                    <div className="flex items-start space-x-4">
-                      {/* Product Image */}
-                      <div className="w-16 lg:w-20 h-16 lg:h-20 bg-gradient-to-br from-gray-50 to-gray-100 rounded-xl flex items-center justify-center relative">
-                        <span className="text-2xl lg:text-3xl">{item.image}</span>
-                        {item.isOrganic && (
-                          <div className="absolute -top-1 -right-1">
-                            <Leaf className="w-4 h-4 text-green-500" />
-                          </div>
-                        )}
-                      </div>
-
-                      {/* Product Details */}
-                      <div className="flex-1">
-                        <div className="flex items-start justify-between mb-2">
-                          <div>
-                            <h3 className="font-semibold text-gray-900 text-base lg:text-lg">{item.name}</h3>
-                            <div className="flex items-center space-x-2 text-sm text-gray-600">
-                              <MapPin className="w-3 h-3" />
-                              <span>{item.farmer} • {item.location}</span>
-                            </div>
-                            <div className="flex items-center space-x-2 mt-1">
-                              <div className="flex items-center space-x-1">
-                                <Star className="w-3 h-3 text-yellow-400 fill-current" />
-                                <span className="text-sm text-gray-600">{item.rating}</span>
-                              </div>
-                              <span className="text-gray-300">•</span>
-                              <span className="text-sm text-gray-600">
-                                Harvested {new Date(item.harvestDate).toLocaleDateString()}
-                              </span>
-                            </div>
-                          </div>
-                          
-                          {/* Price */}
-                          <div className="text-right">
-                            <div className="text-lg font-bold text-emerald-600">Rs. {item.price}</div>
-                            {item.originalPrice > item.price && (
-                              <div className="text-sm text-gray-500 line-through">Rs. {item.originalPrice}</div>
-                            )}
-                            <div className="text-xs text-gray-500">per {item.unit}</div>
-                          </div>
-                        </div>
-
-                        {/* Stock Status */}
-                        {!item.inStock && (
-                          <div className="flex items-center space-x-2 mb-3">
-                            <AlertCircle className="w-4 h-4 text-red-500" />
-                            <span className="text-sm text-red-600 font-medium">Currently out of stock</span>
-                          </div>
-                        )}
-
-                        {/* Quantity and Actions */}
-                        <div className="flex items-center justify-between">
-                          <div className="flex items-center space-x-3">
-                            <button
-                              onClick={() => updateQuantity(item.id, -1)}
-                              disabled={item.quantity <= 1}
-                              className="p-1 border border-gray-300 rounded-lg hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
-                            >
-                              <Minus className="w-4 h-4" />
-                            </button>
-                            <span className="px-3 py-1 border border-gray-300 rounded-lg min-w-[50px] text-center font-medium">
-                              {item.quantity}
-                            </span>
-                            <button
-                              onClick={() => updateQuantity(item.id, 1)}
-                              disabled={item.quantity >= item.maxStock || !item.inStock}
-                              className="p-1 border border-gray-300 rounded-lg hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
-                            >
-                              <Plus className="w-4 h-4" />
-                            </button>
-                            <span className="text-sm text-gray-500">{item.unit}</span>
-                          </div>
-
-                          <div className="flex items-center space-x-2">
-                            <span className="font-bold text-gray-900">
-                              Rs. {(item.price * item.quantity).toLocaleString()}
-                            </span>
-                          </div>
-                        </div>
-
-                        {/* Action Buttons */}
-                        <div className="flex items-center space-x-4 mt-4 pt-4 border-t border-gray-100">
-                          <button
-                            onClick={() => moveToWishlist(item.id)}
-                            className="flex items-center space-x-1 text-sm text-gray-600 hover:text-emerald-600 transition-colors"
-                          >
-                            <Heart className="w-4 h-4" />
-                            <span>Move to Wishlist</span>
-                          </button>
-                          
-                          <button
-                            onClick={() => router.push(`/marketplace/${item.id}`)}
-                            className="flex items-center space-x-1 text-sm text-gray-600 hover:text-emerald-600 transition-colors"
-                          >
-                            <Eye className="w-4 h-4" />
-                            <span>View Details</span>
-                          </button>
-                          
-                          <button
-                            onClick={() => removeItem(item.id)}
-                            className="flex items-center space-x-1 text-sm text-red-600 hover:text-red-700 transition-colors"
-                          >
-                            <Trash2 className="w-4 h-4" />
-                            <span>Remove</span>
-                          </button>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                ))}
+            {cartItems.length === 0 ? (
+              /* Empty Cart */
+              <div className="text-center py-16">
+                <div className="bg-gradient-to-br from-gray-100 to-gray-200 w-32 h-32 rounded-full flex items-center justify-center mx-auto mb-6">
+                  <ShoppingCart className="w-16 h-16 text-gray-400" />
+                </div>
+                <h3 className="text-2xl font-bold text-gray-900 mb-3">Your cart is empty</h3>
+                <p className="text-gray-500 mb-8 max-w-md mx-auto">
+                  {screenSize.isMobile 
+                    ? "Add fresh products to start shopping"
+                    : "Add some fresh products from local farmers to get started on your healthy journey."
+                  }
+                </p>
+                <div className={`flex items-center justify-center ${
+                  screenSize.isMobile ? 'flex-col space-y-3' : 'flex-col sm:flex-row space-y-3 sm:space-y-0 sm:space-x-4'
+                }`}>
+                  <button className="bg-emerald-600 text-white px-8 py-3 rounded-xl font-semibold hover:bg-emerald-700 transition-colors flex items-center space-x-2">
+                    <Sparkles className="w-5 h-5" />
+                    <span>{screenSize.isMobile ? 'Browse Store' : 'Browse Marketplace'}</span>
+                  </button>
+                  <button className="border border-gray-300 text-gray-700 px-8 py-3 rounded-xl font-semibold hover:bg-gray-50 transition-colors flex items-center space-x-2">
+                    <Heart className="w-5 h-5" />
+                    <span>View Favorites</span>
+                  </button>
+                </div>
               </div>
-
-              {/* Order Summary */}
-              <div className="space-y-6">
-                {/* Promo Code */}
-                <div className="bg-white p-6 rounded-2xl border border-gray-200">
-                  <h3 className="font-semibold text-gray-900 mb-4">Promo Code</h3>
-                  <div className="flex space-x-2">
-                    <input
-                      type="text"
-                      placeholder="Enter promo code"
-                      value={promoCode}
-                      onChange={(e) => setPromoCode(e.target.value)}
-                      className="flex-1 border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
-                    />
-                    <button
-                      onClick={applyPromoCode}
-                      disabled={!promoCode || promoApplied}
-                      className="bg-emerald-600 text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-emerald-700 disabled:bg-gray-300 disabled:cursor-not-allowed transition-colors"
-                    >
-                      Apply
-                    </button>
-                  </div>
-                  {promoApplied && (
-                    <div className="flex items-center space-x-2 mt-2 text-sm text-green-600">
-                      <CheckCircle className="w-4 h-4" />
-                      <span>Promo code applied! 10% discount</span>
+            ) : (
+              <div className={`grid gap-8 ${
+                screenSize.isMobile ? 'grid-cols-1' : 'grid-cols-1 lg:grid-cols-3'
+              }`}>
+                {/* Cart Items */}
+                <div className={screenSize.isMobile ? 'order-2' : 'lg:col-span-2'}>
+                  <div className="space-y-6">
+                    {/* Summary Stats - Enhanced for Mobile */}
+                    <div className="bg-gradient-to-r from-emerald-500 to-green-600 text-white p-4 lg:p-6 rounded-2xl">
+                      <div className={`grid gap-4 ${
+                        screenSize.isMobile ? 'grid-cols-2' : 'grid-cols-3'
+                      }`}>
+                        <div className="text-center">
+                          <div className="text-xl lg:text-2xl font-bold">{totalItems}</div>
+                          <div className="text-emerald-100 text-xs lg:text-sm">Items</div>
+                        </div>
+                        <div className="text-center">
+                          <div className="text-xl lg:text-2xl font-bold">{Object.keys(itemsByFarmer).length}</div>
+                          <div className="text-emerald-100 text-xs lg:text-sm">Farmers</div>
+                        </div>
+                        {!screenSize.isMobile && (
+                          <div className="text-center">
+                            <div className="text-xl lg:text-2xl font-bold">Rs. {subtotal.toLocaleString()}</div>
+                            <div className="text-emerald-100 text-xs lg:text-sm">Subtotal</div>
+                          </div>
+                        )}
+                      </div>
                     </div>
-                  )}
-                </div>
 
-                {/* Delivery Options */}
-                <div className="bg-white p-6 rounded-2xl border border-gray-200">
-                  <h3 className="font-semibold text-gray-900 mb-4">Delivery Options</h3>
-                  <div className="space-y-3">
-                    {deliveryOptions.map((option) => (
-                      <label key={option.id} className="flex items-center space-x-3 cursor-pointer">
-                        <input
-                          type="radio"
-                          name="delivery"
-                          value={option.id}
-                          checked={selectedDelivery === option.id}
-                          onChange={(e) => setSelectedDelivery(e.target.value)}
-                          className="text-emerald-600 focus:ring-emerald-500"
-                        />
-                        <div className="flex-1">
+                    {Object.entries(itemsByFarmer).map(([farmerId, group]) => (
+                      <div key={farmerId} className="bg-white rounded-2xl border border-gray-200 overflow-hidden shadow-sm">
+                        {/* Enhanced Farmer Header - Mobile Optimized */}
+                        <div className="p-4 lg:p-6 bg-gradient-to-r from-emerald-50 to-blue-50 border-b border-emerald-100">
                           <div className="flex items-center justify-between">
-                            <div>
-                              <div className="font-medium text-gray-900">{option.name}</div>
-                              <div className="text-sm text-gray-600">{option.description}</div>
-                            </div>
-                            <div className="text-right">
-                              <div className="font-medium text-gray-900">
-                                {option.cost === 0 ? 'Free' : `Rs. ${option.cost}`}
+                            <div className="flex items-center space-x-3 lg:space-x-4">
+                              <div className="w-10 lg:w-12 h-10 lg:h-12 bg-emerald-100 rounded-full flex items-center justify-center relative">
+                                <span className="text-xs lg:text-sm font-bold text-emerald-700">{group.farmer.avatar}</span>
+                                {group.farmer.verified && (
+                                  <div className="absolute -top-1 -right-1 w-4 lg:w-5 h-4 lg:h-5 bg-blue-500 rounded-full flex items-center justify-center">
+                                    <Shield className="w-2 lg:w-3 h-2 lg:h-3 text-white" />
+                                  </div>
+                                )}
                               </div>
-                              <div className="text-sm text-gray-600">{option.time}</div>
+                              <div>
+                                <div className="flex items-center space-x-2 lg:space-x-3">
+                                  <h3 className="font-bold text-sm lg:text-base text-gray-900">{group.farmer.name}</h3>
+                                  {!screenSize.isMobile && (
+                                    <div className="flex items-center space-x-1">
+                                      <Star className="w-4 h-4 text-yellow-400 fill-current" />
+                                      <span className="text-sm font-medium text-gray-700">{group.farmer.rating}</span>
+                                    </div>
+                                  )}
+                                </div>
+                                <div className={`flex items-center text-xs lg:text-sm text-gray-600 ${
+                                  screenSize.isMobile ? 'flex-col items-start space-y-1' : 'space-x-4'
+                                }`}>
+                                  <span>{group.farmer.farm}</span>
+                                  <div className="flex items-center space-x-1">
+                                    <MapPin className="w-3 h-3" />
+                                    <span>{group.farmer.location}</span>
+                                  </div>
+                                  {!screenSize.isMobile && (
+                                    <div className="flex items-center space-x-1">
+                                      <Leaf className="w-3 h-3 text-green-500" />
+                                      <span className="text-green-600">Sustainability: {group.farmer.sustainabilityScore}%</span>
+                                    </div>
+                                  )}
+                                </div>
+                              </div>
+                            </div>
+                            
+                            <div className="flex items-center space-x-1 lg:space-x-2">
+                              <button
+                                onClick={() => contactFarmer(group.farmer)}
+                                className={`flex items-center space-x-1 lg:space-x-2 px-2 lg:px-4 py-2 bg-white border border-emerald-200 rounded-xl text-emerald-700 hover:bg-emerald-50 transition-colors text-xs lg:text-sm font-medium ${
+                                  screenSize.isMobile ? 'px-2' : ''
+                                }`}
+                              >
+                                <Phone className="w-3 lg:w-4 h-3 lg:h-4" />
+                                {!screenSize.isMobile && <span>Contact</span>}
+                              </button>
+                              {!screenSize.isMobile && (
+                                <button className="p-2 bg-white border border-emerald-200 rounded-xl text-emerald-700 hover:bg-emerald-50 transition-colors">
+                                  <MessageCircle className="w-4 h-4" />
+                                </button>
+                              )}
                             </div>
                           </div>
                         </div>
-                      </label>
-                    ))}
-                  </div>
 
-                  {selectedDelivery === 'pickup' && Object.keys(groupedByFarmer).length > 1 && (
-                    <div className="mt-4 p-3 bg-yellow-50 border border-yellow-200 rounded-lg">
-                      <div className="flex items-start space-x-2">
-                        <AlertCircle className="w-4 h-4 text-yellow-600 mt-0.5" />
-                        <div className="text-sm text-yellow-800">
-                          <div className="font-medium">Multiple pickup locations</div>
-                          <div>You'll need to visit {Object.keys(groupedByFarmer).length} different farms to collect all items.</div>
+                        {/* Items from this farmer - Mobile Optimized */}
+                        <div className="divide-y divide-gray-100">
+                          {group.items.map((item) => (
+                            <div key={item.id} className="p-4 lg:p-6">
+                              <div className={`flex space-x-4 lg:space-x-6 ${
+                                screenSize.isMobile ? 'flex-col space-x-0 space-y-4' : 'items-center'
+                              }`}>
+                                {/* Enhanced Product Image */}
+                                <div className="relative w-16 lg:w-20 h-16 lg:h-20 bg-gradient-to-br from-gray-50 to-gray-100 rounded-xl flex items-center justify-center text-2xl lg:text-3xl flex-shrink-0 mx-auto">
+                                  {item.image}
+                                  {item.discount > 0 && (
+                                    <span className="absolute -top-2 -right-2 bg-red-500 text-white text-xs px-1.5 py-0.5 rounded-full font-bold">
+                                      -{item.discount}%
+                                    </span>
+                                  )}
+                                </div>
+                                
+                                {/* Enhanced Product Details - Mobile Layout */}
+                                <div className="flex-1 min-w-0">
+                                  <div className="flex items-start justify-between mb-3">
+                                    <div className="flex-1">
+                                      <h4 className="font-bold text-base lg:text-lg text-gray-900 mb-2">{item.name}</h4>
+                                      <div className={`flex items-center mb-2 ${
+                                        screenSize.isMobile ? 'flex-col items-start space-y-2' : 'space-x-4'
+                                      }`}>
+                                        <div className="flex items-center space-x-2">
+                                          <span className="text-lg lg:text-xl font-bold text-emerald-600">Rs. {item.price}</span>
+                                          {item.originalPrice > item.price && (
+                                            <span className="text-sm text-gray-500 line-through">Rs. {item.originalPrice}</span>
+                                          )}
+                                          <span className="text-sm text-gray-600">per {item.unit}</span>
+                                        </div>
+                                        {!screenSize.isMobile && (
+                                          <div className="flex items-center space-x-1">
+                                            <Star className="w-4 h-4 text-yellow-400 fill-current" />
+                                            <span className="text-sm font-medium">{item.rating}</span>
+                                            <span className="text-sm text-gray-500">({item.reviews})</span>
+                                          </div>
+                                        )}
+                                      </div>
+                                      
+                                      {/* Enhanced Tags - Mobile Optimized */}
+                                      <div className="flex flex-wrap gap-2 mb-3">
+                                        {item.isOrganic && (
+                                          <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-green-100 text-green-800">
+                                            <Leaf className="w-3 h-3 mr-1" />
+                                            Organic
+                                          </span>
+                                        )}
+                                        {item.badges.slice(0, screenSize.isMobile ? 1 : 2).map((badge, index) => (
+                                          <span key={index} className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
+                                            <Award className="w-3 h-3 mr-1" />
+                                            {badge}
+                                          </span>
+                                        ))}
+                                      </div>
+
+                                      {!screenSize.isMobile && (
+                                        <p className="text-sm text-gray-600 mb-3 line-clamp-2">{item.description}</p>
+                                      )}
+                                    </div>
+                                    
+                                    <div className="flex items-center space-x-2 ml-4">
+                                      <button
+                                        onClick={() => addToFavorites(item)}
+                                        className="p-2 text-gray-400 hover:text-red-500 rounded-lg hover:bg-red-50 transition-colors"
+                                      >
+                                        <Heart className="w-4 lg:w-5 h-4 lg:h-5" />
+                                      </button>
+                                      <button
+                                        onClick={() => setShowRemoveConfirm(item.id)}
+                                        className="p-2 text-gray-400 hover:text-red-500 rounded-lg hover:bg-red-50 transition-colors"
+                                      >
+                                        <Trash2 className="w-4 lg:w-5 h-4 lg:h-5" />
+                                      </button>
+                                    </div>
+                                  </div>
+                                  
+                                  {/* Enhanced Quantity & Price - Mobile Layout */}
+                                  <div className={`flex items-center justify-between ${
+                                    screenSize.isMobile ? 'flex-col space-y-4' : ''
+                                  }`}>
+                                    <div className={`flex items-center ${
+                                      screenSize.isMobile ? 'justify-between w-full' : 'space-x-4'
+                                    }`}>
+                                      <div className="flex items-center border-2 border-gray-200 rounded-xl bg-white">
+                                        <button
+                                          onClick={() => updateQuantity(item.id, item.quantity - 1)}
+                                          className="p-2 lg:p-3 hover:bg-gray-100 transition-colors rounded-l-xl"
+                                        >
+                                          <Minus className="w-4 h-4" />
+                                        </button>
+                                        <span className="px-4 lg:px-6 py-2 lg:py-3 font-bold text-lg">{item.quantity}</span>
+                                        <button
+                                          onClick={() => updateQuantity(item.id, item.quantity + 1)}
+                                          disabled={item.quantity >= item.stockLevel}
+                                          className="p-2 lg:p-3 hover:bg-gray-100 transition-colors disabled:opacity-50 disabled:cursor-not-allowed rounded-r-xl"
+                                        >
+                                          <Plus className="w-4 h-4" />
+                                        </button>
+                                      </div>
+                                      {!screenSize.isMobile && (
+                                        <div className="text-sm text-gray-500">
+                                          <div>{item.stockLevel} {item.unit} available</div>
+                                          <div className="flex items-center space-x-1">
+                                            <Truck className="w-3 h-3" />
+                                            <span>{item.estimatedDelivery}</span>
+                                          </div>
+                                        </div>
+                                      )}
+                                    </div>
+                                    
+                                    <div className={`text-right ${screenSize.isMobile ? 'w-full' : ''}`}>
+                                      <div className="text-xl lg:text-2xl font-bold text-gray-900">
+                                        Rs. {(item.price * item.quantity).toLocaleString()}
+                                      </div>
+                                      {item.originalPrice > item.price && (
+                                        <div className="text-sm text-gray-500">
+                                          Save Rs. {((item.originalPrice - item.price) * item.quantity).toLocaleString()}
+                                        </div>
+                                      )}
+                                      <div className="text-sm text-gray-500">
+                                        {item.quantity} {item.unit} × Rs. {item.price}
+                                      </div>
+                                    </div>
+                                  </div>
+                                </div>
+                              </div>
+                            </div>
+                          ))}
                         </div>
                       </div>
-                    </div>
-                  )}
-                </div>
+                    ))}
 
-                {/* Order Summary */}
-                <div className="bg-white p-6 rounded-2xl border border-gray-200">
-                  <h3 className="font-semibold text-gray-900 mb-4">Order Summary</h3>
-                  <div className="space-y-3">
-                    <div className="flex justify-between">
-                      <span className="text-gray-600">Subtotal</span>
-                      <span className="font-medium">Rs. {subtotal.toLocaleString()}</span>
-                    </div>
-                    
-                    {discount > 0 && (
-                      <div className="flex justify-between text-green-600">
-                        <span>Discount (FRESH10)</span>
-                        <span>-Rs. {discount.toLocaleString()}</span>
+                    {/* Recommended Products - Hide on Mobile */}
+                    {!screenSize.isMobile && (
+                      <div className="bg-white rounded-2xl border border-gray-200 p-6">
+                        <h3 className="text-lg font-bold text-gray-900 mb-4">You might also like</h3>
+                        <div className={`grid gap-4 ${
+                          screenSize.isTablet ? 'grid-cols-2' : 'grid-cols-2 md:grid-cols-4'
+                        }`}>
+                          {[
+                            { name: 'Fresh Spinach', price: 120, image: '🥬', farmer: 'Local Farm' },
+                            { name: 'Red Onions', price: 200, image: '🧅', farmer: 'Valley Farm' },
+                            { name: 'Bell Peppers', price: 350, image: '🫑', farmer: 'Green Valley' },
+                            { name: 'Fresh Mint', price: 80, image: '🌿', farmer: 'Herb Garden' }
+                          ].map((product, index) => (
+                            <div key={index} className="border border-gray-200 rounded-xl p-4 hover:shadow-md transition-shadow cursor-pointer">
+                              <div className="text-3xl text-center mb-2">{product.image}</div>
+                              <div className="text-sm font-medium text-gray-900 text-center">{product.name}</div>
+                              <div className="text-sm text-gray-600 text-center">{product.farmer}</div>
+                              <div className="text-emerald-600 font-bold text-center mt-1">Rs. {product.price}</div>
+                              <button className="w-full mt-2 bg-emerald-600 text-white py-1 px-2 rounded-lg text-xs font-medium hover:bg-emerald-700 transition-colors">
+                                Add
+                              </button>
+                            </div>
+                          ))}
+                        </div>
                       </div>
                     )}
-                    
-                    <div className="flex justify-between">
-                      <span className="text-gray-600">Delivery</span>
-                      <span className="font-medium">
-                        {deliveryCost === 0 ? 'Free' : `Rs. ${deliveryCost.toLocaleString()}`}
-                      </span>
+                  </div>
+                </div>
+
+                {/* Enhanced Order Summary - Mobile First */}
+                <div className={screenSize.isMobile ? 'order-1' : 'lg:col-span-1'}>
+                  <div className="bg-white rounded-2xl border border-gray-200 overflow-hidden shadow-sm sticky top-6">
+                    {/* Summary Header */}
+                    <div className="bg-gradient-to-r from-emerald-50 to-blue-50 p-4 lg:p-6 border-b border-emerald-100">
+                      <h3 className="text-lg lg:text-xl font-bold text-gray-900 flex items-center space-x-2">
+                        <Calculator className="w-4 lg:w-5 h-4 lg:h-5" />
+                        <span>Order Summary</span>
+                      </h3>
                     </div>
                     
-                    <div className="border-t border-gray-200 pt-3">
-                      <div className="flex justify-between text-lg font-bold">
-                        <span>Total</span>
-                        <span className="text-emerald-600">Rs. {total.toLocaleString()}</span>
+                    <div className="p-4 lg:p-6">
+                      {/* Delivery Method */}
+                      <div className="mb-6">
+                        <h4 className="font-semibold text-gray-900 mb-4 flex items-center space-x-2">
+                          <Truck className="w-4 h-4" />
+                          <span>Delivery Method</span>
+                        </h4>
+                        <div className="space-y-3">
+                          <label className="flex items-center p-3 lg:p-4 border-2 border-gray-200 rounded-xl cursor-pointer hover:bg-gray-50 transition-colors">
+                            <input
+                              type="radio"
+                              name="delivery"
+                              value="delivery"
+                              checked={selectedDeliveryMethod === 'delivery'}
+                              onChange={(e) => setSelectedDeliveryMethod(e.target.value)}
+                              className="w-4 h-4 text-emerald-600"
+                            />
+                            <div className="ml-3 flex-1">
+                              <div className="flex items-center justify-between">
+                                <div className="flex items-center space-x-2">
+                                  <Truck className="w-4 h-4 text-emerald-600" />
+                                  <span className="font-medium text-gray-900 text-sm lg:text-base">Home Delivery</span>
+                                </div>
+                                <span className="text-sm text-gray-600">Rs. 150</span>
+                              </div>
+                              <div className="text-xs lg:text-sm text-gray-600 mt-1">Delivery within 2-3 days</div>
+                            </div>
+                          </label>
+                          
+                          <label className="flex items-center p-3 lg:p-4 border-2 border-gray-200 rounded-xl cursor-pointer hover:bg-gray-50 transition-colors">
+                            <input
+                              type="radio"
+                              name="delivery"
+                              value="pickup"
+                              checked={selectedDeliveryMethod === 'pickup'}
+                              onChange={(e) => setSelectedDeliveryMethod(e.target.value)}
+                              className="w-4 h-4 text-emerald-600"
+                            />
+                            <div className="ml-3 flex-1">
+                              <div className="flex items-center justify-between">
+                                <div className="flex items-center space-x-2">
+                                  <MapPin className="w-4 h-4 text-emerald-600" />
+                                  <span className="font-medium text-gray-900 text-sm lg:text-base">Farm Pickup</span>
+                                </div>
+                                <span className="text-sm text-emerald-600 font-medium">Free</span>
+                              </div>
+                              <div className="text-xs lg:text-sm text-gray-600 mt-1">Pickup from farm locations</div>
+                            </div>
+                          </label>
+                        </div>
+                      </div>
+
+                      {/* Enhanced Coupon Code */}
+                      <div className="mb-6">
+                        <h4 className="font-semibold text-gray-900 mb-4 flex items-center space-x-2">
+                          <Tag className="w-4 h-4" />
+                          <span>Promo Code</span>
+                        </h4>
+                        {appliedCoupon ? (
+                          <div className="flex items-center justify-between p-3 lg:p-4 bg-green-50 border-2 border-green-200 rounded-xl">
+                            <div className="flex items-center space-x-3">
+                              <Tag className="w-4 lg:w-5 h-4 lg:h-5 text-green-600" />
+                              <div>
+                                <div className="font-bold text-green-900 text-sm lg:text-base">{appliedCoupon.code}</div>
+                                <div className="text-xs lg:text-sm text-green-700">{appliedCoupon.description}</div>
+                              </div>
+                            </div>
+                            <button
+                              onClick={removeCoupon}
+                              className="text-green-600 hover:text-green-700 p-1"
+                            >
+                              <X className="w-4 lg:w-5 h-4 lg:h-5" />
+                            </button>
+                          </div>
+                        ) : (
+                          <div>
+                            <div className="flex space-x-2">
+                              <input
+                                type="text"
+                                placeholder="Enter coupon code"
+                                value={couponCode}
+                                onChange={(e) => setCouponCode(e.target.value)}
+                                className="flex-1 border-2 border-gray-200 rounded-xl px-3 lg:px-4 py-2 lg:py-3 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
+                              />
+                              <button
+                                onClick={applyCoupon}
+                                disabled={!couponCode}
+                                className="px-4 lg:px-6 py-2 lg:py-3 bg-emerald-600 text-white rounded-xl text-sm font-semibold hover:bg-emerald-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                              >
+                                Apply
+                              </button>
+                            </div>
+                            <div className="mt-3 p-3 bg-blue-50 rounded-lg">
+                              <div className="text-xs text-blue-700 font-medium mb-1">Available Codes:</div>
+                              <div className="flex flex-wrap gap-2">
+                                <button
+                                  onClick={() => setCouponCode('FRESH10')}
+                                  className="text-xs bg-blue-100 text-blue-700 px-2 py-1 rounded font-medium hover:bg-blue-200"
+                                >
+                                  FRESH10
+                                </button>
+                                <button
+                                  onClick={() => setCouponCode('FIRSTBUY')}
+                                  className="text-xs bg-blue-100 text-blue-700 px-2 py-1 rounded font-medium hover:bg-blue-200"
+                                >
+                                  FIRSTBUY
+                                </button>
+                                <button
+                                  onClick={() => setCouponCode('ORGANIC15')}
+                                  className="text-xs bg-blue-100 text-blue-700 px-2 py-1 rounded font-medium hover:bg-blue-200"
+                                >
+                                  ORGANIC15
+                                </button>
+                              </div>
+                            </div>
+                          </div>
+                        )}
+                      </div>
+
+                      {/* Enhanced Price Breakdown */}
+                      <div className="space-y-4 border-t border-gray-200 pt-6">
+                        <div className="flex items-center justify-between text-sm">
+                          <span className="text-gray-600">Subtotal ({totalItems} items)</span>
+                          <span className="font-medium text-gray-900">Rs. {subtotal.toLocaleString()}</span>
+                        </div>
+                        
+                        {productSavings > 0 && (
+                          <div className="flex items-center justify-between text-sm">
+                            <span className="text-green-600">Product Discounts</span>
+                            <span className="font-medium text-green-600">-Rs. {productSavings.toLocaleString()}</span>
+                          </div>
+                        )}
+                        
+                        <div className="flex items-center justify-between text-sm">
+                          <span className="text-gray-600">Delivery Fee</span>
+                          <span className="font-medium text-gray-900">
+                            {deliveryFee === 0 ? (
+                              <span className="text-green-600 font-semibold">Free</span>
+                            ) : (
+                              `Rs. ${deliveryFee}`
+                            )}
+                          </span>
+                        </div>
+                        
+                        {appliedCoupon && (
+                          <div className="flex items-center justify-between text-sm">
+                            <span className="text-green-600">Coupon Discount ({appliedCoupon.code})</span>
+                            <span className="font-medium text-green-600">
+                              -Rs. {Math.round(discount).toLocaleString()}
+                            </span>
+                          </div>
+                        )}
+                        
+                        <div className="flex items-center justify-between text-lg lg:text-xl font-bold text-gray-900 border-t border-gray-200 pt-4">
+                          <span>Total</span>
+                          <span className="text-emerald-600">Rs. {total.toLocaleString()}</span>
+                        </div>
+
+                        {(productSavings + discount) > 0 && (
+                          <div className="text-center p-3 bg-green-50 rounded-xl">
+                            <div className="text-sm text-green-800">
+                              🎉 You're saving <span className="font-bold">Rs. {Math.round(productSavings + discount).toLocaleString()}</span> on this order!
+                            </div>
+                          </div>
+                        )}
+                      </div>
+
+                      {/* Enhanced Checkout Button */}
+                      <button
+                        onClick={() => setShowCheckout(true)}
+                        className="w-full mt-6 bg-gradient-to-r from-emerald-600 to-green-600 text-white py-3 lg:py-4 px-6 rounded-xl font-bold hover:from-emerald-700 hover:to-green-700 transition-all duration-200 transform hover:scale-105 flex items-center justify-center space-x-3 shadow-lg shadow-emerald-500/25"
+                      >
+                        <CreditCard className="w-4 lg:w-5 h-4 lg:h-5" />
+                        <span>{screenSize.isMobile ? 'Checkout' : 'Proceed to Checkout'}</span>
+                        <ArrowRight className="w-4 lg:w-5 h-4 lg:h-5" />
+                      </button>
+
+                      {/* Security & Trust Info */}
+                      <div className="mt-6 space-y-3">
+                        <div className="flex items-center justify-center space-x-2 text-sm text-gray-500">
+                          <Shield className="w-4 h-4" />
+                          <span>{screenSize.isMobile ? 'SSL encrypted' : '256-bit SSL encrypted checkout'}</span>
+                        </div>
+                        <div className="flex items-center justify-center space-x-4 text-xs text-gray-500">
+                          <div className="flex items-center space-x-1">
+                            <CheckCircle className="w-3 h-3 text-green-500" />
+                            <span>Fresh guarantee</span>
+                          </div>
+                          <div className="flex items-center space-x-1">
+                            <RefreshCw className="w-3 h-3 text-blue-500" />
+                            <span>Easy returns</span>
+                          </div>
+                          <div className="flex items-center space-x-1">
+                            <Heart className="w-3 h-3 text-red-500" />
+                            <span>Local farmers</span>
+                          </div>
+                        </div>
                       </div>
                     </div>
                   </div>
+                </div>
+              </div>
+            )}
+          </div>
+        </main>
 
+        {/* Remove Confirmation Modal */}
+        {showRemoveConfirm && (
+          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
+            <div className="bg-white rounded-2xl p-6 w-full max-w-md">
+              <div className="text-center">
+                <div className="w-16 h-16 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                  <Trash2 className="w-8 h-8 text-red-600" />
+                </div>
+                <h3 className="text-lg font-bold text-gray-900 mb-2">Remove Item?</h3>
+                <p className="text-gray-600 mb-6">Are you sure you want to remove this item from your cart?</p>
+                <div className="flex space-x-3">
                   <button
-                    onClick={handleCheckout}
-                    disabled={cartItems.some(item => !item.inStock)}
-                    className="w-full bg-emerald-600 text-white py-3 rounded-xl font-semibold hover:bg-emerald-700 disabled:bg-gray-300 disabled:cursor-not-allowed transition-all mt-6 flex items-center justify-center space-x-2 shadow-lg hover:shadow-xl transform hover:scale-105"
+                    onClick={() => setShowRemoveConfirm(null)}
+                    className="flex-1 border border-gray-300 text-gray-700 py-2 px-4 rounded-xl font-medium hover:bg-gray-50 transition-colors"
                   >
-                    <CreditCard className="w-5 h-5" />
-                    <span>Proceed to Checkout</span>
-                    <ArrowRight className="w-4 h-4" />
+                    Cancel
                   </button>
-
-                  {cartItems.some(item => !item.inStock) && (
-                    <div className="mt-3 p-3 bg-red-50 border border-red-200 rounded-lg">
-                      <div className="flex items-center space-x-2 text-sm text-red-700">
-                        <AlertCircle className="w-4 h-4" />
-                        <span>Remove out of stock items to proceed</span>
-                      </div>
-                    </div>
-                  )}
+                  <button
+                    onClick={() => removeItem(showRemoveConfirm)}
+                    className="flex-1 bg-red-600 text-white py-2 px-4 rounded-xl font-medium hover:bg-red-700 transition-colors"
+                  >
+                    Remove
+                  </button>
                 </div>
               </div>
             </div>
           </div>
-        </main>
+        )}
       </div>
     </div>
   );
 };
 
-export default CartPage;
+export default CustomerCartPage;

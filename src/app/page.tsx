@@ -142,7 +142,7 @@ const FieldFairLanding = () => {
   const currentSlideData = heroSlides[currentSlide];
 
   return (
-    <div className="min-h-screen bg-white overflow-x-hidden">
+    <div className="min-h-screen bg-white overflow-x-hidden font-inter">
       <Navbar onCardHighlight={handleCardHighlight} />
 
       {/* Hero Section */}

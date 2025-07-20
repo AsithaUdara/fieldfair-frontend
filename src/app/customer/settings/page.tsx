@@ -1,564 +1,214 @@
 "use client";
 
-import React, { useState, useEffect, useRef } from 'react';
-import Link from 'next/link';
-import { usePathname } from 'next/navigation';
+import React, { useState, useEffect } from 'react';
+import FieldFairSidebar from '@/components/ui/layout/sidebar';
 import { 
   LayoutGrid, 
-  Shield,
+  Settings,
   Bell,
-  Eye,
-  Moon,
+  Lock,
+  CreditCard,
   Globe,
-  Download,
-  Trash2,
-  Key,
+  Shield,
   Smartphone,
   Mail,
-  AlertTriangle,
-  Check,
-  Settings,
-  Lock,
+  User,
   Database,
-  FileText,
+  Download,
+  Trash2,
+  Save,
+  Eye,
+  EyeOff,
+  Check,
+  X,
+  AlertTriangle,
+  Info,
+  Moon,
+  Sun,
+  Languages,
+  MapPin,
+  Clock,
+  Wifi,
   HelpCircle,
   LogOut,
-  Save,
-  Search,
-  MapPin,
-  Star,
-  Leaf,
-  Heart,
-  ShoppingCart,
-  Package,
-  Phone,
-  MessageCircle,
-  BarChart3, 
-  ChevronLeft,
-  ChevronRight,
-  ChevronDown,
-  Sprout,
-  History,
-  QrCode,
-  User,
-  Route,
+  RefreshCw,
+  FileText,
   Camera,
-  Navigation,
-  Scan,
-  Menu,
-  X,
+  Volume2,
+  VolumeX,
   Zap,
   Target,
-  TrendingUp
+  Heart,
+  Package,
+  ShoppingCart,
+  Star,
+  Leaf,
+  Users,
+  MessageCircle,
+  Phone,
+  Search,
+  Filter,
+  TrendingUp,
+  DollarSign,
+  Percent,
+  Gift,
+  Award,
+  Navigation,
+  Truck,
+  Calendar,
+  Timer,
+  Sparkles,
+  CheckCircle,
+  Menu
 } from 'lucide-react';
 
-// Modern Sidebar Component (embedded)
-interface MenuItem {
-  name: string;
-  icon: React.ComponentType<any>;
-  path: string;
-  badge?: string;
-  hasSubmenu?: boolean;
-  active?: boolean;
-  submenu?: MenuItem[];
-}
-
-interface FieldFairSidebarProps {
-  isCollapsed?: boolean;
-  setIsCollapsed?: (collapsed: boolean) => void;
-  isMobile?: boolean;
-  isOpen?: boolean;
-  onClose?: () => void;
-  userType?: 'farmer' | 'customer';
-}
-
-const FieldFairSidebar: React.FC<FieldFairSidebarProps> = ({
-  isCollapsed = false,
-  setIsCollapsed,
-  isMobile = false,
-  isOpen = false,
-  onClose,
-  userType = 'customer'
-}) => {
-  const pathname = usePathname();
-  const scrollRef = useRef<HTMLDivElement>(null);
-  const [activeMenu, setActiveMenu] = useState('Profile');
-  const [mounted, setMounted] = useState(false);
-  const [expandedMenus, setExpandedMenus] = useState<string[]>(['Profile']); // Auto-expand Profile
-  
-  // Customer menu items
-  const customerMenuItems: MenuItem[] = [
-    { name: 'Marketplace', icon: Search, path: '/marketplace' },
-    { name: 'My Cart', icon: ShoppingCart, path: '/marketplace/cart', badge: '2' },
-    { 
-      name: 'My Orders', 
-      icon: Package, 
-      path: '/customer/orders',
-      hasSubmenu: true,
-      submenu: [
-        { name: 'Current Orders', icon: Package, path: '/customer/orders' },
-        { name: 'Order History', icon: History, path: '/customer/history' }
-      ]
-    },
-    { name: 'Favorites', icon: Heart, path: '/customer/favorites' },
-    { 
-      name: 'Discover', 
-      icon: MapPin, 
-      path: '/customer/farms',
-      hasSubmenu: true,
-      submenu: [
-        { name: 'Find Farms', icon: MapPin, path: '/customer/farms' },
-        { name: 'QR Scanner', icon: QrCode, path: '/customer/qr-scanner' },
-        { name: 'Track Products', icon: Route, path: '/maps/supply-chain' }
-      ]
-    },
-    {
-      name: 'AI Assistant',
-      icon: Zap,
-      path: '/ai/recommendations',
-      hasSubmenu: true,
-      submenu: [
-        { name: 'Recommendations', icon: Target, path: '/ai/recommendations' },
-        { name: 'Price Forecasting', icon: TrendingUp, path: '/ai/forecasting' },
-        { name: 'Chat Assistant', icon: MessageCircle, path: '/ai/chatbot' }
-      ]
-    }
-  ];
-  
-  const generalItems: MenuItem[] = [
-    { 
-      name: 'Profile', 
-      icon: User, 
-      path: '/customer/profile',
-      hasSubmenu: true,
-      active: true,
-      submenu: [
-        { name: 'My Profile', icon: User, path: '/customer/profile' },
-        { name: 'Settings', icon: Settings, path: '/customer/settings' },
-        { name: 'Notifications', icon: Bell, path: '/customer/notifications' }
-      ]
-    }
-  ];
-
-  // Prevent hydration issues
-  useEffect(() => {
-    setMounted(true);
-  }, []);
-
-  // Set active menu based on current path
-  useEffect(() => {
-    if (mounted) {
-      const allItems = [...customerMenuItems, ...generalItems];
-      let foundItem = null;
-
-      // Check if we're in settings
-      if (pathname?.includes('/customer/settings')) {
-        setActiveMenu('Profile');
-        if (!expandedMenus.includes('Profile')) {
-          setExpandedMenus(prev => [...prev, 'Profile']);
-        }
-        return;
-      }
-
-      // First, check for exact matches
-      foundItem = allItems.find(item => pathname === item.path);
-      
-      // If no exact match, check submenus
-      if (!foundItem) {
-        for (const item of allItems) {
-          if (item.submenu) {
-            const submenuItem = item.submenu.find(subItem => pathname === subItem.path || pathname?.startsWith(subItem.path));
-            if (submenuItem) {
-              foundItem = item;
-              // Auto-expand parent menu if submenu item is active
-              setExpandedMenus(prev => 
-                prev.includes(item.name) ? prev : [...prev, item.name]
-              );
-              break;
-            }
-          }
-        }
-      }
-
-      // If still no match, check for path prefixes
-      if (!foundItem) {
-        foundItem = allItems.find(item => pathname?.startsWith(item.path));
-      }
-
-      if (foundItem) {
-        setActiveMenu(foundItem.name);
-      }
-    }
-  }, [pathname, mounted]);
-
-  const handleMenuClick = (item: MenuItem) => {
-    if (item.hasSubmenu && !isCollapsed) {
-      // Toggle submenu expansion
-      setExpandedMenus(prev => 
-        prev.includes(item.name) 
-          ? prev.filter(name => name !== item.name)
-          : [...prev, item.name]
-      );
-    } else {
-      setActiveMenu(item.name);
-      if (isMobile && onClose) {
-        onClose();
-      }
-    }
-  };
-
-  const handleSubmenuClick = (parentItem: MenuItem, subItem: MenuItem) => {
-    setActiveMenu(parentItem.name);
-    if (isMobile && onClose) {
-      onClose();
-    }
-  };
-
-  // Don't render until mounted to prevent hydration errors
-  if (!mounted) {
-    return null;
-  }
-
-  const getUserInfo = () => {
-    return {
-      name: 'Nimal Perera',
-      subtitle: 'Premium Customer • Colombo',
-      avatar: 'NP',
-      status: 'Active Member',
-      statusColor: 'bg-blue-500'
-    };
-  };
-
-  const userInfo = getUserInfo();
-
-  const cn = (...classes: string[]) => classes.filter(Boolean).join(' ');
-
-  const renderMenuItem = (item: MenuItem, isSubmenu = false) => {
-    const isActive = activeMenu === item.name || 
-                    (item.submenu && item.submenu.some(subItem => pathname === subItem.path || pathname?.startsWith(subItem.path)));
-    const isExpanded = expandedMenus.includes(item.name);
-    const hasActiveSubmenu = item.submenu && item.submenu.some(subItem => pathname === subItem.path || pathname?.startsWith(subItem.path));
-
-    return (
-      <div key={item.name}>
-        <div className={isCollapsed && !isSubmenu ? "flex justify-center" : ""}>
-          <Link 
-            href={item.hasSubmenu ? '#' : item.path}
-            onClick={(e) => {
-              if (item.hasSubmenu) {
-                e.preventDefault();
-                handleMenuClick(item);
-              } else {
-                handleMenuClick(item);
-              }
-            }}
-            className={cn(
-              "flex items-center py-3.5 rounded-xl transition-all duration-300 group relative overflow-hidden",
-              isActive || hasActiveSubmenu
-                ? 'bg-gradient-to-r from-emerald-500 to-emerald-600 text-white shadow-lg shadow-emerald-500/25' 
-                : 'text-slate-300 hover:bg-white/5 hover:text-white backdrop-blur-sm',
-              isCollapsed && !isSubmenu ? "w-12 h-12 justify-center mx-auto" : "px-4 w-full mx-2",
-              isSubmenu ? "ml-6 text-sm" : ""
-            )}
-          >
-            {/* Animated background for active state */}
-            {(isActive || hasActiveSubmenu) && !isCollapsed && !isSubmenu && (
-              <div className="absolute inset-0 bg-gradient-to-r from-emerald-400/20 to-emerald-600/20 rounded-xl animate-pulse"></div>
-            )}
-            
-            {/* Modern active indicator */}
-            {(isActive || hasActiveSubmenu) && !isCollapsed && !isSubmenu && (
-              <span className="absolute left-0 top-1/2 -translate-y-1/2 w-1 h-8 bg-white rounded-r-full shadow-lg"></span>
-            )}
-            
-            <item.icon className={cn(
-              "w-5 h-5 relative z-10 transition-transform duration-300",
-              isActive || hasActiveSubmenu ? "text-white scale-110" : "text-slate-400 group-hover:text-white group-hover:scale-105",
-              isSubmenu ? "w-4 h-4" : ""
-            )} />
-            
-            {!isCollapsed && (
-              <>
-                <span className="ml-4 flex-1 text-left font-medium relative z-10 transition-all duration-300">
-                  {item.name}
-                </span>
-                {item.badge && (
-                  <span className="bg-gradient-to-r from-orange-400 to-orange-500 text-white text-[10px] px-2.5 py-1 rounded-full font-bold shadow-lg relative z-10 animate-pulse">
-                    {item.badge}
-                  </span>
-                )}
-                {item.hasSubmenu && (
-                  <ChevronDown className={cn(
-                    "w-4 h-4 relative z-10 transition-all duration-300",
-                    isExpanded ? "rotate-180 text-white" : "text-slate-400 group-hover:text-white",
-                    isActive || hasActiveSubmenu ? "text-white" : ""
-                  )} />
-                )}
-              </>
-            )}
-
-            {/* Enhanced tooltip for collapsed state */}
-            {isCollapsed && !isSubmenu && (
-              <div className="absolute left-full ml-3 px-3 py-2 bg-slate-800 text-white text-sm rounded-lg opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-300 z-50 whitespace-nowrap shadow-xl border border-slate-700">
-                <div className="font-medium">{item.name}</div>
-                {item.badge && (
-                  <span className="inline-block mt-1 bg-orange-500 text-xs px-2 py-0.5 rounded-full">
-                    {item.badge}
-                  </span>
-                )}
-                {/* Tooltip arrow */}
-                <div className="absolute right-full top-1/2 -translate-y-1/2 border-4 border-transparent border-r-slate-800"></div>
-              </div>
-            )}
-          </Link>
-        </div>
-
-        {/* Enhanced submenu with modern styling */}
-        {item.hasSubmenu && !isCollapsed && isExpanded && item.submenu && (
-          <div className="ml-6 mt-2 space-y-1 animate-in slide-in-from-left-2 duration-300">
-            {item.submenu.map((subItem) => (
-              <Link
-                key={subItem.name}
-                href={subItem.path}
-                onClick={() => handleSubmenuClick(item, subItem)}
-                className={cn(
-                  "flex items-center py-3 px-4 rounded-lg transition-all duration-300 text-sm group relative overflow-hidden",
-                  pathname === subItem.path || pathname?.startsWith(subItem.path)
-                    ? 'bg-gradient-to-r from-emerald-400/30 to-emerald-500/30 text-white backdrop-blur-sm'
-                    : 'text-slate-400 hover:bg-white/5 hover:text-white hover:pl-6'
-                )}
-              >
-                <subItem.icon className="w-4 h-4 mr-3 transition-transform duration-300 group-hover:scale-110" />
-                <span className="transition-all duration-300">{subItem.name}</span>
-                
-                {/* Submenu active indicator */}
-                {(pathname === subItem.path || pathname?.startsWith(subItem.path)) && (
-                  <div className="absolute right-2 w-2 h-2 bg-white rounded-full animate-pulse"></div>
-                )}
-              </Link>
-            ))}
-          </div>
-        )}
-      </div>
-    );
-  };
-
-  return (
-    <>
-      {/* Enhanced backdrop for mobile */}
-      {isMobile && isOpen && (
-        <div 
-          className="fixed inset-0 bg-black/60 backdrop-blur-sm z-40 transition-opacity duration-300 ease-in-out" 
-          onClick={onClose}
-        />
-      )}
-      
-      <aside 
-        className={cn(
-          "fixed h-screen left-0 top-0 z-50 transition-all duration-500 flex flex-col shadow-2xl border-r border-slate-800/50",
-          "bg-gradient-to-b from-slate-900 via-slate-800 to-slate-900 text-white backdrop-blur-xl",
-          isCollapsed ? "w-20" : "w-72",
-          isMobile ? (isOpen ? "translate-x-0" : "-translate-x-full") : "translate-x-0"
-        )}
-      >
-        {/* Modern background pattern */}
-        <div className="absolute inset-0 z-0">
-          <div className="absolute inset-0 bg-gradient-to-br from-emerald-900/20 via-transparent to-blue-900/20"></div>
-          <div className="absolute inset-0 bg-[radial-gradient(circle_at_30%_80%,rgba(16,185,129,0.1),transparent_50%)]"></div>
-          <div className="absolute inset-0 bg-[radial-gradient(circle_at_70%_20%,rgba(59,130,246,0.1),transparent_50%)]"></div>
-          
-          {/* Animated floating elements */}
-          <div className="absolute bottom-10 right-6 opacity-5">
-            <Leaf className="w-24 h-24 text-emerald-400 animate-pulse" />
-          </div>
-          <div className="absolute top-1/3 right-4 opacity-5">
-            <Sprout className="w-16 h-16 text-emerald-300 animate-bounce" style={{animationDuration: '3s'}} />
-          </div>
-        </div>
-
-        {/* Modern close button for mobile */}
-        {isMobile && (
-          <button
-            onClick={onClose}
-            className="absolute top-4 right-4 w-10 h-10 flex items-center justify-center rounded-xl z-50 bg-slate-800/80 text-slate-300 lg:hidden hover:bg-slate-700 transition-all duration-300 backdrop-blur-sm border border-slate-700/50"
-          >
-            <X className="w-5 h-5" />
-          </button>
-        )}
-        
-        {/* Enhanced Logo Section */}
-        <div className={cn(
-          "border-b border-slate-700/50 relative z-10 backdrop-blur-sm",
-          isCollapsed ? "p-4" : "px-6 py-6"
-        )}>
-          <div className={cn(
-            "flex items-center",
-            isCollapsed ? "justify-center" : ""
-          )}>
-            {/* Modern FieldFair Logo */}
-            <div className="w-10 h-10 bg-gradient-to-br from-emerald-400 to-emerald-600 rounded-xl flex items-center justify-center shadow-lg shadow-emerald-500/25 ring-2 ring-emerald-400/20">
-              <Sprout className="w-6 h-6 text-white" />
-            </div>
-            {!isCollapsed && (
-              <div className="ml-4">
-                <span className="text-2xl font-bold bg-gradient-to-r from-white to-emerald-200 bg-clip-text text-transparent">
-                  FieldFair
-                </span>
-                <div className="text-xs text-emerald-300/80 font-medium">Customer Portal</div>
-              </div>
-            )}
-          </div>
-          
-          {/* Modern toggle button */}
-          {!isMobile && setIsCollapsed && (
-            <button 
-              onClick={() => setIsCollapsed(!isCollapsed)}
-              className={cn(
-                "absolute w-8 h-8 hidden lg:flex items-center justify-center rounded-full transition-all duration-300",
-                "bg-slate-800/80 text-slate-300 hover:bg-slate-700 hover:text-white shadow-lg backdrop-blur-sm border border-slate-600/50",
-                isCollapsed ? "right-0 -mr-4 top-[26px]" : "right-0 -mr-4 top-[32px]"
-              )}
-              aria-label="Toggle sidebar"
-            >
-              {isCollapsed ? (
-                <ChevronRight className="w-4 h-4" />
-              ) : (
-                <ChevronLeft className="w-4 h-4" />
-              )}
-            </button>
-          )}
-        </div>
-        
-        {/* Enhanced Menu Section */}
-        <div className="flex-1 relative overflow-hidden">
-          <div 
-            ref={scrollRef}
-            className="h-full py-6 overflow-y-auto transition-all duration-500 ease-in-out scrollbar-thin scrollbar-track-slate-800 scrollbar-thumb-slate-600 hover:scrollbar-thumb-slate-500"
-          >
-            {/* Main Section */}
-            <div className={cn("mb-8", isCollapsed ? "px-2" : "px-4")}>
-              {!isCollapsed && (
-                <div className="text-[10px] text-emerald-300/70 mb-4 uppercase tracking-[0.15em] font-bold px-2">
-                  🛒 MARKETPLACE
-                </div>
-              )}
-              <nav className="space-y-2">
-                {customerMenuItems.map((item) => renderMenuItem(item))}
-              </nav>
-            </div>
-            
-            {/* Account Section */}
-            <div className={cn("mt-8", isCollapsed ? "px-2" : "px-4")}>
-              {!isCollapsed && (
-                <div className="text-[10px] text-emerald-300/70 mb-4 uppercase tracking-[0.15em] font-bold px-2">
-                  👤 ACCOUNT
-                </div>
-              )}
-              <nav className="space-y-2">
-                {generalItems.map((item) => renderMenuItem(item))}
-              </nav>
-            </div>
-          </div>
-        </div>
-        
-        {/* Enhanced User Profile */}
-        {!isCollapsed && (
-          <div className="p-4 border-t border-slate-700/50 relative z-10 backdrop-blur-sm">
-            <div className="flex items-center bg-slate-800/30 rounded-xl p-3 backdrop-blur-sm border border-slate-700/30">
-              <div className="w-12 h-12 bg-gradient-to-br from-slate-600 to-slate-700 rounded-xl flex items-center justify-center relative ring-2 ring-slate-600/50">
-                <span className="text-sm font-bold text-white">{userInfo.avatar}</span>
-                {/* Online status indicator */}
-                <div className={cn(
-                  "absolute -bottom-1 -right-1 w-4 h-4 rounded-full border-2 border-slate-800",
-                  userInfo.statusColor
-                )}></div>
-              </div>
-              <div className="ml-3 flex-1">
-                <div className="text-sm font-semibold text-white">{userInfo.name}</div>
-                <div className="text-xs text-slate-300">{userInfo.subtitle}</div>
-                <div className="text-[10px] text-emerald-400 mt-1 font-medium">{userInfo.status}</div>
-              </div>
-              <button className="p-2 rounded-lg hover:bg-slate-700/50 transition-colors duration-300">
-                <Settings className="w-4 h-4 text-slate-400 hover:text-white transition-colors duration-300" />
-              </button>
-            </div>
-          </div>
-        )}
-      </aside>
-    </>
-  );
-};
-
-// Main Settings Component
 const CustomerSettingsPage = () => {
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
-  const [mobileSidebarOpen, setMobileSidebarOpen] = useState(false);
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [mounted, setMounted] = useState(false);
-  const [activeTab, setActiveTab] = useState('security');
-  const [hasChanges, setHasChanges] = useState(false);
+  const [activeSection, setActiveSection] = useState('general');
+  const [showPassword, setShowPassword] = useState(false);
+  const [pendingChanges, setPendingChanges] = useState(false);
+  
+  // Enhanced responsive detection that matches the sidebar
+  const [screenSize, setScreenSize] = useState({
+    isMobile: false,
+    isTablet: false,
+    isDesktop: false
+  });
 
-  // Settings state
+  // Settings data
   const [settings, setSettings] = useState({
-    security: {
-      twoFactorEnabled: false,
-      loginNotifications: true,
-      sessionTimeout: 30,
-      deviceTrust: true
+    // General Settings
+    general: {
+      language: 'en',
+      timezone: 'Asia/Colombo',
+      dateFormat: 'DD/MM/YYYY',
+      currency: 'LKR',
+      theme: 'light',
+      autoSave: true,
+      defaultViewMode: 'grid'
     },
-    privacy: {
-      profileVisibility: 'private',
-      activitySharing: false,
-      dataCollection: true,
-      thirdPartySharing: false,
-      locationTracking: true
-    },
+    
+    // Notification Settings
     notifications: {
       email: {
         orderUpdates: true,
-        promotions: false,
         newProducts: true,
-        priceAlerts: true,
-        newsletter: false
+        priceDrops: true,
+        farmerMessages: true,
+        weeklyDeals: false,
+        marketingEmails: false,
+        newsletter: true
       },
       push: {
         orderUpdates: true,
-        promotions: false,
+        deliveryAlerts: true,
         newProducts: false,
-        priceAlerts: true,
-        marketing: false
+        priceDrops: true,
+        chatMessages: true,
+        specialOffers: false
       },
       sms: {
-        orderUpdates: true,
-        promotions: false,
-        security: true
+        orderConfirmations: true,
+        deliveryAlerts: true,
+        emergencyAlerts: true,
+        marketingMessages: false
+      },
+      sound: true,
+      vibration: true,
+      quiet_hours: {
+        enabled: true,
+        start: '22:00',
+        end: '07:00'
       }
     },
-    app: {
-      theme: 'light',
-      language: 'en',
-      currency: 'LKR',
-      autoSync: true,
-      offlineMode: true,
-      compression: true
+    
+    // Privacy & Security
+    security: {
+      twoFactorAuth: false,
+      loginAlerts: true,
+      sessionTimeout: 30,
+      allowDataExport: true,
+      profileVisibility: 'friends',
+      showPurchaseHistory: false,
+      allowFarmerContact: true,
+      shareLocationData: true,
+      analyticsOptOut: false
+    },
+    
+    // Shopping Preferences
+    shopping: {
+      defaultSort: 'recommended',
+      preferredDeliveryTime: 'morning',
+      maxDeliveryDistance: 15,
+      autoApplyDiscounts: true,
+      savePaymentMethods: true,
+      wishlistNotifications: true,
+      stockAlerts: true,
+      priceTrackingAlerts: true,
+      organicPreference: true,
+      localFarmersOnly: false,
+      sustainabilityScoreVisible: true
+    },
+    
+    // Payment Settings
+    payment: {
+      defaultPaymentMethod: 'card',
+      saveNewCards: true,
+      requireAuthForPurchases: false,
+      autoReorder: false,
+      budgetAlerts: false,
+      monthlyBudget: 10000,
+      receiptEmails: true
+    },
+    
+    // Communication Settings
+    communication: {
+      allowFarmerMessages: true,
+      autoReplyEnabled: false,
+      preferredContactMethod: 'app',
+      showOnlineStatus: true,
+      blockUnverifiedFarmers: false,
+      ratingReminders: true,
+      reviewIncentives: true
     }
   });
 
-  const tabs = [
-    { id: 'security', label: 'Security', icon: Shield },
-    { id: 'privacy', label: 'Privacy', icon: Eye },
-    { id: 'notifications', label: 'Notifications', icon: Bell },
-    { id: 'app', label: 'App Settings', icon: Settings },
-    { id: 'data', label: 'Data & Storage', icon: Database }
-  ];
-
+  // Enhanced responsive detection - same as marketplace
   useEffect(() => {
     setMounted(true);
-  }, []);
+    
+    const checkScreenSize = () => {
+      const width = window.innerWidth;
+      const newScreenSize = {
+        isMobile: width < 768,
+        isTablet: width >= 768 && width < 1024,
+        isDesktop: width >= 1024
+      };
+      
+      // Only update if there's a change
+      if (JSON.stringify(newScreenSize) !== JSON.stringify(screenSize)) {
+        setScreenSize(newScreenSize);
+      }
 
+      // Auto-close mobile menu when switching to desktop/tablet
+      if (!newScreenSize.isMobile && isMobileMenuOpen) {
+        setIsMobileMenuOpen(false);
+      }
+    };
+    
+    checkScreenSize();
+    window.addEventListener('resize', checkScreenSize, { passive: true });
+    
+    return () => window.removeEventListener('resize', checkScreenSize);
+  }, [screenSize, isMobileMenuOpen]);
+
+  // Loading state to prevent hydration errors
   if (!mounted) {
     return (
       <div className="flex h-screen bg-gray-50">
-        <div className="w-64 bg-emerald-900"></div>
+        <div className="w-64 bg-emerald-900 animate-pulse"></div>
         <div className="flex-1 flex items-center justify-center">
           <div className="text-gray-500">Loading...</div>
         </div>
@@ -566,518 +216,997 @@ const CustomerSettingsPage = () => {
     );
   }
 
-  const updateSetting = (category: string, key: string, value: any) => {
+  // Enhanced margin calculation that matches the sidebar logic
+  const getMainContentMargin = () => {
+    if (screenSize.isMobile) {
+      return 'ml-0'; // No margin on mobile (sidebar overlays)
+    } else if (screenSize.isTablet) {
+      return 'ml-20'; // Always collapsed margin on tablet
+    } else {
+      return sidebarCollapsed ? 'ml-20' : 'ml-72'; // User controlled on desktop
+    }
+  };
+
+  const handleSettingChange = (section, key, value) => {
     setSettings(prev => ({
       ...prev,
-      [category]: {
-        ...prev[category as keyof typeof prev],
+      [section]: {
+        ...prev[section],
         [key]: value
       }
     }));
-    setHasChanges(true);
+    setPendingChanges(true);
   };
 
-  const updateNestedSetting = (category: string, subcategory: string, key: string, value: any) => {
+  const handleNestedSettingChange = (section, parentKey, childKey, value) => {
     setSettings(prev => ({
       ...prev,
-      [category]: {
-        ...prev[category as keyof typeof prev],
-        [subcategory]: {
-          ...(prev[category as keyof typeof prev] as any)[subcategory],
-          [key]: value
+      [section]: {
+        ...prev[section],
+        [parentKey]: {
+          ...prev[section][parentKey],
+          [childKey]: value
         }
       }
     }));
-    setHasChanges(true);
+    setPendingChanges(true);
   };
 
   const saveSettings = () => {
-    console.log('Saving settings:', settings);
-    setHasChanges(false);
-    // In real app, save to backend
+    // Save logic here
+    setPendingChanges(false);
   };
 
-  const resetSettings = () => {
-    if (confirm('Are you sure you want to reset all settings to default?')) {
-      // Reset to default settings
-      setHasChanges(false);
-    }
+  const resetToDefaults = () => {
+    // Reset to default settings
+    setPendingChanges(true);
   };
 
   const exportData = () => {
     console.log('Exporting user data...');
-    // In real app, generate and download user data export
   };
 
   const deleteAccount = () => {
     if (confirm('Are you sure you want to delete your account? This action cannot be undone.')) {
       console.log('Deleting account...');
-      // In real app, initiate account deletion process
     }
   };
 
+  const settingSections = [
+    { id: 'general', label: 'General', icon: Settings, color: 'emerald' },
+    { id: 'notifications', label: 'Notifications', icon: Bell, color: 'blue' },
+    { id: 'security', label: 'Privacy & Security', icon: Lock, color: 'red' },
+    { id: 'shopping', label: 'Shopping', icon: ShoppingCart, color: 'purple' },
+    { id: 'payment', label: 'Payment', icon: CreditCard, color: 'yellow' },
+    { id: 'communication', label: 'Communication', icon: MessageCircle, color: 'indigo' }
+  ];
+
   return (
-    <div className="min-h-screen bg-gray-50 flex">
-      {/* Desktop Sidebar */}
+    <div className="flex h-screen bg-white overflow-hidden">
+      {/* Enhanced Responsive Sidebar */}
       <FieldFairSidebar
         isCollapsed={sidebarCollapsed}
         setIsCollapsed={setSidebarCollapsed}
-        isMobile={false}
-        isOpen={mobileSidebarOpen}
-        onClose={() => setMobileSidebarOpen(false)}
+        isMobile={screenSize.isMobile}
+        isOpen={isMobileMenuOpen}
+        onClose={() => setIsMobileMenuOpen(false)}
         userType="customer"
       />
 
-      {/* Mobile Sidebar */}
-      <FieldFairSidebar
-        isCollapsed={false}
-        isMobile={true}
-        isOpen={mobileSidebarOpen}
-        onClose={() => setMobileSidebarOpen(false)}
-        userType="customer"
-      />
-
-      {/* Main Content - Responsive to sidebar */}
-      <div className={`flex-1 flex flex-col transition-all duration-500 ${sidebarCollapsed ? 'lg:ml-20' : 'lg:ml-72'}`}>
-        {/* Header */}
-        <header className="bg-white border-b border-gray-200 px-4 lg:px-6 py-4 sticky top-0 z-10">
+      <div className={`flex-1 flex flex-col bg-gray-50 transition-all duration-300 ${getMainContentMargin()}`}>
+        {/* Enhanced Header */}
+        <header className="bg-white border-b border-gray-200 px-4 lg:px-6 py-4">
           <div className="flex items-center justify-between">
-            <div className="flex items-center space-x-4">
-              <button 
-                onClick={() => setMobileSidebarOpen(true)}
-                className="lg:hidden p-2 rounded-lg text-gray-600 hover:bg-gray-100"
-              >
-                <Menu className="w-6 h-6" />
-              </button>
-              <div>
-                <h1 className="text-2xl font-bold text-gray-900">⚙️ Settings</h1>
-                <p className="text-sm text-gray-600 mt-1 hidden sm:block">Manage your account preferences and security</p>
+            <div>
+              <div className="flex items-center space-x-4">
+                {/* Mobile menu button - only show on mobile */}
+                {screenSize.isMobile && (
+                  <button 
+                    onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
+                    className="p-2 rounded-lg text-gray-600 hover:bg-gray-100 mr-2 transition-colors"
+                    aria-label="Open menu"
+                  >
+                    <Menu className="w-6 h-6" />
+                  </button>
+                )}
+                <div>
+                  <h1 className="text-xl lg:text-2xl font-bold text-gray-900">
+                    {screenSize.isMobile ? 'Settings' : '⚙️ Settings'}
+                  </h1>
+                  <p className="text-sm text-gray-600 mt-1 hidden sm:block">
+                    {screenSize.isMobile 
+                      ? 'Account preferences' 
+                      : 'Manage your account preferences and settings'
+                    }
+                  </p>
+                </div>
               </div>
             </div>
             
-            {hasChanges && (
-              <button
+            <div className="flex items-center space-x-2 lg:space-x-4">
+              {pendingChanges && (
+                <div className={`${screenSize.isMobile ? 'hidden' : 'flex'} items-center bg-orange-50 border border-orange-200 rounded-xl px-4 py-2 text-orange-700`}>
+                  <AlertTriangle className="w-4 h-4 mr-2" />
+                  <span className="text-sm">Unsaved changes</span>
+                </div>
+              )}
+              
+              {!screenSize.isMobile && (
+                <button 
+                  onClick={resetToDefaults}
+                  className="hidden md:flex items-center bg-gray-50 border border-gray-200 rounded-xl px-4 py-2 text-gray-700 hover:bg-gray-100 transition-colors"
+                >
+                  <RefreshCw className="w-4 h-4 mr-2" />
+                  <span className="text-sm">Reset to Defaults</span>
+                </button>
+              )}
+              
+              <button 
                 onClick={saveSettings}
-                className="flex items-center space-x-2 bg-emerald-600 text-white px-4 py-2 rounded-lg font-medium hover:bg-emerald-700 transition-colors"
+                disabled={!pendingChanges}
+                className={`px-3 lg:px-4 py-2 rounded-xl text-sm font-semibold flex items-center transition-colors shadow-lg ${
+                  pendingChanges 
+                    ? 'bg-emerald-600 text-white hover:bg-emerald-700' 
+                    : 'bg-gray-300 text-gray-500 cursor-not-allowed'
+                }`}
               >
-                <Save className="w-4 h-4" />
-                <span className="hidden sm:inline">Save Changes</span>
+                <Save className="w-4 h-4 mr-2" />
+                <span>{screenSize.isMobile ? 'Save' : 'Save Changes'}</span>
               </button>
-            )}
+            </div>
           </div>
         </header>
 
-        <main className="flex-1 overflow-auto p-4 lg:p-6">
-          <div className="max-w-6xl mx-auto">
-            <div className="bg-white rounded-xl border border-gray-200 shadow-sm">
-              <div className="border-b border-gray-200">
-                <nav className="flex space-x-2 lg:space-x-8 px-4 lg:px-6 overflow-x-auto">
-                  {tabs.map((tab) => (
-                    <button
-                      key={tab.id}
-                      onClick={() => setActiveTab(tab.id)}
-                      className={`py-4 text-sm font-medium border-b-2 transition-colors flex items-center space-x-2 whitespace-nowrap ${
-                        activeTab === tab.id
-                          ? 'border-emerald-500 text-emerald-600'
-                          : 'border-transparent text-gray-500 hover:text-gray-700'
-                      }`}
-                    >
-                      <tab.icon className="w-4 h-4" />
-                      <span>{tab.label}</span>
-                    </button>
-                  ))}
-                </nav>
+        {/* Main Content */}
+        <main className="flex-1 overflow-auto">
+          <div className="max-w-6xl mx-auto p-4 lg:p-6">
+            <div className={`grid gap-6 ${
+              screenSize.isMobile ? 'grid-cols-1' : 'grid-cols-1 lg:grid-cols-4'
+            }`}>
+              {/* Settings Navigation - Responsive */}
+              <div className={screenSize.isMobile ? 'order-2' : 'lg:col-span-1'}>
+                <div className="bg-white rounded-2xl border border-gray-200 p-4 shadow-sm">
+                  {screenSize.isMobile ? (
+                    /* Mobile: Horizontal scrolling tabs */
+                    <div className="flex space-x-2 overflow-x-auto pb-2">
+                      {settingSections.map((section) => (
+                        <button
+                          key={section.id}
+                          onClick={() => setActiveSection(section.id)}
+                          className={`flex items-center space-x-2 px-4 py-3 rounded-xl text-left transition-all duration-300 whitespace-nowrap ${
+                            activeSection === section.id
+                              ? `bg-emerald-100 text-emerald-700 border border-emerald-200 shadow-sm`
+                              : 'text-gray-700 hover:bg-gray-50 border border-transparent'
+                          }`}
+                        >
+                          <section.icon className="w-4 h-4" />
+                          <span className="font-medium text-sm">{section.label}</span>
+                        </button>
+                      ))}
+                    </div>
+                  ) : (
+                    /* Desktop/Tablet: Vertical navigation */
+                    <nav className="space-y-2">
+                      {settingSections.map((section) => (
+                        <button
+                          key={section.id}
+                          onClick={() => setActiveSection(section.id)}
+                          className={`w-full flex items-center space-x-3 px-4 py-3 rounded-xl text-left transition-all duration-300 ${
+                            activeSection === section.id
+                              ? `bg-${section.color}-100 text-${section.color}-700 border border-${section.color}-200 shadow-sm`
+                              : 'text-gray-700 hover:bg-gray-50'
+                          }`}
+                        >
+                          <section.icon className="w-5 h-5" />
+                          <span className="font-medium">{section.label}</span>
+                        </button>
+                      ))}
+                    </nav>
+                  )}
+                </div>
               </div>
 
-              <div className="p-4 lg:p-6">
-                {/* Security Tab */}
-                {activeTab === 'security' && (
-                  <div className="space-y-8">
-                    <div>
-                      <h3 className="text-lg font-medium text-gray-900 mb-4">🔒 Account Security</h3>
+              {/* Settings Content */}
+              <div className={`${screenSize.isMobile ? 'order-1' : 'lg:col-span-3'}`}>
+                <div className="bg-white rounded-2xl border border-gray-200 shadow-sm">
+                  {/* General Settings */}
+                  {activeSection === 'general' && (
+                    <div className="p-4 lg:p-6">
+                      <div className="flex items-center space-x-3 mb-6">
+                        <div className="p-3 bg-emerald-100 rounded-xl">
+                          <Settings className="w-6 h-6 text-emerald-600" />
+                        </div>
+                        <div>
+                          <h2 className="text-xl font-bold text-gray-900">General Settings</h2>
+                          <p className="text-sm text-gray-600 hidden sm:block">Configure your basic app preferences</p>
+                        </div>
+                      </div>
+                      
                       <div className="space-y-6">
-                        <div className="flex items-center justify-between p-4 border border-gray-200 rounded-lg">
+                        <div className={`grid gap-6 ${screenSize.isMobile ? 'grid-cols-1' : 'grid-cols-1 md:grid-cols-2'}`}>
                           <div>
-                            <div className="font-medium text-gray-900">Two-Factor Authentication</div>
-                            <div className="text-sm text-gray-600">Add an extra layer of security to your account</div>
-                          </div>
-                          <div className="flex items-center space-x-3">
-                            {settings.security.twoFactorEnabled && (
-                              <span className="text-green-600 text-sm font-medium">Enabled</span>
-                            )}
-                            <input
-                              type="checkbox"
-                              checked={settings.security.twoFactorEnabled}
-                              onChange={(e) => updateSetting('security', 'twoFactorEnabled', e.target.checked)}
-                              className="w-4 h-4 text-emerald-600 rounded focus:ring-emerald-500"
-                            />
-                          </div>
-                        </div>
-
-                        <div className="flex items-center justify-between p-4 border border-gray-200 rounded-lg">
-                          <div>
-                            <div className="font-medium text-gray-900">Login Notifications</div>
-                            <div className="text-sm text-gray-600">Get notified when someone logs into your account</div>
-                          </div>
-                          <input
-                            type="checkbox"
-                            checked={settings.security.loginNotifications}
-                            onChange={(e) => updateSetting('security', 'loginNotifications', e.target.checked)}
-                            className="w-4 h-4 text-emerald-600 rounded focus:ring-emerald-500"
-                          />
-                        </div>
-
-                        <div className="p-4 border border-gray-200 rounded-lg">
-                          <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-3">
-                            <div>
-                              <div className="font-medium text-gray-900">Session Timeout</div>
-                              <div className="text-sm text-gray-600">Automatically log out after period of inactivity</div>
-                            </div>
-                            <select
-                              value={settings.security.sessionTimeout}
-                              onChange={(e) => updateSetting('security', 'sessionTimeout', parseInt(e.target.value))}
-                              className="border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 w-full lg:w-auto"
+                            <label className="block text-sm font-semibold text-gray-700 mb-3">Language</label>
+                            <select 
+                              className="w-full border border-gray-300 rounded-xl px-4 py-3 focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
+                              value={settings.general.language}
+                              onChange={(e) => handleSettingChange('general', 'language', e.target.value)}
                             >
-                              <option value={15}>15 minutes</option>
-                              <option value={30}>30 minutes</option>
-                              <option value={60}>1 hour</option>
-                              <option value={120}>2 hours</option>
-                              <option value={0}>Never</option>
+                              <option value="en">English</option>
+                              <option value="si">සිංහල</option>
+                              <option value="ta">தமிழ்</option>
+                            </select>
+                          </div>
+                          
+                          <div>
+                            <label className="block text-sm font-semibold text-gray-700 mb-3">Timezone</label>
+                            <select 
+                              className="w-full border border-gray-300 rounded-xl px-4 py-3 focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
+                              value={settings.general.timezone}
+                              onChange={(e) => handleSettingChange('general', 'timezone', e.target.value)}
+                            >
+                              <option value="Asia/Colombo">Asia/Colombo (UTC+5:30)</option>
+                              <option value="Asia/Kolkata">Asia/Kolkata (UTC+5:30)</option>
+                            </select>
+                          </div>
+                          
+                          <div>
+                            <label className="block text-sm font-semibold text-gray-700 mb-3">Date Format</label>
+                            <select 
+                              className="w-full border border-gray-300 rounded-xl px-4 py-3 focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
+                              value={settings.general.dateFormat}
+                              onChange={(e) => handleSettingChange('general', 'dateFormat', e.target.value)}
+                            >
+                              <option value="DD/MM/YYYY">DD/MM/YYYY</option>
+                              <option value="MM/DD/YYYY">MM/DD/YYYY</option>
+                              <option value="YYYY-MM-DD">YYYY-MM-DD</option>
+                            </select>
+                          </div>
+                          
+                          <div>
+                            <label className="block text-sm font-semibold text-gray-700 mb-3">Currency</label>
+                            <select 
+                              className="w-full border border-gray-300 rounded-xl px-4 py-3 focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
+                              value={settings.general.currency}
+                              onChange={(e) => handleSettingChange('general', 'currency', e.target.value)}
+                            >
+                              <option value="LKR">Sri Lankan Rupee (LKR)</option>
+                              <option value="USD">US Dollar (USD)</option>
+                              <option value="EUR">Euro (EUR)</option>
                             </select>
                           </div>
                         </div>
-
-                        <div className="grid grid-cols-1 lg:grid-cols-2 gap-3">
-                          <button className="border border-gray-300 text-gray-700 py-3 rounded-lg font-medium hover:bg-gray-50 transition-colors flex items-center justify-center space-x-2">
-                            <Key className="w-4 h-4" />
-                            <span>Change Password</span>
-                          </button>
+                        
+                        <div className="space-y-4">
+                          <div className="flex items-center justify-between p-4 bg-gray-50 rounded-xl">
+                            <div className="flex items-center space-x-3">
+                              {settings.general.theme === 'light' ? <Sun className="w-5 h-5 text-orange-500" /> : <Moon className="w-5 h-5 text-blue-500" />}
+                              <div>
+                                <div className="font-semibold text-gray-900">Appearance</div>
+                                <div className="text-sm text-gray-600 hidden sm:block">Choose your preferred theme</div>
+                              </div>
+                            </div>
+                            <select 
+                              className="border border-gray-300 rounded-xl px-4 py-2 text-sm"
+                              value={settings.general.theme}
+                              onChange={(e) => handleSettingChange('general', 'theme', e.target.value)}
+                            >
+                              <option value="light">Light</option>
+                              <option value="dark">Dark</option>
+                              <option value="auto">Auto</option>
+                            </select>
+                          </div>
                           
-                          <button className="border border-gray-300 text-gray-700 py-3 rounded-lg font-medium hover:bg-gray-50 transition-colors flex items-center justify-center space-x-2">
-                            <Smartphone className="w-4 h-4" />
-                            <span>Manage Devices</span>
-                          </button>
+                          <div className="flex items-center justify-between p-4 bg-gray-50 rounded-xl">
+                            <div className="flex items-center space-x-3">
+                              <Database className="w-5 h-5 text-emerald-500" />
+                              <div>
+                                <div className="font-semibold text-gray-900">Auto-save</div>
+                                <div className="text-sm text-gray-600 hidden sm:block">Automatically save changes</div>
+                              </div>
+                            </div>
+                            <label className="relative inline-flex items-center cursor-pointer">
+                              <input 
+                                type="checkbox" 
+                                className="sr-only peer"
+                                checked={settings.general.autoSave}
+                                onChange={(e) => handleSettingChange('general', 'autoSave', e.target.checked)}
+                              />
+                              <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-emerald-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-emerald-600"></div>
+                            </label>
+                          </div>
+
+                          <div className="flex items-center justify-between p-4 bg-gray-50 rounded-xl">
+                            <div className="flex items-center space-x-3">
+                              <Globe className="w-5 h-5 text-blue-500" />
+                              <div>
+                                <div className="font-semibold text-gray-900">Default View Mode</div>
+                                <div className="text-sm text-gray-600 hidden sm:block">How products are displayed by default</div>
+                              </div>
+                            </div>
+                            <select 
+                              className="border border-gray-300 rounded-xl px-4 py-2 text-sm"
+                              value={settings.general.defaultViewMode}
+                              onChange={(e) => handleSettingChange('general', 'defaultViewMode', e.target.value)}
+                            >
+                              <option value="grid">Grid View</option>
+                              <option value="list">List View</option>
+                            </select>
+                          </div>
                         </div>
                       </div>
                     </div>
+                  )}
 
-                    <div className="border-t pt-6">
-                      <h3 className="text-lg font-medium text-gray-900 mb-4">⚠️ Danger Zone</h3>
-                      <div className="bg-red-50 border border-red-200 rounded-lg p-4">
-                        <div className="flex items-start space-x-3">
-                          <AlertTriangle className="w-5 h-5 text-red-500 mt-0.5" />
-                          <div className="flex-1">
-                            <div className="font-medium text-red-900">Delete Account</div>
-                            <div className="text-sm text-red-700 mt-1">
-                              Once you delete your account, there is no going back. Please be certain.
+                  {/* Notifications Settings */}
+                  {activeSection === 'notifications' && (
+                    <div className="p-4 lg:p-6">
+                      <div className="flex items-center space-x-3 mb-6">
+                        <div className="p-3 bg-blue-100 rounded-xl">
+                          <Bell className="w-6 h-6 text-blue-600" />
+                        </div>
+                        <div>
+                          <h2 className="text-xl font-bold text-gray-900">Notification Settings</h2>
+                          <p className="text-sm text-gray-600 hidden sm:block">Control how and when you receive notifications</p>
+                        </div>
+                      </div>
+                      
+                      <div className="space-y-6">
+                        {/* Email Notifications */}
+                        <div>
+                          <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center">
+                            <Mail className="w-5 h-5 mr-2" />
+                            Email Notifications
+                          </h3>
+                          <div className="space-y-3">
+                            {Object.entries(settings.notifications.email).map(([key, value]) => (
+                              <div key={key} className="flex items-center justify-between p-4 bg-gray-50 rounded-xl">
+                                <div className="flex-1 mr-4">
+                                  <div className="font-semibold text-gray-900 capitalize">{key.replace(/([A-Z])/g, ' $1')}</div>
+                                  <div className="text-sm text-gray-600 hidden sm:block">
+                                    {key === 'orderUpdates' && 'Get notified about order status changes'}
+                                    {key === 'newProducts' && 'Alerts when new products are available'}
+                                    {key === 'priceDrops' && 'Notifications when prices drop on your favorites'}
+                                    {key === 'farmerMessages' && 'When farmers send you messages'}
+                                    {key === 'weeklyDeals' && 'Weekly deals and special offers'}
+                                    {key === 'marketingEmails' && 'Marketing and promotional emails'}
+                                    {key === 'newsletter' && 'Monthly newsletter with tips and updates'}
+                                  </div>
+                                </div>
+                                <label className="relative inline-flex items-center cursor-pointer">
+                                  <input 
+                                    type="checkbox" 
+                                    className="sr-only peer"
+                                    checked={value}
+                                    onChange={(e) => handleNestedSettingChange('notifications', 'email', key, e.target.checked)}
+                                  />
+                                  <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-emerald-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-emerald-600"></div>
+                                </label>
+                              </div>
+                            ))}
+                          </div>
+                        </div>
+
+                        {/* Push Notifications */}
+                        <div>
+                          <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center">
+                            <Smartphone className="w-5 h-5 mr-2" />
+                            Push Notifications
+                          </h3>
+                          <div className="space-y-3">
+                            {Object.entries(settings.notifications.push).map(([key, value]) => (
+                              <div key={key} className="flex items-center justify-between p-4 bg-gray-50 rounded-xl">
+                                <div className="flex-1 mr-4">
+                                  <div className="font-semibold text-gray-900 capitalize">{key.replace(/([A-Z])/g, ' $1')}</div>
+                                </div>
+                                <label className="relative inline-flex items-center cursor-pointer">
+                                  <input 
+                                    type="checkbox" 
+                                    className="sr-only peer"
+                                    checked={value}
+                                    onChange={(e) => handleNestedSettingChange('notifications', 'push', key, e.target.checked)}
+                                  />
+                                  <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-emerald-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-emerald-600"></div>
+                                </label>
+                              </div>
+                            ))}
+                          </div>
+                        </div>
+
+                        {/* Sound & Quiet Hours */}
+                        <div>
+                          <h3 className="text-lg font-semibold text-gray-900 mb-4">Sound & Timing</h3>
+                          <div className="space-y-3">
+                            <div className="flex items-center justify-between p-4 bg-gray-50 rounded-xl">
+                              <div className="flex items-center space-x-3 flex-1 mr-4">
+                                {settings.notifications.sound ? <Volume2 className="w-5 h-5 text-blue-500" /> : <VolumeX className="w-5 h-5 text-gray-400" />}
+                                <div>
+                                  <div className="font-semibold text-gray-900">Notification Sounds</div>
+                                  <div className="text-sm text-gray-600 hidden sm:block">Play sound for notifications</div>
+                                </div>
+                              </div>
+                              <label className="relative inline-flex items-center cursor-pointer">
+                                <input 
+                                  type="checkbox" 
+                                  className="sr-only peer"
+                                  checked={settings.notifications.sound}
+                                  onChange={(e) => handleSettingChange('notifications', 'sound', e.target.checked)}
+                                />
+                                <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-emerald-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-emerald-600"></div>
+                              </label>
                             </div>
-                            <button
-                              onClick={deleteAccount}
-                              className="mt-3 bg-red-600 text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-red-700 transition-colors"
+                            
+                            <div className="p-4 bg-gray-50 rounded-xl">
+                              <div className="flex items-center justify-between mb-3">
+                                <div className="flex items-center space-x-3 flex-1 mr-4">
+                                  <Clock className="w-5 h-5 text-purple-500" />
+                                  <div>
+                                    <div className="font-semibold text-gray-900">Quiet Hours</div>
+                                    <div className="text-sm text-gray-600 hidden sm:block">Disable notifications during specific hours</div>
+                                  </div>
+                                </div>
+                                <label className="relative inline-flex items-center cursor-pointer">
+                                  <input 
+                                    type="checkbox" 
+                                    className="sr-only peer"
+                                    checked={settings.notifications.quiet_hours.enabled}
+                                    onChange={(e) => handleNestedSettingChange('notifications', 'quiet_hours', 'enabled', e.target.checked)}
+                                  />
+                                  <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-emerald-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-emerald-600"></div>
+                                </label>
+                              </div>
+                              
+                              {settings.notifications.quiet_hours.enabled && (
+                                <div className={`grid gap-4 mt-3 ${screenSize.isMobile ? 'grid-cols-1' : 'grid-cols-2'}`}>
+                                  <div>
+                                    <label className="block text-sm font-semibold text-gray-700 mb-2">Start Time</label>
+                                    <input 
+                                      type="time"
+                                      className="w-full border border-gray-300 rounded-xl px-3 py-2"
+                                      value={settings.notifications.quiet_hours.start}
+                                      onChange={(e) => handleNestedSettingChange('notifications', 'quiet_hours', 'start', e.target.value)}
+                                    />
+                                  </div>
+                                  <div>
+                                    <label className="block text-sm font-semibold text-gray-700 mb-2">End Time</label>
+                                    <input 
+                                      type="time"
+                                      className="w-full border border-gray-300 rounded-xl px-3 py-2"
+                                      value={settings.notifications.quiet_hours.end}
+                                      onChange={(e) => handleNestedSettingChange('notifications', 'quiet_hours', 'end', e.target.value)}
+                                    />
+                                  </div>
+                                </div>
+                              )}
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Security Settings */}
+                  {activeSection === 'security' && (
+                    <div className="p-4 lg:p-6">
+                      <div className="flex items-center space-x-3 mb-6">
+                        <div className="p-3 bg-red-100 rounded-xl">
+                          <Lock className="w-6 h-6 text-red-600" />
+                        </div>
+                        <div>
+                          <h2 className="text-xl font-bold text-gray-900">Privacy & Security</h2>
+                          <p className="text-sm text-gray-600 hidden sm:block">Control your privacy and account security</p>
+                        </div>
+                      </div>
+                      
+                      <div className="space-y-6">
+                        {/* Account Security */}
+                        <div>
+                          <h3 className="text-lg font-semibold text-gray-900 mb-4">Account Security</h3>
+                          <div className="space-y-4">
+                            <div className="flex items-center justify-between p-4 bg-gray-50 rounded-xl">
+                              <div className="flex items-center space-x-3 flex-1 mr-4">
+                                <Shield className="w-5 h-5 text-green-500" />
+                                <div>
+                                  <div className="font-semibold text-gray-900">Two-Factor Authentication</div>
+                                  <div className="text-sm text-gray-600 hidden sm:block">Add an extra layer of security to your account</div>
+                                </div>
+                              </div>
+                              <div className="flex items-center space-x-2">
+                                <span className={`text-sm font-semibold ${settings.security.twoFactorAuth ? 'text-green-600' : 'text-gray-500'}`}>
+                                  {settings.security.twoFactorAuth ? 'Enabled' : 'Disabled'}
+                                </span>
+                                <label className="relative inline-flex items-center cursor-pointer">
+                                  <input 
+                                    type="checkbox" 
+                                    className="sr-only peer"
+                                    checked={settings.security.twoFactorAuth}
+                                    onChange={(e) => handleSettingChange('security', 'twoFactorAuth', e.target.checked)}
+                                  />
+                                  <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-emerald-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-emerald-600"></div>
+                                </label>
+                              </div>
+                            </div>
+
+                            <div className="flex items-center justify-between p-4 bg-gray-50 rounded-xl">
+                              <div className="flex items-center space-x-3 flex-1 mr-4">
+                                <Bell className="w-5 h-5 text-blue-500" />
+                                <div>
+                                  <div className="font-semibold text-gray-900">Login Alerts</div>
+                                  <div className="text-sm text-gray-600 hidden sm:block">Get notified of login attempts</div>
+                                </div>
+                              </div>
+                              <label className="relative inline-flex items-center cursor-pointer">
+                                <input 
+                                  type="checkbox" 
+                                  className="sr-only peer"
+                                  checked={settings.security.loginAlerts}
+                                  onChange={(e) => handleSettingChange('security', 'loginAlerts', e.target.checked)}
+                                />
+                                <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-emerald-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-emerald-600"></div>
+                              </label>
+                            </div>
+
+                            <div className="p-4 bg-gray-50 rounded-xl">
+                              <div className="flex items-center justify-between mb-3">
+                                <div className="flex items-center space-x-3 flex-1 mr-4">
+                                  <Timer className="w-5 h-5 text-orange-500" />
+                                  <div>
+                                    <div className="font-semibold text-gray-900">Session Timeout</div>
+                                    <div className="text-sm text-gray-600 hidden sm:block">Auto-logout after inactivity</div>
+                                  </div>
+                                </div>
+                                <select 
+                                  className="border border-gray-300 rounded-xl px-3 py-2 text-sm"
+                                  value={settings.security.sessionTimeout}
+                                  onChange={(e) => handleSettingChange('security', 'sessionTimeout', parseInt(e.target.value))}
+                                >
+                                  <option value={15}>15 min</option>
+                                  <option value={30}>30 min</option>
+                                  <option value={60}>1 hour</option>
+                                  <option value={120}>2 hours</option>
+                                  <option value={0}>Never</option>
+                                </select>
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+
+                        {/* Privacy Settings */}
+                        <div>
+                          <h3 className="text-lg font-semibold text-gray-900 mb-4">Privacy Settings</h3>
+                          <div className="space-y-4">
+                            <div className="flex items-center justify-between p-4 bg-gray-50 rounded-xl">
+                              <div className="flex items-center space-x-3 flex-1 mr-4">
+                                <Eye className="w-5 h-5 text-purple-500" />
+                                <div>
+                                  <div className="font-semibold text-gray-900">Profile Visibility</div>
+                                  <div className="text-sm text-gray-600 hidden sm:block">Who can see your profile</div>
+                                </div>
+                              </div>
+                              <select 
+                                className="border border-gray-300 rounded-xl px-3 py-2 text-sm"
+                                value={settings.security.profileVisibility}
+                                onChange={(e) => handleSettingChange('security', 'profileVisibility', e.target.value)}
+                              >
+                                <option value="public">Public</option>
+                                <option value="friends">Friends Only</option>
+                                <option value="private">Private</option>
+                              </select>
+                            </div>
+
+                            <div className="flex items-center justify-between p-4 bg-gray-50 rounded-xl">
+                              <div className="flex items-center space-x-3 flex-1 mr-4">
+                                <Package className="w-5 h-5 text-green-500" />
+                                <div>
+                                  <div className="font-semibold text-gray-900">Show Purchase History</div>
+                                  <div className="text-sm text-gray-600 hidden sm:block">Let farmers see what you've bought before</div>
+                                </div>
+                              </div>
+                              <label className="relative inline-flex items-center cursor-pointer">
+                                <input 
+                                  type="checkbox" 
+                                  className="sr-only peer"
+                                  checked={settings.security.showPurchaseHistory}
+                                  onChange={(e) => handleSettingChange('security', 'showPurchaseHistory', e.target.checked)}
+                                />
+                                <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-emerald-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-emerald-600"></div>
+                              </label>
+                            </div>
+
+                            <div className="flex items-center justify-between p-4 bg-gray-50 rounded-xl">
+                              <div className="flex items-center space-x-3 flex-1 mr-4">
+                                <MapPin className="w-5 h-5 text-red-500" />
+                                <div>
+                                  <div className="font-semibold text-gray-900">Share Location Data</div>
+                                  <div className="text-sm text-gray-600 hidden sm:block">Help improve delivery estimates</div>
+                                </div>
+                              </div>
+                              <label className="relative inline-flex items-center cursor-pointer">
+                                <input 
+                                  type="checkbox" 
+                                  className="sr-only peer"
+                                  checked={settings.security.shareLocationData}
+                                  onChange={(e) => handleSettingChange('security', 'shareLocationData', e.target.checked)}
+                                />
+                                <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-emerald-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-emerald-600"></div>
+                              </label>
+                            </div>
+                          </div>
+                        </div>
+
+                        {/* Data Management */}
+                        <div>
+                          <h3 className="text-lg font-semibold text-gray-900 mb-4">Data Management</h3>
+                          <div className="space-y-3">
+                            <button 
+                              onClick={exportData}
+                              className="w-full flex items-center justify-between p-4 bg-blue-50 border border-blue-200 rounded-xl hover:bg-blue-100 transition-colors"
                             >
-                              Delete Account
+                              <div className="flex items-center space-x-3">
+                                <Download className="w-5 h-5 text-blue-600" />
+                                <div className="text-left">
+                                  <div className="font-semibold text-blue-900">Export Data</div>
+                                  <div className="text-sm text-blue-700 hidden sm:block">Download all your data</div>
+                                </div>
+                              </div>
+                              <Download className="w-4 h-4 text-blue-600" />
+                            </button>
+
+                            <button 
+                              onClick={deleteAccount}
+                              className="w-full flex items-center justify-between p-4 bg-red-50 border border-red-200 rounded-xl hover:bg-red-100 transition-colors"
+                            >
+                              <div className="flex items-center space-x-3">
+                                <Trash2 className="w-5 h-5 text-red-600" />
+                                <div className="text-left">
+                                  <div className="font-semibold text-red-900">Delete Account</div>
+                                  <div className="text-sm text-red-700 hidden sm:block">Permanently delete your account and data</div>
+                                </div>
+                              </div>
+                              <AlertTriangle className="w-4 h-4 text-red-600" />
                             </button>
                           </div>
                         </div>
                       </div>
                     </div>
-                  </div>
-                )}
+                  )}
 
-                {/* Privacy Tab */}
-                {activeTab === 'privacy' && (
-                  <div className="space-y-8">
-                    <div>
-                      <h3 className="text-lg font-medium text-gray-900 mb-4">🔐 Privacy Controls</h3>
-                      <div className="space-y-4">
-                        <div className="flex flex-col lg:flex-row lg:items-center justify-between p-4 border border-gray-200 rounded-lg gap-3">
+                  {/* Shopping Settings */}
+                  {activeSection === 'shopping' && (
+                    <div className="p-4 lg:p-6">
+                      <div className="flex items-center space-x-3 mb-6">
+                        <div className="p-3 bg-purple-100 rounded-xl">
+                          <ShoppingCart className="w-6 h-6 text-purple-600" />
+                        </div>
+                        <div>
+                          <h2 className="text-xl font-bold text-gray-900">Shopping Preferences</h2>
+                          <p className="text-sm text-gray-600 hidden sm:block">Customize your shopping experience</p>
+                        </div>
+                      </div>
+                      
+                      <div className="space-y-6">
+                        <div className={`grid gap-6 ${screenSize.isMobile ? 'grid-cols-1' : 'grid-cols-1 md:grid-cols-2'}`}>
                           <div>
-                            <div className="font-medium text-gray-900">Profile Visibility</div>
-                            <div className="text-sm text-gray-600">Control who can see your profile information</div>
+                            <label className="block text-sm font-semibold text-gray-700 mb-3">Default Sort Order</label>
+                            <select 
+                              className="w-full border border-gray-300 rounded-xl px-4 py-3 focus:outline-none focus:ring-2 focus:ring-emerald-500"
+                              value={settings.shopping.defaultSort}
+                              onChange={(e) => handleSettingChange('shopping', 'defaultSort', e.target.value)}
+                            >
+                              <option value="recommended">Recommended</option>
+                              <option value="price-low">Price: Low to High</option>
+                              <option value="price-high">Price: High to Low</option>
+                              <option value="rating">Highest Rated</option>
+                              <option value="distance">Nearest First</option>
+                            </select>
                           </div>
-                          <select
-                            value={settings.privacy.profileVisibility}
-                            onChange={(e) => updateSetting('privacy', 'profileVisibility', e.target.value)}
-                            className="border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 w-full lg:w-auto"
-                          >
-                            <option value="public">Public</option>
-                            <option value="farmers">Farmers Only</option>
-                            <option value="private">Private</option>
-                          </select>
+                          
+                          <div>
+                            <label className="block text-sm font-semibold text-gray-700 mb-3">Preferred Delivery Time</label>
+                            <select 
+                              className="w-full border border-gray-300 rounded-xl px-4 py-3 focus:outline-none focus:ring-2 focus:ring-emerald-500"
+                              value={settings.shopping.preferredDeliveryTime}
+                              onChange={(e) => handleSettingChange('shopping', 'preferredDeliveryTime', e.target.value)}
+                            >
+                              <option value="morning">Morning (8AM - 12PM)</option>
+                              <option value="afternoon">Afternoon (12PM - 5PM)</option>
+                              <option value="evening">Evening (5PM - 8PM)</option>
+                              <option value="flexible">Flexible</option>
+                            </select>
+                          </div>
                         </div>
 
-                        <div className="flex items-center justify-between p-4 border border-gray-200 rounded-lg">
-                          <div>
-                            <div className="font-medium text-gray-900">Activity Sharing</div>
-                            <div className="text-sm text-gray-600">Share your purchase activity with other users</div>
+                        <div className="space-y-4">
+                          <div className="flex items-center justify-between p-4 bg-gray-50 rounded-xl">
+                            <div className="flex items-center space-x-3 flex-1 mr-4">
+                              <Leaf className="w-5 h-5 text-green-500" />
+                              <div>
+                                <div className="font-semibold text-gray-900">Prefer Organic Products</div>
+                                <div className="text-sm text-gray-600 hidden sm:block">Show organic products first</div>
+                              </div>
+                            </div>
+                            <label className="relative inline-flex items-center cursor-pointer">
+                              <input 
+                                type="checkbox" 
+                                className="sr-only peer"
+                                checked={settings.shopping.organicPreference}
+                                onChange={(e) => handleSettingChange('shopping', 'organicPreference', e.target.checked)}
+                              />
+                              <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-emerald-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-emerald-600"></div>
+                            </label>
                           </div>
-                          <input
-                            type="checkbox"
-                            checked={settings.privacy.activitySharing}
-                            onChange={(e) => updateSetting('privacy', 'activitySharing', e.target.checked)}
-                            className="w-4 h-4 text-emerald-600 rounded focus:ring-emerald-500"
-                          />
-                        </div>
 
-                        <div className="flex items-center justify-between p-4 border border-gray-200 rounded-lg">
-                          <div>
-                            <div className="font-medium text-gray-900">Data Collection</div>
-                            <div className="text-sm text-gray-600">Allow us to collect usage data to improve the app</div>
+                          <div className="flex items-center justify-between p-4 bg-gray-50 rounded-xl">
+                            <div className="flex items-center space-x-3 flex-1 mr-4">
+                              <Heart className="w-5 h-5 text-red-500" />
+                              <div>
+                                <div className="font-semibold text-gray-900">Wishlist Notifications</div>
+                                <div className="text-sm text-gray-600 hidden sm:block">Get notified when wishlist items are available</div>
+                              </div>
+                            </div>
+                            <label className="relative inline-flex items-center cursor-pointer">
+                              <input 
+                                type="checkbox" 
+                                className="sr-only peer"
+                                checked={settings.shopping.wishlistNotifications}
+                                onChange={(e) => handleSettingChange('shopping', 'wishlistNotifications', e.target.checked)}
+                              />
+                              <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-emerald-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-emerald-600"></div>
+                            </label>
                           </div>
-                          <input
-                            type="checkbox"
-                            checked={settings.privacy.dataCollection}
-                            onChange={(e) => updateSetting('privacy', 'dataCollection', e.target.checked)}
-                            className="w-4 h-4 text-emerald-600 rounded focus:ring-emerald-500"
-                          />
-                        </div>
 
-                        <div className="flex items-center justify-between p-4 border border-gray-200 rounded-lg">
-                          <div>
-                            <div className="font-medium text-gray-900">Third-party Sharing</div>
-                            <div className="text-sm text-gray-600">Share data with trusted partners for better recommendations</div>
+                          <div className="flex items-center justify-between p-4 bg-gray-50 rounded-xl">
+                            <div className="flex items-center space-x-3 flex-1 mr-4">
+                              <Target className="w-5 h-5 text-blue-500" />
+                              <div>
+                                <div className="font-semibold text-gray-900">Local Farmers Only</div>
+                                <div className="text-sm text-gray-600 hidden sm:block">Show only farmers within your preferred distance</div>
+                              </div>
+                            </div>
+                            <label className="relative inline-flex items-center cursor-pointer">
+                              <input 
+                                type="checkbox" 
+                                className="sr-only peer"
+                                checked={settings.shopping.localFarmersOnly}
+                                onChange={(e) => handleSettingChange('shopping', 'localFarmersOnly', e.target.checked)}
+                              />
+                              <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-emerald-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-emerald-600"></div>
+                            </label>
                           </div>
-                          <input
-                            type="checkbox"
-                            checked={settings.privacy.thirdPartySharing}
-                            onChange={(e) => updateSetting('privacy', 'thirdPartySharing', e.target.checked)}
-                            className="w-4 h-4 text-emerald-600 rounded focus:ring-emerald-500"
-                          />
-                        </div>
 
-                        <div className="flex items-center justify-between p-4 border border-gray-200 rounded-lg">
-                          <div>
-                            <div className="font-medium text-gray-900">Location Tracking</div>
-                            <div className="text-sm text-gray-600">Use your location to find nearby farms and products</div>
+                          <div className="flex items-center justify-between p-4 bg-gray-50 rounded-xl">
+                            <div className="flex items-center space-x-3 flex-1 mr-4">
+                              <Percent className="w-5 h-5 text-orange-500" />
+                              <div>
+                                <div className="font-semibold text-gray-900">Auto-apply Discounts</div>
+                                <div className="text-sm text-gray-600 hidden sm:block">Automatically apply available discounts at checkout</div>
+                              </div>
+                            </div>
+                            <label className="relative inline-flex items-center cursor-pointer">
+                              <input 
+                                type="checkbox" 
+                                className="sr-only peer"
+                                checked={settings.shopping.autoApplyDiscounts}
+                                onChange={(e) => handleSettingChange('shopping', 'autoApplyDiscounts', e.target.checked)}
+                              />
+                              <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-emerald-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-emerald-600"></div>
+                            </label>
                           </div>
-                          <input
-                            type="checkbox"
-                            checked={settings.privacy.locationTracking}
-                            onChange={(e) => updateSetting('privacy', 'locationTracking', e.target.checked)}
-                            className="w-4 h-4 text-emerald-600 rounded focus:ring-emerald-500"
-                          />
                         </div>
                       </div>
                     </div>
-                  </div>
-                )}
+                  )}
 
-                {/* Notifications Tab */}
-                {activeTab === 'notifications' && (
-                  <div className="space-y-8">
-                    {/* Email Notifications */}
-                    <div>
-                      <h3 className="text-lg font-medium text-gray-900 mb-4">📧 Email Notifications</h3>
-                      <div className="space-y-3">
-                        {Object.entries(settings.notifications.email).map(([key, value]) => (
-                          <div key={key} className="flex items-center justify-between p-3 border border-gray-200 rounded-lg">
-                            <div className="font-medium text-gray-900 capitalize">
-                              {key.replace(/([A-Z])/g, ' $1').trim()}
-                            </div>
-                            <input
-                              type="checkbox"
-                              checked={value}
-                              onChange={(e) => updateNestedSetting('notifications', 'email', key, e.target.checked)}
-                              className="w-4 h-4 text-emerald-600 rounded focus:ring-emerald-500"
+                  {/* Payment Settings */}
+                  {activeSection === 'payment' && (
+                    <div className="p-4 lg:p-6">
+                      <div className="flex items-center space-x-3 mb-6">
+                        <div className="p-3 bg-yellow-100 rounded-xl">
+                          <CreditCard className="w-6 h-6 text-yellow-600" />
+                        </div>
+                        <div>
+                          <h2 className="text-xl font-bold text-gray-900">Payment Settings</h2>
+                          <p className="text-sm text-gray-600 hidden sm:block">Manage your payment preferences</p>
+                        </div>
+                      </div>
+                      
+                      <div className="space-y-6">
+                        <div className={`grid gap-6 ${screenSize.isMobile ? 'grid-cols-1' : 'grid-cols-1 md:grid-cols-2'}`}>
+                          <div>
+                            <label className="block text-sm font-semibold text-gray-700 mb-3">Default Payment Method</label>
+                            <select 
+                              className="w-full border border-gray-300 rounded-xl px-4 py-3 focus:outline-none focus:ring-2 focus:ring-emerald-500"
+                              value={settings.payment.defaultPaymentMethod}
+                              onChange={(e) => handleSettingChange('payment', 'defaultPaymentMethod', e.target.value)}
+                            >
+                              <option value="card">Credit/Debit Card</option>
+                              <option value="mobile_wallet">Mobile Wallet</option>
+                              <option value="bank_transfer">Bank Transfer</option>
+                              <option value="cash_on_delivery">Cash on Delivery</option>
+                            </select>
+                          </div>
+                          
+                          <div>
+                            <label className="block text-sm font-semibold text-gray-700 mb-3">Monthly Budget Limit (Rs.)</label>
+                            <input 
+                              type="number"
+                              className="w-full border border-gray-300 rounded-xl px-4 py-3 focus:outline-none focus:ring-2 focus:ring-emerald-500"
+                              value={settings.payment.monthlyBudget}
+                              onChange={(e) => handleSettingChange('payment', 'monthlyBudget', parseInt(e.target.value))}
                             />
                           </div>
-                        ))}
-                      </div>
-                    </div>
+                        </div>
 
-                    {/* Push Notifications */}
-                    <div>
-                      <h3 className="text-lg font-medium text-gray-900 mb-4">🔔 Push Notifications</h3>
-                      <div className="space-y-3">
-                        {Object.entries(settings.notifications.push).map(([key, value]) => (
-                          <div key={key} className="flex items-center justify-between p-3 border border-gray-200 rounded-lg">
-                            <div className="font-medium text-gray-900 capitalize">
-                              {key.replace(/([A-Z])/g, ' $1').trim()}
+                        <div className="space-y-4">
+                          <div className="flex items-center justify-between p-4 bg-gray-50 rounded-xl">
+                            <div className="flex items-center space-x-3 flex-1 mr-4">
+                              <Shield className="w-5 h-5 text-green-500" />
+                              <div>
+                                <div className="font-semibold text-gray-900">Save New Payment Methods</div>
+                                <div className="text-sm text-gray-600 hidden sm:block">Securely save cards for faster checkout</div>
+                              </div>
                             </div>
-                            <input
-                              type="checkbox"
-                              checked={value}
-                              onChange={(e) => updateNestedSetting('notifications', 'push', key, e.target.checked)}
-                              className="w-4 h-4 text-emerald-600 rounded focus:ring-emerald-500"
-                            />
+                            <label className="relative inline-flex items-center cursor-pointer">
+                              <input 
+                                type="checkbox" 
+                                className="sr-only peer"
+                                checked={settings.payment.saveNewCards}
+                                onChange={(e) => handleSettingChange('payment', 'saveNewCards', e.target.checked)}
+                              />
+                              <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-emerald-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-emerald-600"></div>
+                            </label>
                           </div>
-                        ))}
-                      </div>
-                    </div>
 
-                    {/* SMS Notifications */}
-                    <div>
-                      <h3 className="text-lg font-medium text-gray-900 mb-4">📱 SMS Notifications</h3>
-                      <div className="space-y-3">
-                        {Object.entries(settings.notifications.sms).map(([key, value]) => (
-                          <div key={key} className="flex items-center justify-between p-3 border border-gray-200 rounded-lg">
-                            <div className="font-medium text-gray-900 capitalize">
-                              {key.replace(/([A-Z])/g, ' $1').trim()}
+                          <div className="flex items-center justify-between p-4 bg-gray-50 rounded-xl">
+                            <div className="flex items-center space-x-3 flex-1 mr-4">
+                              <AlertTriangle className="w-5 h-5 text-orange-500" />
+                              <div>
+                                <div className="font-semibold text-gray-900">Budget Alerts</div>
+                                <div className="text-sm text-gray-600 hidden sm:block">Get notified when approaching budget limit</div>
+                              </div>
                             </div>
-                            <input
-                              type="checkbox"
-                              checked={value}
-                              onChange={(e) => updateNestedSetting('notifications', 'sms', key, e.target.checked)}
-                              className="w-4 h-4 text-emerald-600 rounded focus:ring-emerald-500"
-                            />
+                            <label className="relative inline-flex items-center cursor-pointer">
+                              <input 
+                                type="checkbox" 
+                                className="sr-only peer"
+                                checked={settings.payment.budgetAlerts}
+                                onChange={(e) => handleSettingChange('payment', 'budgetAlerts', e.target.checked)}
+                              />
+                              <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-emerald-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-emerald-600"></div>
+                            </label>
                           </div>
-                        ))}
+
+                          <div className="flex items-center justify-between p-4 bg-gray-50 rounded-xl">
+                            <div className="flex items-center space-x-3 flex-1 mr-4">
+                              <Mail className="w-5 h-5 text-blue-500" />
+                              <div>
+                                <div className="font-semibold text-gray-900">Email Receipts</div>
+                                <div className="text-sm text-gray-600 hidden sm:block">Receive email receipts for all purchases</div>
+                              </div>
+                            </div>
+                            <label className="relative inline-flex items-center cursor-pointer">
+                              <input 
+                                type="checkbox" 
+                                className="sr-only peer"
+                                checked={settings.payment.receiptEmails}
+                                onChange={(e) => handleSettingChange('payment', 'receiptEmails', e.target.checked)}
+                              />
+                              <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-emerald-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-emerald-600"></div>
+                            </label>
+                          </div>
+                        </div>
                       </div>
                     </div>
-                  </div>
-                )}
+                  )}
 
-                {/* App Settings Tab */}
-                {activeTab === 'app' && (
-                  <div className="space-y-8">
-                    <div>
-                      <h3 className="text-lg font-medium text-gray-900 mb-4">🎨 Appearance & Language</h3>
-                      <div className="space-y-4">
-                        <div className="flex flex-col lg:flex-row lg:items-center justify-between p-4 border border-gray-200 rounded-lg gap-3">
-                          <div>
-                            <div className="font-medium text-gray-900">Theme</div>
-                            <div className="text-sm text-gray-600">Choose your preferred app appearance</div>
-                          </div>
-                          <select
-                            value={settings.app.theme}
-                            onChange={(e) => updateSetting('app', 'theme', e.target.value)}
-                            className="border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 w-full lg:w-auto"
+                  {/* Communication Settings */}
+                  {activeSection === 'communication' && (
+                    <div className="p-4 lg:p-6">
+                      <div className="flex items-center space-x-3 mb-6">
+                        <div className="p-3 bg-indigo-100 rounded-xl">
+                          <MessageCircle className="w-6 h-6 text-indigo-600" />
+                        </div>
+                        <div>
+                          <h2 className="text-xl font-bold text-gray-900">Communication Settings</h2>
+                          <p className="text-sm text-gray-600 hidden sm:block">Control how you communicate with farmers</p>
+                        </div>
+                      </div>
+                      
+                      <div className="space-y-6">
+                        <div>
+                          <label className="block text-sm font-semibold text-gray-700 mb-3">Preferred Contact Method</label>
+                          <select 
+                            className="w-full border border-gray-300 rounded-xl px-4 py-3 focus:outline-none focus:ring-2 focus:ring-emerald-500"
+                            value={settings.communication.preferredContactMethod}
+                            onChange={(e) => handleSettingChange('communication', 'preferredContactMethod', e.target.value)}
                           >
-                            <option value="light">Light</option>
-                            <option value="dark">Dark</option>
-                            <option value="system">System</option>
+                            <option value="app">In-App Messages</option>
+                            <option value="phone">Phone Call</option>
+                            <option value="sms">SMS</option>
+                            <option value="email">Email</option>
                           </select>
                         </div>
 
-                        <div className="flex flex-col lg:flex-row lg:items-center justify-between p-4 border border-gray-200 rounded-lg gap-3">
-                          <div>
-                            <div className="font-medium text-gray-900">Language</div>
-                            <div className="text-sm text-gray-600">Select your preferred language</div>
+                        <div className="space-y-4">
+                          <div className="flex items-center justify-between p-4 bg-gray-50 rounded-xl">
+                            <div className="flex items-center space-x-3 flex-1 mr-4">
+                              <MessageCircle className="w-5 h-5 text-blue-500" />
+                              <div>
+                                <div className="font-semibold text-gray-900">Allow Farmer Messages</div>
+                                <div className="text-sm text-gray-600 hidden sm:block">Let farmers send you direct messages</div>
+                              </div>
+                            </div>
+                            <label className="relative inline-flex items-center cursor-pointer">
+                              <input 
+                                type="checkbox" 
+                                className="sr-only peer"
+                                checked={settings.communication.allowFarmerMessages}
+                                onChange={(e) => handleSettingChange('communication', 'allowFarmerMessages', e.target.checked)}
+                              />
+                              <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-emerald-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-emerald-600"></div>
+                            </label>
                           </div>
-                          <select
-                            value={settings.app.language}
-                            onChange={(e) => updateSetting('app', 'language', e.target.value)}
-                            className="border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 w-full lg:w-auto"
-                          >
-                            <option value="en">English</option>
-                            <option value="si">සිංහල</option>
-                            <option value="ta">தமிழ்</option>
-                          </select>
-                        </div>
 
-                        <div className="flex flex-col lg:flex-row lg:items-center justify-between p-4 border border-gray-200 rounded-lg gap-3">
-                          <div>
-                            <div className="font-medium text-gray-900">Currency</div>
-                            <div className="text-sm text-gray-600">Display prices in your preferred currency</div>
+                          <div className="flex items-center justify-between p-4 bg-gray-50 rounded-xl">
+                            <div className="flex items-center space-x-3 flex-1 mr-4">
+                              <CheckCircle className="w-5 h-5 text-green-500" />
+                              <div>
+                                <div className="font-semibold text-gray-900">Show Online Status</div>
+                                <div className="text-sm text-gray-600 hidden sm:block">Let farmers see when you're online</div>
+                              </div>
+                            </div>
+                            <label className="relative inline-flex items-center cursor-pointer">
+                              <input 
+                                type="checkbox" 
+                                className="sr-only peer"
+                                checked={settings.communication.showOnlineStatus}
+                                onChange={(e) => handleSettingChange('communication', 'showOnlineStatus', e.target.checked)}
+                              />
+                              <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-emerald-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-emerald-600"></div>
+                            </label>
                           </div>
-                          <select
-                            value={settings.app.currency}
-                            onChange={(e) => updateSetting('app', 'currency', e.target.value)}
-                            className="border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 w-full lg:w-auto"
-                          >
-                            <option value="LKR">Sri Lankan Rupee (LKR)</option>
-                            <option value="USD">US Dollar (USD)</option>
-                            <option value="EUR">Euro (EUR)</option>
-                          </select>
+
+                          <div className="flex items-center justify-between p-4 bg-gray-50 rounded-xl">
+                            <div className="flex items-center space-x-3 flex-1 mr-4">
+                              <Star className="w-5 h-5 text-yellow-500" />
+                              <div>
+                                <div className="font-semibold text-gray-900">Review Reminders</div>
+                                <div className="text-sm text-gray-600 hidden sm:block">Get reminded to leave reviews after orders</div>
+                              </div>
+                            </div>
+                            <label className="relative inline-flex items-center cursor-pointer">
+                              <input 
+                                type="checkbox" 
+                                className="sr-only peer"
+                                checked={settings.communication.ratingReminders}
+                                onChange={(e) => handleSettingChange('communication', 'ratingReminders', e.target.checked)}
+                              />
+                              <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-emerald-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-emerald-600"></div>
+                            </label>
+                          </div>
+
+                          <div className="flex items-center justify-between p-4 bg-gray-50 rounded-xl">
+                            <div className="flex items-center space-x-3 flex-1 mr-4">
+                              <Shield className="w-5 h-5 text-purple-500" />
+                              <div>
+                                <div className="font-semibold text-gray-900">Block Unverified Farmers</div>
+                                <div className="text-sm text-gray-600 hidden sm:block">Only receive messages from verified farmers</div>
+                              </div>
+                            </div>
+                            <label className="relative inline-flex items-center cursor-pointer">
+                              <input 
+                                type="checkbox" 
+                                className="sr-only peer"
+                                checked={settings.communication.blockUnverifiedFarmers}
+                                onChange={(e) => handleSettingChange('communication', 'blockUnverifiedFarmers', e.target.checked)}
+                              />
+                              <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-emerald-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-emerald-600"></div>
+                            </label>
+                          </div>
                         </div>
                       </div>
                     </div>
-
-                    <div>
-                      <h3 className="text-lg font-medium text-gray-900 mb-4">⚡ Performance</h3>
-                      <div className="space-y-4">
-                        <div className="flex items-center justify-between p-4 border border-gray-200 rounded-lg">
-                          <div>
-                            <div className="font-medium text-gray-900">Auto Sync</div>
-                            <div className="text-sm text-gray-600">Automatically sync data when connected</div>
-                          </div>
-                          <input
-                            type="checkbox"
-                            checked={settings.app.autoSync}
-                            onChange={(e) => updateSetting('app', 'autoSync', e.target.checked)}
-                            className="w-4 h-4 text-emerald-600 rounded focus:ring-emerald-500"
-                          />
-                        </div>
-
-                        <div className="flex items-center justify-between p-4 border border-gray-200 rounded-lg">
-                          <div>
-                            <div className="font-medium text-gray-900">Offline Mode</div>
-                            <div className="text-sm text-gray-600">Cache content for offline viewing</div>
-                          </div>
-                          <input
-                            type="checkbox"
-                            checked={settings.app.offlineMode}
-                            onChange={(e) => updateSetting('app', 'offlineMode', e.target.checked)}
-                            className="w-4 h-4 text-emerald-600 rounded focus:ring-emerald-500"
-                          />
-                        </div>
-
-                        <div className="flex items-center justify-between p-4 border border-gray-200 rounded-lg">
-                          <div>
-                            <div className="font-medium text-gray-900">Image Compression</div>
-                            <div className="text-sm text-gray-600">Reduce data usage with compressed images</div>
-                          </div>
-                          <input
-                            type="checkbox"
-                            checked={settings.app.compression}
-                            onChange={(e) => updateSetting('app', 'compression', e.target.checked)}
-                            className="w-4 h-4 text-emerald-600 rounded focus:ring-emerald-500"
-                          />
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                )}
-
-                {/* Data & Storage Tab */}
-                {activeTab === 'data' && (
-                  <div className="space-y-8">
-                    <div>
-                      <h3 className="text-lg font-medium text-gray-900 mb-4">💾 Data Management</h3>
-                      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-                        <button
-                          onClick={exportData}
-                          className="border border-gray-300 text-gray-700 py-3 rounded-lg font-medium hover:bg-gray-50 transition-colors flex items-center justify-center space-x-2"
-                        >
-                          <Download className="w-4 h-4" />
-                          <span>Export My Data</span>
-                        </button>
-
-                        <button className="border border-gray-300 text-gray-700 py-3 rounded-lg font-medium hover:bg-gray-50 transition-colors flex items-center justify-center space-x-2">
-                          <Trash2 className="w-4 h-4" />
-                          <span>Clear Cache</span>
-                        </button>
-
-                        <button className="border border-gray-300 text-gray-700 py-3 rounded-lg font-medium hover:bg-gray-50 transition-colors flex items-center justify-center space-x-2">
-                          <FileText className="w-4 h-4" />
-                          <span>Privacy Policy</span>
-                        </button>
-
-                        <button className="border border-gray-300 text-gray-700 py-3 rounded-lg font-medium hover:bg-gray-50 transition-colors flex items-center justify-center space-x-2">
-                          <HelpCircle className="w-4 h-4" />
-                          <span>Help & Support</span>
-                        </button>
-                      </div>
-                    </div>
-
-                    <div className="border-t pt-6">
-                      <h3 className="text-lg font-medium text-gray-900 mb-4">🔄 Account Actions</h3>
-                      <div className="space-y-3">
-                        <button
-                          onClick={resetSettings}
-                          className="w-full border border-orange-300 text-orange-700 py-3 rounded-lg font-medium hover:bg-orange-50 transition-colors"
-                        >
-                          Reset All Settings
-                        </button>
-
-                        <button className="w-full border border-gray-300 text-gray-700 py-3 rounded-lg font-medium hover:bg-gray-50 transition-colors flex items-center justify-center space-x-2">
-                          <LogOut className="w-4 h-4" />
-                          <span>Sign Out</span>
-                        </button>
-                      </div>
-                    </div>
-                  </div>
-                )}
+                  )}
+                </div>
               </div>
             </div>
           </div>

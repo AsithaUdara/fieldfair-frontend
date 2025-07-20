@@ -4,34 +4,36 @@ import React, { useState, useEffect } from 'react';
 import FieldFairSidebar from '@/components/ui/layout/sidebar';
 import { 
   LayoutGrid, 
-  Sparkles,
-  TrendingUp,
-  ShoppingCart,
-  Heart,
-  Star,
-  MapPin,
-  Leaf,
-  Clock,
-  Target,
-  Brain,
   Zap,
-  Eye,
+  Brain,
+  TrendingUp,
+  Star,
+  Heart,
+  ShoppingCart,
+  MessageCircle,
+  Lightbulb,
+  Target,
+  BarChart3,
+  Clock,
+  Calendar,
+  Leaf,
+  Users,
+  Package,
+  MapPin,
   RefreshCw,
   Filter,
-  Settings,
+  Sparkles,
+  Eye,
   ThumbsUp,
   ThumbsDown,
-  Share2,
-  Calendar,
-  DollarSign,
-  Package,
-  Users,
-  Award,
-  AlertCircle,
-  CheckCircle,
-  BarChart3,
-  PieChart,
-  Lightbulb
+  Send,
+  Bot,
+  User,
+  Info,
+  Settings,
+  History,
+  Bookmark,
+  Share2
 } from 'lucide-react';
 
 const AIRecommendationsPage = () => {
@@ -39,192 +41,200 @@ const AIRecommendationsPage = () => {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [isMobile, setIsMobile] = useState(false);
   const [mounted, setMounted] = useState(false);
-  const [activeTab, setActiveTab] = useState('personalized');
-  const [isGenerating, setIsGenerating] = useState(false);
+  const [activeTab, setActiveTab] = useState('recommendations');
+  const [chatMessage, setChatMessage] = useState('');
+  const [chatHistory, setChatHistory] = useState([]);
+  const [isTyping, setIsTyping] = useState(false);
 
-  // Mock user preferences and history for AI
-  const [userProfile] = useState({
-    preferences: {
-      organic: true,
-      local: true,
-      maxDistance: 15,
-      budgetRange: [200, 800],
-      favoriteCategories: ['vegetables', 'fruits', 'herbs'],
-      dietaryRestrictions: ['vegetarian'],
-      shoppingFrequency: 'weekly'
-    },
-    history: {
-      totalOrders: 24,
-      totalSpent: 18500,
-      favoriteProducts: ['Organic Tomatoes', 'Fresh Carrots', 'Green Beans'],
-      favoriteFarmers: ['Ravi Mahathaya', 'Saman Silva'],
-      averageOrderValue: 771,
-      lastOrderDate: '2024-06-25'
-    },
-    aiInsights: {
-      personalityType: 'Health-Conscious Explorer',
-      seasonalPreference: 'Fresh & Seasonal',
-      priceConsciousness: 'Value-Oriented',
-      qualityFocus: 'Premium Organic'
-    }
-  });
-
-  // Mock AI recommendations
-  const [recommendations] = useState({
-    personalized: [
-      {
-        id: 1,
-        type: 'product',
-        title: 'Perfect for Your Organic Preference',
-        confidence: 95,
-        reasoning: 'Based on your consistent preference for organic produce and recent purchases',
-        product: {
-          name: 'Organic Baby Spinach',
-          farmer: 'Kamala Jayawardena',
-          location: 'Kandy',
-          distance: '8.1 km',
-          price: 180,
-          originalPrice: 200,
-          rating: 4.8,
-          image: '🥬',
-          isOrganic: true,
-          discount: 10,
-          inStock: true
-        },
-        whyRecommended: [
-          'Matches your organic preference',
-          'From a highly-rated local farmer',
-          'Currently 10% off',
-          'High in nutrients you value'
-        ],
-        aiTags: ['Personalized', 'Organic', 'Local', 'Discount']
-      },
-      {
-        id: 2,
-        type: 'bundle',
-        title: 'Weekly Essentials Bundle',
-        confidence: 88,
-        reasoning: 'AI-curated bundle based on your weekly shopping pattern',
-        bundle: {
-          name: 'Healthy Weekly Mix',
-          totalPrice: 650,
-          originalPrice: 750,
-          savings: 100,
-          items: [
-            { name: 'Organic Tomatoes', quantity: 2, price: 300, image: '🍅' },
-            { name: 'Fresh Carrots', quantity: 1, price: 250, image: '🥕' },
-            { name: 'Green Lettuce', quantity: 1, price: 100, image: '🥬' }
-          ]
-        },
-        whyRecommended: [
-          'Matches your weekly shopping routine',
-          'Includes your most-purchased items',
-          'Saves you Rs. 100',
-          'All from trusted farmers'
-        ],
-        aiTags: ['Bundle', 'Weekly', 'Savings', 'Personalized']
-      },
-      {
-        id: 3,
-        type: 'farmer',
-        title: 'New Farmer Match',
-        confidence: 82,
-        reasoning: 'This farmer\'s products align with your quality standards and preferences',
-        farmer: {
-          name: 'Priya Wickramasinghe',
-          farm: 'Mountain View Organics',
-          location: 'Nuwara Eliya',
-          distance: '18.2 km',
+  // Mock AI recommendations data
+  const [recommendations, setRecommendations] = useState([
+    {
+      id: 1,
+      type: 'seasonal',
+      title: 'Perfect for Monsoon Season',
+      reason: 'Based on your location and current weather patterns',
+      confidence: 95,
+      products: [
+        {
+          id: 1,
+          name: 'Fresh Green Beans',
+          farmer: 'Nimal Gunasekara',
+          price: 400,
+          unit: 'kg',
+          image: '🫘',
           rating: 4.9,
-          specialties: ['Organic Herbs', 'Mountain Vegetables'],
-          certifications: ['Organic Certified', 'Fair Trade'],
-          newProducts: 5,
-          avatar: 'PW'
+          inSeason: true,
+          distance: '15 km',
+          whyRecommended: 'High in nutrients, perfect for rainy season immunity boost'
         },
-        whyRecommended: [
-          'Specializes in organic herbs you love',
-          'Mountain-grown premium quality',
-          'Fair trade certified',
-          'Recently added 5 new products'
-        ],
-        aiTags: ['New Farmer', 'Organic', 'Premium', 'Herbs']
-      }
-    ],
-    seasonal: [
-      {
-        id: 4,
-        title: 'Peak Season Fresh Picks',
-        season: 'Mid-Summer',
-        products: [
-          { name: 'Ripe Mangoes', farmer: 'Saman Fernando', price: 350, image: '🥭', inSeason: true },
-          { name: 'Fresh Corn', farmer: 'Ruwan Perera', price: 150, image: '🌽', inSeason: true },
-          { name: 'Watermelon', farmer: 'Nimal Silva', price: 120, image: '🍉', inSeason: true }
-        ],
-        benefits: [
-          'Peak freshness and flavor',
-          'Best prices of the year',
-          'Locally available',
-          'Limited time availability'
-        ]
-      }
-    ],
-    trending: [
-      {
-        id: 5,
-        title: 'Popular This Week',
-        trendData: {
-          weeklyGrowth: 45,
-          totalOrders: 234,
-          satisfaction: 4.7
+        {
+          id: 2,
+          name: 'Organic Ginger',
+          farmer: 'Kamala Jayawardena',
+          price: 800,
+          unit: 'kg',
+          image: '🫚',
+          rating: 4.8,
+          inSeason: true,
+          distance: '8 km',
+          whyRecommended: 'Natural immunity booster, locally grown this month'
+        }
+      ]
+    },
+    {
+      id: 2,
+      type: 'health',
+      title: 'Boost Your Immunity',
+      reason: 'AI analysis of your purchase history suggests these health-focused items',
+      confidence: 88,
+      products: [
+        {
+          id: 3,
+          name: 'Premium Organic Turmeric',
+          farmer: 'Ravi Mahathaya',
+          price: 1200,
+          unit: 'kg',
+          image: '🧄',
+          rating: 4.9,
+          inSeason: false,
+          distance: '12 km',
+          whyRecommended: 'High curcumin content, anti-inflammatory properties'
         },
-        products: [
-          { name: 'Dragon Fruit', orders: 89, growth: 67, image: '🐉', price: 450 },
-          { name: 'Passion Fruit', orders: 76, growth: 52, image: '🥭', price: 320 },
-          { name: 'Microgreens', orders: 69, growth: 43, image: '🌱', price: 280 }
-        ]
-      }
-    ],
-    sustainable: [
-      {
-        id: 6,
-        title: 'Eco-Friendly Choices',
-        impact: {
-          carbonSaved: '2.3 kg CO2',
-          waterSaved: '45 liters',
-          packagingReduced: '80%'
+        {
+          id: 4,
+          name: 'Fresh Moringa Leaves',
+          farmer: 'Saman Silva',
+          price: 300,
+          unit: 'bunch',
+          image: '🌿',
+          rating: 4.7,
+          inSeason: true,
+          distance: '20 km',
+          whyRecommended: 'Superfood with 7x vitamin C of oranges'
+        }
+      ]
+    },
+    {
+      id: 3,
+      type: 'trending',
+      title: 'Trending in Your Area',
+      reason: 'Popular among customers with similar preferences',
+      confidence: 82,
+      products: [
+        {
+          id: 5,
+          name: 'Heirloom Cherry Tomatoes',
+          farmer: 'Priyanka Fernando',
+          price: 450,
+          unit: 'kg',
+          image: '🍅',
+          rating: 4.8,
+          inSeason: true,
+          distance: '5 km',
+          whyRecommended: 'Instagram-worthy, perfect for salads and garnishing'
         },
-        products: [
-          { 
-            name: 'Zero-Waste Vegetables', 
-            farmer: 'Green Earth Farm',
-            sustainabilityScore: 98,
-            image: '🥬',
-            price: 200,
-            ecoFeatures: ['Biodegradable packaging', 'Carbon neutral', 'Water efficient']
-          }
-        ]
-      }
-    ]
-  });
+        {
+          id: 6,
+          name: 'Purple Cabbage',
+          farmer: 'Chandana Rathnayake',
+          price: 200,
+          unit: 'kg',
+          image: '🥬',
+          rating: 4.6,
+          inSeason: true,
+          distance: '18 km',
+          whyRecommended: 'Rich in antioxidants, trending in healthy recipes'
+        }
+      ]
+    }
+  ]);
 
-  const tabs = [
-    { id: 'personalized', label: 'For You', icon: Target, count: 3 },
-    { id: 'seasonal', label: 'Seasonal', icon: Calendar, count: 1 },
-    { id: 'trending', label: 'Trending', icon: TrendingUp, count: 1 },
-    { id: 'sustainable', label: 'Eco-Friendly', icon: Leaf, count: 1 }
-  ];
+  // Mock price predictions
+  const [pricePredictions] = useState([
+    {
+      product: 'Tomatoes',
+      currentPrice: 300,
+      predictedPrice: 280,
+      change: -6.7,
+      timeframe: 'Next week',
+      confidence: 87,
+      factors: ['Harvest season peak', 'Increased supply', 'Weather conditions']
+    },
+    {
+      product: 'Onions',
+      currentPrice: 220,
+      predictedPrice: 250,
+      change: +13.6,
+      timeframe: 'Next month',
+      confidence: 78,
+      factors: ['Transport costs', 'Seasonal demand', 'Export trends']
+    },
+    {
+      product: 'Green Beans',
+      currentPrice: 400,
+      predictedPrice: 420,
+      change: +5.0,
+      timeframe: 'Next 2 weeks',
+      confidence: 82,
+      factors: ['Limited harvest', 'High demand', 'Weather dependency']
+    }
+  ]);
 
+  // Mock insights
+  const [insights] = useState([
+    {
+      id: 1,
+      type: 'spending',
+      title: 'Your Monthly Spending Pattern',
+      description: 'You typically spend 23% more on organic vegetables during monsoon season',
+      action: 'Consider bulk buying organic roots vegetables for better savings',
+      icon: TrendingUp,
+      color: 'emerald'
+    },
+    {
+      id: 2,
+      type: 'nutrition',
+      title: 'Nutritional Balance Alert',
+      description: 'Your recent purchases are low in Vitamin C sources',
+      action: 'Add citrus fruits or leafy greens to your next order',
+      icon: Heart,
+      color: 'red'
+    },
+    {
+      id: 3,
+      type: 'sustainability',
+      title: 'Carbon Footprint Achievement',
+      description: 'Your local purchases reduced carbon footprint by 15% this month',
+      action: 'Continue supporting farmers within 20km radius',
+      icon: Leaf,
+      color: 'green'
+    }
+  ]);
+
+  // Handle client-side only logic to prevent hydration errors
   useEffect(() => {
     setMounted(true);
     
     const checkMobile = () => {
       setIsMobile(window.innerWidth < 1024);
+      if (window.innerWidth < 1024) {
+        setSidebarCollapsed(false);
+      }
     };
     
     checkMobile();
     window.addEventListener('resize', checkMobile);
     
     return () => window.removeEventListener('resize', checkMobile);
+
+    // Initialize chat with welcome message
+    setChatHistory([
+      {
+        type: 'bot',
+        message: "Hi! I'm your AI farming assistant. I can help you with product recommendations, price predictions, and agricultural insights. What would you like to know?",
+        timestamp: new Date().toLocaleTimeString()
+      }
+    ]);
   }, []);
 
   if (!mounted) {
@@ -238,32 +248,65 @@ const AIRecommendationsPage = () => {
     );
   }
 
-  const generateNewRecommendations = () => {
-    setIsGenerating(true);
-    // Simulate AI recommendation generation
+  const sendChatMessage = async () => {
+    if (!chatMessage.trim()) return;
+
+    const userMessage = {
+      type: 'user',
+      message: chatMessage,
+      timestamp: new Date().toLocaleTimeString()
+    };
+
+    setChatHistory(prev => [...prev, userMessage]);
+    setChatMessage('');
+    setIsTyping(true);
+
+    // Simulate AI response
     setTimeout(() => {
-      setIsGenerating(false);
-      console.log('Generated new recommendations');
-    }, 2000);
+      const botResponse = {
+        type: 'bot',
+        message: generateAIResponse(chatMessage),
+        timestamp: new Date().toLocaleTimeString()
+      };
+      setChatHistory(prev => [...prev, botResponse]);
+      setIsTyping(false);
+    }, 1500);
   };
 
-  const likeRecommendation = (id: number) => {
-    console.log('Liked recommendation:', id);
-    // In real app, send feedback to AI system
+  const generateAIResponse = (userMessage) => {
+    const lowerMessage = userMessage.toLowerCase();
+    
+    if (lowerMessage.includes('price') || lowerMessage.includes('cost')) {
+      return "Based on current market trends, tomato prices are expected to drop by 6.7% next week due to peak harvest season. Would you like specific price predictions for other vegetables?";
+    } else if (lowerMessage.includes('organic') || lowerMessage.includes('healthy')) {
+      return "For optimal health benefits, I recommend organic turmeric (anti-inflammatory), moringa leaves (vitamin C), and ginger (immunity boost). These are currently in season and available from verified organic farmers in your area.";
+    } else if (lowerMessage.includes('season') || lowerMessage.includes('weather')) {
+      return "This monsoon season is perfect for green beans, ginger, and leafy greens. These crops thrive in current weather conditions and offer maximum nutritional value. Would you like farm locations for these products?";
+    } else if (lowerMessage.includes('farmer') || lowerMessage.includes('local')) {
+      return "I found 12 verified farmers within 25km of your location. Top rated: Ravi Mahathaya (4.8★) for organic vegetables, Nimal Gunasekara (4.9★) for highland produce. Would you like their contact details?";
+    } else {
+      return "I understand you're looking for farming insights. I can help with price predictions, seasonal recommendations, organic certifications, local farmer connections, and nutritional advice. What specific area interests you most?";
+    }
   };
 
-  const dislikeRecommendation = (id: number) => {
-    console.log('Disliked recommendation:', id);
-    // In real app, send feedback to AI system
+  const addToCart = (product) => {
+    console.log('Add to cart:', product.name);
   };
 
-  const addToCart = (productId: number) => {
-    console.log('Adding to cart:', productId);
+  const likeRecommendation = (recommendationId) => {
+    console.log('Liked recommendation:', recommendationId);
   };
 
-  const addToFavorites = (productId: number) => {
-    console.log('Adding to favorites:', productId);
+  const refreshRecommendations = () => {
+    console.log('Refreshing recommendations...');
   };
+
+  const tabs = [
+    { id: 'recommendations', label: 'Smart Recommendations', icon: Target },
+    { id: 'predictions', label: 'Price Predictions', icon: TrendingUp },
+    { id: 'insights', label: 'Personal Insights', icon: Lightbulb },
+    { id: 'chat', label: 'AI Assistant', icon: MessageCircle }
+  ];
 
   return (
     <div className="flex h-screen bg-white overflow-hidden">
@@ -277,94 +320,57 @@ const AIRecommendationsPage = () => {
       />
 
       <div className={`flex-1 flex flex-col bg-gray-50 transition-all duration-300 ${
-        isMobile ? 'ml-0' : (sidebarCollapsed ? 'ml-16' : 'ml-64')
+        isMobile ? 'ml-0' : (sidebarCollapsed ? 'ml-20' : 'ml-72')
       }`}>
         {/* Header */}
-        <header className="bg-white border-b border-gray-200 px-6 py-4">
+        <header className="bg-white border-b border-gray-200 px-4 lg:px-6 py-4">
           <div className="flex items-center justify-between">
-            <div className="flex items-center space-x-4">
-              <button 
-                onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
-                className="lg:hidden p-2 rounded-lg text-gray-600 hover:bg-gray-100"
-              >
-                <LayoutGrid className="w-6 h-6" />
-              </button>
-              <div>
-                <div className="flex items-center space-x-3">
-                  <div className="w-10 h-10 bg-gradient-to-r from-purple-500 to-blue-500 rounded-lg flex items-center justify-center">
-                    <Sparkles className="w-6 h-6 text-white" />
-                  </div>
-                  <div>
-                    <h1 className="text-2xl font-bold text-gray-900">AI Recommendations</h1>
-                    <p className="text-sm text-gray-600 mt-1">Personalized suggestions powered by smart algorithms</p>
+            <div>
+              <div className="flex items-center space-x-4">
+                <button 
+                  onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
+                  className="lg:hidden p-2 rounded-lg text-gray-600 hover:bg-gray-100 mr-2"
+                >
+                  <LayoutGrid className="w-6 h-6" />
+                </button>
+                <div>
+                  <div className="flex items-center space-x-3">
+                    <div className="w-10 h-10 bg-gradient-to-r from-purple-500 to-blue-500 rounded-xl flex items-center justify-center">
+                      <Brain className="w-6 h-6 text-white" />
+                    </div>
+                    <div>
+                      <h1 className="text-xl lg:text-2xl font-bold text-gray-900">AI Assistant</h1>
+                      <p className="text-sm text-gray-600 mt-1">Personalized recommendations powered by artificial intelligence</p>
+                    </div>
                   </div>
                 </div>
               </div>
             </div>
             
-            <div className="flex items-center space-x-4">
-              <button
-                onClick={generateNewRecommendations}
-                disabled={isGenerating}
-                className="flex items-center space-x-2 border border-gray-300 text-gray-700 px-4 py-2 rounded-lg text-sm font-medium hover:bg-gray-50 transition-colors disabled:opacity-50"
+            <div className="flex items-center space-x-2 lg:space-x-4">
+              <button 
+                onClick={refreshRecommendations}
+                className="hidden md:flex items-center bg-purple-50 border border-purple-200 rounded-lg px-4 py-2 text-purple-700 hover:bg-purple-100 transition-colors"
               >
-                <RefreshCw className={`w-4 h-4 ${isGenerating ? 'animate-spin' : ''}`} />
-                <span>{isGenerating ? 'Generating...' : 'Refresh'}</span>
-              </button>
-              
-              <button className="flex items-center space-x-2 border border-gray-300 text-gray-700 px-4 py-2 rounded-lg text-sm font-medium hover:bg-gray-50 transition-colors">
-                <Settings className="w-4 h-4" />
-                <span>Preferences</span>
+                <RefreshCw className="w-4 h-4 mr-2" />
+                Refresh AI
               </button>
             </div>
           </div>
         </header>
 
-        <main className="flex-1 overflow-auto p-6">
-          <div className="max-w-7xl mx-auto">
-            {/* AI Insights Banner */}
-            <div className="bg-gradient-to-r from-purple-500 to-blue-500 rounded-xl p-6 mb-8 text-white">
-              <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
-                <div className="md:col-span-2">
-                  <h2 className="text-xl font-bold mb-2">Your AI Profile</h2>
-                  <p className="text-purple-100 mb-4">
-                    Based on your shopping patterns, you're a <strong>{userProfile.aiInsights.personalityType}</strong>
-                  </p>
-                  <div className="flex flex-wrap gap-2">
-                    <span className="bg-white/20 px-3 py-1 rounded-full text-sm">{userProfile.aiInsights.seasonalPreference}</span>
-                    <span className="bg-white/20 px-3 py-1 rounded-full text-sm">{userProfile.aiInsights.priceConsciousness}</span>
-                    <span className="bg-white/20 px-3 py-1 rounded-full text-sm">{userProfile.aiInsights.qualityFocus}</span>
-                  </div>
-                </div>
-                
-                <div className="grid grid-cols-2 gap-4">
-                  <div className="text-center">
-                    <div className="text-2xl font-bold">{userProfile.history.totalOrders}</div>
-                    <div className="text-purple-200 text-sm">Total Orders</div>
-                  </div>
-                  <div className="text-center">
-                    <div className="text-2xl font-bold">Rs. {userProfile.history.averageOrderValue}</div>
-                    <div className="text-purple-200 text-sm">Avg. Order</div>
-                  </div>
-                </div>
-                
-                <div className="flex items-center justify-center">
-                  <div className="w-16 h-16 bg-white/20 rounded-full flex items-center justify-center">
-                    <Brain className="w-8 h-8" />
-                  </div>
-                </div>
-              </div>
-            </div>
-
+        {/* Main Content */}
+        <main className="flex-1 overflow-auto p-4 lg:p-6">
+          <div className="max-w-6xl mx-auto">
             {/* Tabs */}
             <div className="bg-white rounded-xl border border-gray-200 mb-6">
               <div className="border-b border-gray-200">
-                <nav className="flex space-x-8 px-6">
+                <nav className="flex space-x-8 px-6 overflow-x-auto">
                   {tabs.map((tab) => (
                     <button
                       key={tab.id}
                       onClick={() => setActiveTab(tab.id)}
-                      className={`py-4 text-sm font-medium border-b-2 transition-colors flex items-center space-x-2 ${
+                      className={`flex items-center space-x-2 py-4 border-b-2 font-medium text-sm transition-colors whitespace-nowrap ${
                         activeTab === tab.id
                           ? 'border-purple-500 text-purple-600'
                           : 'border-transparent text-gray-500 hover:text-gray-700'
@@ -372,353 +378,293 @@ const AIRecommendationsPage = () => {
                     >
                       <tab.icon className="w-4 h-4" />
                       <span>{tab.label}</span>
-                      <span className="bg-gray-100 text-gray-600 text-xs px-2 py-1 rounded-full">
-                        {tab.count}
-                      </span>
                     </button>
                   ))}
                 </nav>
               </div>
+            </div>
 
-              <div className="p-6">
-                {/* Personalized Recommendations */}
-                {activeTab === 'personalized' && (
-                  <div className="space-y-6">
-                    {recommendations.personalized.map((rec) => (
-                      <div key={rec.id} className="border border-gray-200 rounded-lg p-6">
-                        <div className="flex items-start justify-between mb-4">
-                          <div className="flex-1">
-                            <div className="flex items-center space-x-3 mb-2">
-                              <h3 className="text-lg font-semibold text-gray-900">{rec.title}</h3>
-                              <div className="flex items-center space-x-1 bg-green-100 text-green-800 px-2 py-1 rounded-full text-sm">
-                                <Zap className="w-3 h-3" />
-                                <span>{rec.confidence}% match</span>
+            {/* Smart Recommendations Tab */}
+            {activeTab === 'recommendations' && (
+              <div className="space-y-6">
+                <div className="bg-gradient-to-r from-purple-500 to-blue-500 text-white p-6 rounded-xl">
+                  <div className="flex items-center space-x-3 mb-3">
+                    <Sparkles className="w-6 h-6" />
+                    <h2 className="text-xl font-bold">AI-Powered Recommendations</h2>
+                  </div>
+                  <p className="opacity-90">Our AI analyzes your preferences, seasonal trends, and local availability to suggest the best products for you.</p>
+                </div>
+
+                {recommendations.map((rec) => (
+                  <div key={rec.id} className="bg-white rounded-xl border border-gray-200 p-6">
+                    <div className="flex items-center justify-between mb-4">
+                      <div>
+                        <h3 className="text-lg font-semibold text-gray-900">{rec.title}</h3>
+                        <p className="text-sm text-gray-600">{rec.reason}</p>
+                      </div>
+                      <div className="flex items-center space-x-2">
+                        <div className="text-sm text-gray-500">
+                          {rec.confidence}% confidence
+                        </div>
+                        <button
+                          onClick={() => likeRecommendation(rec.id)}
+                          className="p-2 text-gray-400 hover:text-purple-600 transition-colors"
+                        >
+                          <ThumbsUp className="w-4 h-4" />
+                        </button>
+                      </div>
+                    </div>
+
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      {rec.products.map((product) => (
+                        <div key={product.id} className="border border-gray-200 rounded-lg p-4 hover:shadow-md transition-shadow">
+                          <div className="flex items-center space-x-4 mb-3">
+                            <div className="w-12 h-12 bg-gray-100 rounded-lg flex items-center justify-center text-2xl">
+                              {product.image}
+                            </div>
+                            <div className="flex-1">
+                              <h4 className="font-semibold text-gray-900">{product.name}</h4>
+                              <div className="text-sm text-gray-600">
+                                {product.farmer} • {product.distance}
+                              </div>
+                              <div className="flex items-center space-x-2 mt-1">
+                                <Star className="w-3 h-3 text-yellow-400 fill-current" />
+                                <span className="text-sm text-gray-600">{product.rating}</span>
+                                {product.inSeason && (
+                                  <span className="text-xs bg-green-100 text-green-800 px-2 py-0.5 rounded-full">In Season</span>
+                                )}
                               </div>
                             </div>
-                            <p className="text-gray-600 text-sm mb-3">{rec.reasoning}</p>
-                            
-                            <div className="flex flex-wrap gap-2 mb-4">
-                              {rec.aiTags.map((tag, index) => (
-                                <span key={index} className="bg-purple-100 text-purple-800 px-2 py-1 rounded-full text-xs">
-                                  {tag}
-                                </span>
-                              ))}
+                            <div className="text-right">
+                              <div className="text-lg font-bold text-gray-900">Rs. {product.price}</div>
+                              <div className="text-sm text-gray-500">per {product.unit}</div>
                             </div>
+                          </div>
+                          
+                          <div className="mb-3">
+                            <div className="text-xs text-purple-600 font-medium mb-1">AI Insight:</div>
+                            <div className="text-sm text-gray-600">{product.whyRecommended}</div>
                           </div>
                           
                           <div className="flex items-center space-x-2">
                             <button
-                              onClick={() => likeRecommendation(rec.id)}
-                              className="p-2 text-gray-400 hover:text-green-600 transition-colors"
+                              onClick={() => addToCart(product)}
+                              className="flex-1 bg-purple-600 text-white py-2 px-4 rounded-lg text-sm font-medium hover:bg-purple-700 transition-colors"
                             >
-                              <ThumbsUp className="w-4 h-4" />
+                              Add to Cart
                             </button>
-                            <button
-                              onClick={() => dislikeRecommendation(rec.id)}
-                              className="p-2 text-gray-400 hover:text-red-600 transition-colors"
-                            >
-                              <ThumbsDown className="w-4 h-4" />
+                            <button className="p-2 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors">
+                              <Eye className="w-4 h-4 text-gray-600" />
+                            </button>
+                            <button className="p-2 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors">
+                              <Heart className="w-4 h-4 text-gray-600" />
                             </button>
                           </div>
                         </div>
-
-                        {/* Product Recommendation */}
-                        {rec.type === 'product' && rec.product && (
-                          <div className="bg-gray-50 rounded-lg p-4">
-                            <div className="flex items-center space-x-4">
-                              <div className="w-16 h-16 bg-gray-100 rounded-lg flex items-center justify-center">
-                                <span className="text-2xl">{rec.product.image}</span>
-                              </div>
-                              
-                              <div className="flex-1">
-                                <div className="flex items-start justify-between">
-                                  <div>
-                                    <h4 className="font-semibold text-gray-900">{rec.product.name}</h4>
-                                    <div className="flex items-center space-x-2 text-sm text-gray-600">
-                                      <span>{rec.product.farmer}</span>
-                                      <span>•</span>
-                                      <span>{rec.product.location}</span>
-                                      <span>•</span>
-                                      <span>{rec.product.distance}</span>
-                                    </div>
-                                    <div className="flex items-center space-x-2 mt-1">
-                                      <div className="flex items-center space-x-1">
-                                        <Star className="w-4 h-4 text-yellow-400 fill-current" />
-                                        <span className="text-sm font-medium">{rec.product.rating}</span>
-                                      </div>
-                                      {rec.product.isOrganic && (
-                                        <span className="bg-green-100 text-green-800 px-2 py-1 rounded-full text-xs flex items-center">
-                                          <Leaf className="w-3 h-3 mr-1" />
-                                          Organic
-                                        </span>
-                                      )}
-                                    </div>
-                                  </div>
-                                  
-                                  <div className="text-right">
-                                    <div className="text-lg font-bold text-emerald-600">Rs. {rec.product.price}</div>
-                                    {rec.product.originalPrice > rec.product.price && (
-                                      <div className="text-sm text-gray-500 line-through">Rs. {rec.product.originalPrice}</div>
-                                    )}
-                                  </div>
-                                </div>
-                              </div>
-                            </div>
-                            
-                            <div className="mt-4 grid grid-cols-2 gap-3">
-                              <div>
-                                <div className="text-xs font-medium text-gray-700 mb-2">Why recommended:</div>
-                                <ul className="text-xs text-gray-600 space-y-1">
-                                  {rec.whyRecommended.map((reason, index) => (
-                                    <li key={index} className="flex items-center space-x-1">
-                                      <CheckCircle className="w-3 h-3 text-green-500" />
-                                      <span>{reason}</span>
-                                    </li>
-                                  ))}
-                                </ul>
-                              </div>
-                              
-                              <div className="flex items-end space-x-2">
-                                <button
-                                  onClick={() => addToFavorites(rec.product!.id)}
-                                  className="flex-1 border border-gray-300 text-gray-700 py-2 px-3 rounded-lg text-sm hover:bg-gray-50 transition-colors flex items-center justify-center"
-                                >
-                                  <Heart className="w-4 h-4 mr-1" />
-                                  Save
-                                </button>
-                                <button
-                                  onClick={() => addToCart(rec.product!.id)}
-                                  className="flex-1 bg-emerald-600 text-white py-2 px-3 rounded-lg text-sm hover:bg-emerald-700 transition-colors flex items-center justify-center"
-                                >
-                                  <ShoppingCart className="w-4 h-4 mr-1" />
-                                  Add to Cart
-                                </button>
-                              </div>
-                            </div>
-                          </div>
-                        )}
-
-                        {/* Bundle Recommendation */}
-                        {rec.type === 'bundle' && rec.bundle && (
-                          <div className="bg-emerald-50 border border-emerald-200 rounded-lg p-4">
-                            <div className="flex items-center justify-between mb-4">
-                              <h4 className="font-semibold text-gray-900">{rec.bundle.name}</h4>
-                              <div className="text-right">
-                                <div className="text-lg font-bold text-emerald-600">Rs. {rec.bundle.totalPrice}</div>
-                                <div className="text-sm text-gray-500 line-through">Rs. {rec.bundle.originalPrice}</div>
-                                <div className="text-xs text-green-600 font-medium">Save Rs. {rec.bundle.savings}</div>
-                              </div>
-                            </div>
-                            
-                            <div className="grid grid-cols-3 gap-3 mb-4">
-                              {rec.bundle.items.map((item, index) => (
-                                <div key={index} className="text-center">
-                                  <div className="w-12 h-12 bg-white rounded-lg flex items-center justify-center mx-auto mb-2">
-                                    <span className="text-xl">{item.image}</span>
-                                  </div>
-                                  <div className="text-xs font-medium text-gray-900">{item.name}</div>
-                                  <div className="text-xs text-gray-600">{item.quantity} kg</div>
-                                </div>
-                              ))}
-                            </div>
-                            
-                            <button className="w-full bg-emerald-600 text-white py-2 rounded-lg font-medium hover:bg-emerald-700 transition-colors">
-                              Add Bundle to Cart
-                            </button>
-                          </div>
-                        )}
-
-                        {/* Farmer Recommendation */}
-                        {rec.type === 'farmer' && rec.farmer && (
-                          <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
-                            <div className="flex items-center space-x-4">
-                              <div className="w-16 h-16 bg-blue-100 rounded-full flex items-center justify-center">
-                                <span className="font-bold text-blue-700">{rec.farmer.avatar}</span>
-                              </div>
-                              
-                              <div className="flex-1">
-                                <h4 className="font-semibold text-gray-900">{rec.farmer.name}</h4>
-                                <p className="text-sm text-gray-600">{rec.farmer.farm}</p>
-                                <div className="flex items-center space-x-4 mt-2">
-                                  <div className="flex items-center space-x-1">
-                                    <Star className="w-4 h-4 text-yellow-400 fill-current" />
-                                    <span className="text-sm font-medium">{rec.farmer.rating}</span>
-                                  </div>
-                                  <div className="flex items-center space-x-1">
-                                    <MapPin className="w-4 h-4 text-gray-500" />
-                                    <span className="text-sm text-gray-600">{rec.farmer.distance}</span>
-                                  </div>
-                                  <span className="bg-green-100 text-green-800 px-2 py-1 rounded-full text-xs">
-                                    {rec.farmer.newProducts} new products
-                                  </span>
-                                </div>
-                              </div>
-                              
-                              <button className="bg-blue-600 text-white px-4 py-2 rounded-lg text-sm hover:bg-blue-700 transition-colors">
-                                <Eye className="w-4 h-4 mr-1 inline" />
-                                View Farm
-                              </button>
-                            </div>
-                          </div>
-                        )}
-                      </div>
-                    ))}
+                      ))}
+                    </div>
                   </div>
-                )}
+                ))}
+              </div>
+            )}
 
-                {/* Seasonal Recommendations */}
-                {activeTab === 'seasonal' && (
-                  <div className="space-y-6">
-                    {recommendations.seasonal.map((rec) => (
-                      <div key={rec.id} className="border border-gray-200 rounded-lg p-6">
-                        <div className="flex items-center space-x-2 mb-4">
-                          <Calendar className="w-5 h-5 text-orange-500" />
-                          <h3 className="text-lg font-semibold text-gray-900">{rec.title}</h3>
-                          <span className="bg-orange-100 text-orange-800 px-2 py-1 rounded-full text-sm">
-                            {rec.season}
+            {/* Price Predictions Tab */}
+            {activeTab === 'predictions' && (
+              <div className="space-y-6">
+                <div className="bg-gradient-to-r from-green-500 to-emerald-500 text-white p-6 rounded-xl">
+                  <div className="flex items-center space-x-3 mb-3">
+                    <TrendingUp className="w-6 h-6" />
+                    <h2 className="text-xl font-bold">Smart Price Predictions</h2>
+                  </div>
+                  <p className="opacity-90">AI-powered market analysis to predict future prices and help you make informed purchasing decisions.</p>
+                </div>
+
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                  {pricePredictions.map((prediction, index) => (
+                    <div key={index} className="bg-white rounded-xl border border-gray-200 p-6">
+                      <div className="flex items-center justify-between mb-4">
+                        <h3 className="text-lg font-semibold text-gray-900">{prediction.product}</h3>
+                        <div className={`px-3 py-1 rounded-full text-sm font-medium ${
+                          prediction.change > 0 
+                            ? 'bg-red-100 text-red-800' 
+                            : 'bg-green-100 text-green-800'
+                        }`}>
+                          {prediction.change > 0 ? '+' : ''}{prediction.change}%
+                        </div>
+                      </div>
+
+                      <div className="space-y-3 mb-4">
+                        <div className="flex items-center justify-between">
+                          <span className="text-sm text-gray-600">Current Price</span>
+                          <span className="font-semibold text-gray-900">Rs. {prediction.currentPrice}</span>
+                        </div>
+                        <div className="flex items-center justify-between">
+                          <span className="text-sm text-gray-600">Predicted Price</span>
+                          <span className={`font-semibold ${
+                            prediction.change > 0 ? 'text-red-600' : 'text-green-600'
+                          }`}>
+                            Rs. {prediction.predictedPrice}
                           </span>
                         </div>
-                        
-                        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
-                          {rec.products.map((product, index) => (
-                            <div key={index} className="bg-orange-50 rounded-lg p-4 text-center">
-                              <div className="w-16 h-16 bg-white rounded-lg flex items-center justify-center mx-auto mb-3">
-                                <span className="text-3xl">{product.image}</span>
-                              </div>
-                              <h4 className="font-medium text-gray-900">{product.name}</h4>
-                              <p className="text-sm text-gray-600">{product.farmer}</p>
-                              <p className="text-lg font-bold text-orange-600 mt-2">Rs. {product.price}</p>
-                              {product.inSeason && (
-                                <span className="inline-block bg-green-100 text-green-800 px-2 py-1 rounded-full text-xs mt-2">
-                                  Peak Season
-                                </span>
-                              )}
-                            </div>
-                          ))}
+                        <div className="flex items-center justify-between">
+                          <span className="text-sm text-gray-600">Timeframe</span>
+                          <span className="font-medium text-gray-900">{prediction.timeframe}</span>
                         </div>
-                        
-                        <div className="bg-orange-50 rounded-lg p-4">
-                          <h4 className="font-medium text-gray-900 mb-2">Seasonal Benefits:</h4>
-                          <div className="grid grid-cols-2 gap-2">
-                            {rec.benefits.map((benefit, index) => (
-                              <div key={index} className="flex items-center space-x-2 text-sm text-gray-600">
-                                <CheckCircle className="w-4 h-4 text-green-500" />
-                                <span>{benefit}</span>
-                              </div>
-                            ))}
-                          </div>
+                        <div className="flex items-center justify-between">
+                          <span className="text-sm text-gray-600">Confidence</span>
+                          <span className="font-medium text-purple-600">{prediction.confidence}%</span>
                         </div>
                       </div>
-                    ))}
-                  </div>
-                )}
 
-                {/* Trending Recommendations */}
-                {activeTab === 'trending' && (
-                  <div className="space-y-6">
-                    {recommendations.trending.map((rec) => (
-                      <div key={rec.id} className="border border-gray-200 rounded-lg p-6">
-                        <div className="flex items-center space-x-2 mb-4">
-                          <TrendingUp className="w-5 h-5 text-red-500" />
-                          <h3 className="text-lg font-semibold text-gray-900">{rec.title}</h3>
-                        </div>
-                        
-                        <div className="grid grid-cols-3 gap-4 mb-6">
-                          <div className="bg-red-50 rounded-lg p-3 text-center">
-                            <div className="text-2xl font-bold text-red-600">+{rec.trendData.weeklyGrowth}%</div>
-                            <div className="text-sm text-gray-600">Weekly Growth</div>
-                          </div>
-                          <div className="bg-blue-50 rounded-lg p-3 text-center">
-                            <div className="text-2xl font-bold text-blue-600">{rec.trendData.totalOrders}</div>
-                            <div className="text-sm text-gray-600">Orders This Week</div>
-                          </div>
-                          <div className="bg-green-50 rounded-lg p-3 text-center">
-                            <div className="text-2xl font-bold text-green-600">{rec.trendData.satisfaction}</div>
-                            <div className="text-sm text-gray-600">Satisfaction</div>
-                          </div>
-                        </div>
-                        
-                        <div className="space-y-3">
-                          {rec.products.map((product, index) => (
-                            <div key={index} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
-                              <div className="flex items-center space-x-3">
-                                <span className="text-2xl">{product.image}</span>
-                                <div>
-                                  <div className="font-medium text-gray-900">{product.name}</div>
-                                  <div className="text-sm text-gray-600">{product.orders} orders this week</div>
-                                </div>
-                              </div>
-                              <div className="text-right">
-                                <div className="font-bold text-emerald-600">Rs. {product.price}</div>
-                                <div className="text-sm text-red-600">+{product.growth}% growth</div>
-                              </div>
+                      <div className="border-t border-gray-200 pt-4">
+                        <div className="text-sm text-gray-600 mb-2">Key Factors:</div>
+                        <div className="space-y-1">
+                          {prediction.factors.map((factor, idx) => (
+                            <div key={idx} className="text-xs text-gray-500 flex items-center">
+                              <div className="w-1 h-1 bg-gray-400 rounded-full mr-2"></div>
+                              {factor}
                             </div>
                           ))}
                         </div>
                       </div>
-                    ))}
-                  </div>
-                )}
 
-                {/* Sustainable Recommendations */}
-                {activeTab === 'sustainable' && (
-                  <div className="space-y-6">
-                    {recommendations.sustainable.map((rec) => (
-                      <div key={rec.id} className="border border-gray-200 rounded-lg p-6">
-                        <div className="flex items-center space-x-2 mb-4">
-                          <Leaf className="w-5 h-5 text-green-500" />
-                          <h3 className="text-lg font-semibold text-gray-900">{rec.title}</h3>
-                        </div>
-                        
-                        <div className="grid grid-cols-3 gap-4 mb-6">
-                          <div className="bg-green-50 rounded-lg p-3 text-center">
-                            <div className="text-lg font-bold text-green-600">{rec.impact.carbonSaved}</div>
-                            <div className="text-sm text-gray-600">CO₂ Saved</div>
-                          </div>
-                          <div className="bg-blue-50 rounded-lg p-3 text-center">
-                            <div className="text-lg font-bold text-blue-600">{rec.impact.waterSaved}</div>
-                            <div className="text-sm text-gray-600">Water Saved</div>
-                          </div>
-                          <div className="bg-purple-50 rounded-lg p-3 text-center">
-                            <div className="text-lg font-bold text-purple-600">{rec.impact.packagingReduced}</div>
-                            <div className="text-sm text-gray-600">Less Packaging</div>
-                          </div>
-                        </div>
-                        
-                        {rec.products.map((product, index) => (
-                          <div key={index} className="bg-green-50 border border-green-200 rounded-lg p-4">
-                            <div className="flex items-center justify-between mb-3">
-                              <div className="flex items-center space-x-3">
-                                <span className="text-2xl">{product.image}</span>
-                                <div>
-                                  <div className="font-medium text-gray-900">{product.name}</div>
-                                  <div className="text-sm text-gray-600">{product.farmer}</div>
-                                  <div className="flex items-center space-x-1 mt-1">
-                                    <Leaf className="w-3 h-3 text-green-500" />
-                                    <span className="text-sm text-green-600">Sustainability Score: {product.sustainabilityScore}/100</span>
-                                  </div>
-                                </div>
-                              </div>
-                              <div className="text-right">
-                                <div className="font-bold text-emerald-600">Rs. {product.price}</div>
-                              </div>
-                            </div>
-                            
-                            <div className="flex flex-wrap gap-2">
-                              {product.ecoFeatures.map((feature, idx) => (
-                                <span key={idx} className="bg-green-100 text-green-800 px-2 py-1 rounded-full text-xs">
-                                  {feature}
-                                </span>
-                              ))}
-                            </div>
-                          </div>
-                        ))}
-                      </div>
-                    ))}
-                  </div>
-                )}
+                      <button className={`w-full mt-4 py-2 px-4 rounded-lg text-sm font-medium transition-colors ${
+                        prediction.change < 0
+                          ? 'bg-green-600 text-white hover:bg-green-700'
+                          : 'bg-yellow-100 text-yellow-800 hover:bg-yellow-200'
+                      }`}>
+                        {prediction.change < 0 ? 'Good Time to Buy' : 'Consider Waiting'}
+                      </button>
+                    </div>
+                  ))}
+                </div>
               </div>
-            </div>
+            )}
+
+            {/* Personal Insights Tab */}
+            {activeTab === 'insights' && (
+              <div className="space-y-6">
+                <div className="bg-gradient-to-r from-orange-500 to-red-500 text-white p-6 rounded-xl">
+                  <div className="flex items-center space-x-3 mb-3">
+                    <Lightbulb className="w-6 h-6" />
+                    <h2 className="text-xl font-bold">Personal Insights</h2>
+                  </div>
+                  <p className="opacity-90">Personalized insights based on your shopping patterns, nutrition needs, and sustainability goals.</p>
+                </div>
+
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                  {insights.map((insight) => {
+                    const IconComponent = insight.icon;
+                    return (
+                      <div key={insight.id} className="bg-white rounded-xl border border-gray-200 p-6">
+                        <div className={`w-12 h-12 bg-${insight.color}-100 rounded-lg flex items-center justify-center mb-4`}>
+                          <IconComponent className={`w-6 h-6 text-${insight.color}-600`} />
+                        </div>
+                        
+                        <h3 className="text-lg font-semibold text-gray-900 mb-2">{insight.title}</h3>
+                        <p className="text-sm text-gray-600 mb-4">{insight.description}</p>
+                        
+                        <div className={`p-3 bg-${insight.color}-50 rounded-lg border border-${insight.color}-200`}>
+                          <div className="text-xs text-gray-600 mb-1">Recommended Action:</div>
+                          <div className={`text-sm font-medium text-${insight.color}-800`}>{insight.action}</div>
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+
+                {/* Monthly Summary */}
+                <div className="bg-white rounded-xl border border-gray-200 p-6">
+                  <h3 className="text-lg font-semibold text-gray-900 mb-4">This Month's Summary</h3>
+                  <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+                    <div className="text-center p-4 bg-purple-50 rounded-lg">
+                      <div className="text-2xl font-bold text-purple-600">Rs. 2,340</div>
+                      <div className="text-sm text-gray-600">Total Spent</div>
+                    </div>
+                    <div className="text-center p-4 bg-green-50 rounded-lg">
+                      <div className="text-2xl font-bold text-green-600">87%</div>
+                      <div className="text-sm text-gray-600">Local Products</div>
+                    </div>
+                    <div className="text-center p-4 bg-blue-50 rounded-lg">
+                      <div className="text-2xl font-bold text-blue-600">15</div>
+                      <div className="text-sm text-gray-600">Different Farmers</div>
+                    </div>
+                    <div className="text-center p-4 bg-orange-50 rounded-lg">
+                      <div className="text-2xl font-bold text-orange-600">-2.3kg</div>
+                      <div className="text-sm text-gray-600">CO2 Reduced</div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {/* AI Chat Tab */}
+            {activeTab === 'chat' && (
+              <div className="bg-white rounded-xl border border-gray-200 h-96 flex flex-col">
+                <div className="p-4 border-b border-gray-200">
+                  <div className="flex items-center space-x-3">
+                    <div className="w-10 h-10 bg-gradient-to-r from-blue-500 to-purple-500 rounded-full flex items-center justify-center">
+                      <Bot className="w-6 h-6 text-white" />
+                    </div>
+                    <div>
+                      <h3 className="font-semibold text-gray-900">FieldFair AI Assistant</h3>
+                      <div className="text-sm text-gray-600">Online • Ready to help</div>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="flex-1 overflow-y-auto p-4 space-y-4">
+                  {chatHistory.map((chat, index) => (
+                    <div key={index} className={`flex ${chat.type === 'user' ? 'justify-end' : 'justify-start'}`}>
+                      <div className={`max-w-xs lg:max-w-md px-4 py-2 rounded-lg ${
+                        chat.type === 'user' 
+                          ? 'bg-purple-600 text-white' 
+                          : 'bg-gray-100 text-gray-900'
+                      }`}>
+                        <div className="text-sm">{chat.message}</div>
+                        <div className={`text-xs mt-1 ${
+                          chat.type === 'user' ? 'text-purple-200' : 'text-gray-500'
+                        }`}>
+                          {chat.timestamp}
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                  
+                  {isTyping && (
+                    <div className="flex justify-start">
+                      <div className="bg-gray-100 text-gray-900 px-4 py-2 rounded-lg">
+                        <div className="flex items-center space-x-1">
+                          <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce"></div>
+                          <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style={{animationDelay: '0.1s'}}></div>
+                          <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style={{animationDelay: '0.2s'}}></div>
+                        </div>
+                      </div>
+                    </div>
+                  )}
+                </div>
+
+                <div className="p-4 border-t border-gray-200">
+                  <div className="flex items-center space-x-2">
+                    <input
+                      type="text"
+                      value={chatMessage}
+                      onChange={(e) => setChatMessage(e.target.value)}
+                      onKeyPress={(e) => e.key === 'Enter' && sendChatMessage()}
+                      placeholder="Ask about prices, seasons, farmers..."
+                      className="flex-1 border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-purple-500"
+                    />
+                    <button
+                      onClick={sendChatMessage}
+                      disabled={!chatMessage.trim()}
+                      className="p-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                    >
+                      <Send className="w-4 h-4" />
+                    </button>
+                  </div>
+                </div>
+              </div>
+            )}
           </div>
         </main>
       </div>
