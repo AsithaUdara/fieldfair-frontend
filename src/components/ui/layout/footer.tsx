@@ -6,15 +6,13 @@ const Footer = () => {
       <div className="max-w-7xl mx-auto px-6 lg:px-8">
         <div className="grid md:grid-cols-4 gap-8">
           <div className="space-y-4">
-            <div className="flex items-center space-x-3">
-              <div className="w-10 h-10 bg-gradient-to-tr from-emerald-500 to-green-600 rounded-xl flex items-center justify-center shadow-lg">
-                <span className="text-white font-bold text-lg">🌾</span>
+              <div className="flex items-center">
+                  <img 
+                      src="/navbar-logo.png" 
+                      alt="FieldFair" 
+                      className="w-20 h-20" 
+                  />
               </div>
-              <div>
-                <h3 className="text-xl font-black">FieldFair</h3>
-                <p className="text-emerald-400 text-xs font-medium">Farm to Table</p>
-              </div>
-            </div>
             <p className="text-gray-400 leading-relaxed">
               Connecting farmers and consumers through transparency, technology, and trust.
             </p>
